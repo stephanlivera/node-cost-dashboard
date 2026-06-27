@@ -144,7 +144,7 @@
       </label>
       <div>
         <label class="text-gray-400 flex items-center gap-1 mb-1">Scenario
-          <span class="tooltip-wrap"><span class="cursor-help">ⓘ</span><span class="tip" id="projScenarioTip">Baseline: historical ~12% storage deflation continues; +25% AI spike 2026–2028 then resumes.</span></span>
+          <span class="tooltip-wrap"><span class="cursor-help">ⓘ</span><span class="tip" id="projScenarioTip">Baseline: 2026 NAND spike in historical data (~$130/TB); sticky through 2028, then ~12%/yr deflation resumes.</span></span>
         </label>
         <select id="projScenario" class="w-full bg-surface border border-gray-600 rounded-lg px-2 py-2">
           <option value="baseline">Baseline (historical deflation continues)</option>
@@ -155,7 +155,7 @@
       </div>
       <div class="space-y-3 border-t border-gray-700 pt-3">
         <p class="text-btc font-semibold flex items-center gap-1">Projection Sliders
-          <span class="tooltip-wrap"><span class="cursor-help text-gray-500">ⓘ</span><span class="tip" id="projAssumptionTip">Storage follows ~13% historical CAGR adjusted for recent AI spike. Hardware mini-PC/RPi deflation ~6%/yr.</span></span>
+          <span class="tooltip-wrap"><span class="cursor-help text-gray-500">ⓘ</span><span class="tip" id="projAssumptionTip">2026 uses ~$130/TB NVMe (~$260/2 TB retail). Projections ease 2027–2028 then resume ~12%/yr deflation. Hardware mini-PC deflation ~6%/yr.</span></span>
         </p>
         <div><label class="text-gray-400">Blockchain growth: <span id="projGrowthVal" class="text-btc font-mono">65</span> GB/yr</label><input type="range" id="projGrowth" min="40" max="120" value="65" class="w-full" /></div>
         <div><label class="text-gray-400">Storage deflation: <span id="projStorageDeflVal" class="text-btc font-mono">-12%</span>/yr</label><input type="range" id="projStorageDefl" min="-20" max="-2" value="-12" class="w-full" /></div>
@@ -169,7 +169,7 @@
       <details class="rounded-lg border border-gray-700">
         <summary class="p-3 cursor-pointer font-semibold text-btc text-xs">Why projections are reliable</summary>
         <div class="px-3 pb-3 text-[11px] text-gray-400 space-y-2 leading-relaxed">
-          <p>Storage $/GB has fallen exponentially for decades — HDD and SSD both averaged ~12–14% annual declines (Backblaze, industry data). Post-AI demand may spike 2026–2028, but manufacturing scale historically resumes deflation.</p>
+          <p>Storage $/GB fell for decades, but consumer NVMe spiked ~2× in 2025–2026 (AI datacenter demand, NAND shortage — TrendForce, Tom's Hardware). The model anchors 2026 at ~$130/TB (~$260/2 TB) and assumes a gradual recovery, then long-run deflation resumes.</p>
           <p>Mini-PCs, ARM boards, and efficient SoCs compound cheaper + lower watts. Internet is flat-to-down in real terms while speeds rise.</p>
           <p><strong class="text-gray-200">Even conservative (pessimistic) assumptions show the node stays trivially affordable forever</strong> — chain growth is linear, tech deflation is exponential.</p>
         </div>
@@ -486,12 +486,13 @@
           <summary class="p-4 cursor-pointer font-semibold text-btc hover:bg-btc/5 rounded-xl">Why It Got Cheaper — FAQ</summary>
           <div class="px-4 pb-4 text-sm text-gray-400 space-y-3">
             <div><strong class="text-gray-200">2009–2011 spare-PC era:</strong> Early nodes reused desktops you already owned — we show ~$50 marginal kit cost, not a $400 laptop purchase. Dedicated hardware pricing kicks in from 2012 as the chain grew.</div>
-            <div><strong class="text-gray-200">HDD price deflation:</strong> $/TB fell from ~$110 (2009) to ~$10 (2026) — a 90%+ drop in storage cost per gigabyte.</div>
+            <div><strong class="text-gray-200">Storage price history:</strong> Bulk HDD $/TB fell from ~$110 (2009) to ~$10 (2026). Consumer NVMe was ~$50–70/TB through 2024–2025, then spiked to ~$130/TB in 2026 — the era shown for new archival builds (auto mode uses SSD from 2018+).</div>
             <div><strong class="text-gray-200">Efficient hardware:</strong> Raspberry Pi 4/5 runs Bitcoin Core with 4–8 GB RAM, replacing $500+ desktops from 2009–2012.</div>
             <div><strong class="text-gray-200">Bandwidth abundance:</strong> Unlimited home internet became standard; node traffic is a tiny fraction of monthly caps after initial sync.</div>
             <div><strong class="text-gray-200">Software optimization:</strong> Compact blocks, assumevalid, and better I/O let Core run on modest hardware while still validating the full chain.</div>
-            <div><strong class="text-gray-200">The catch:</strong> Absolute chain size still grows ~50–60 GB/year. Archival nodes always need more disk — but disk got cheaper faster than the chain grew.</div>
-            <div><strong class="text-gray-200">2031–2040 (projected):</strong> Hardware class stays similar (efficient mini PC / ARM, 16 GB RAM) — bigger change is buying 4–8 TB NVMe instead of 2–4 TB. The cost model assumes continued storage deflation offsets chain growth.</div>
+            <div><strong class="text-gray-200">The 2026 NAND spike:</strong> Consumer 2 TB NVMe jumped from ~$120–150 (2025 lows) to ~$250–300+ in 2026 as AI datacenters absorbed NAND supply. A 2 TB archival build today is mostly the drive, not the mini-PC.</div>
+            <div><strong class="text-gray-200">The catch:</strong> Absolute chain size still grows ~50–65 GB/year. Archival nodes always need more disk — historically $/TB fell faster than the chain grew; the 2026 spike is a temporary reversal.</div>
+            <div><strong class="text-gray-200">2031–2040 (projected):</strong> Hardware class stays similar (efficient mini PC / ARM, 16 GB RAM) — bigger change is buying 4–8 TB NVMe instead of 2–4 TB. Baseline assumes NAND supply recovers and $/TB resumes deflation.</div>
           </div>
         </details>
       </section>
@@ -502,7 +503,7 @@
   <div id="exportToast" class="export-toast" role="status" aria-live="polite"></div>
 
   <footer class="border-t border-gray-700 mt-8 py-6 px-4 text-center text-xs text-gray-500 max-w-[1600px] mx-auto">
-    <p class="mb-2"><strong class="text-btc">Sources & Notes:</strong> Data synthesized from Blockchain.com, YCharts, Backblaze, Bitcoin.org, historical HDD pricing; approximations for illustration — edit JS arrays to tweak.</p>
+    <p class="mb-2"><strong class="text-btc">Sources & Notes:</strong> Data synthesized from Blockchain.com, YCharts, Backblaze, Bitcoin.org, historical HDD/SSD pricing; 2026 NVMe calibrated to ~$250–300/2 TB retail (Tom's Hardware, TrendForce NAND reports, Jun 2026). Approximations for illustration — edit JS arrays to tweak.</p>
     <p>All costs in nominal USD for the selected year. Regional electricity/internet rates are estimates. Not financial advice. Built for Bitcoin educators & hodlers.</p>
   </footer>
 
@@ -520,8 +521,8 @@ const RAW = {
   utxoGB: [0.0001, 0.003, 0.006, 0.032, 0.151, 0.341, 0.645, 1.24, 2.05, 2.9, 3.78, 4.75, 5.87, 6.89, 8.19, 9.7, 11.14, 12.5, 13.8, 15.1, 16.4, 17.7],
   // Bulk external / NAS-grade HDD $/TB (nominal, that year)
   hddPerTB: [110, 95, 80, 60, 50, 42, 35, 30, 28, 25, 22, 18, 16, 15, 13, 12, 11, 10, 9.5, 9, 8.5, 8],
-  // Consumer SATA/NVMe SSD $/TB — much pricier than HDD pre-2020
-  ssdPerTB: [600, 500, 400, 300, 250, 200, 160, 130, 110, 95, 85, 75, 70, 60, 55, 50, 48, 45, 42, 40, 38, 35],
+  // Consumer NVMe $/TB (nominal retail, whole-drive purchase). 2025 ≈ $120–150/2TB lows; 2026 AI/NAND spike ≈ $250–300/2TB mid-tier Gen4 (Tom's Hardware, DropReference, Jun 2026).
+  ssdPerTB: [600, 500, 400, 300, 250, 200, 160, 130, 110, 95, 85, 75, 70, 60, 55, 52, 68, 130, 110, 90, 75, 60],
   // Full node kit: board or mini-PC + PSU + case + boot media + cables (not board MSRP alone)
   // 2009–2011: marginal cost of reusing a PC you already owned (not a new purchase); dedicated hardware from 2012
   basePCCost: [50, 50, 50, 200, 280, 250, 200, 180, 165, 130, 115, 120, 175, 155, 145, 175, 170, 165, 155, 150, 145, 140],
@@ -627,12 +628,12 @@ const HW_RECOMMENDATIONS = [
   { until: 2017, emoji: '🖥️', title: '2015–2017: Budget Desktop / NUC', desc: '80–130 GB chain. Mini PCs and used desktops with 4 GB RAM became the sweet spot. Full archival still affordable.', cost: '~$150–250' },
   { until: 2020, emoji: '🥧', title: '2018–2020: Raspberry Pi 3/4 + External HDD', desc: 'Pi kit (~$95–120: board, PSU, case, SD card) plus a 1–2 TB USB HDD ($40–70 at the time). 180–300 GB chain, but you buy whole drives — not exact-size slices.', cost: '~$150–190' },
   { until: 2023, emoji: '🥧', title: '2021–2023: Raspberry Pi 4/5 + SSD', desc: 'Pi scalping pushed kits to $150–200. SSDs still cost more per TB than HDDs. Realistic archival build: 8 GB Pi + 2 TB SSD/NVMe + accessories.', cost: '~$220–320' },
-  { until: 2030, emoji: '⚡', title: '2024–2030: Pi 5 / N100 Mini PC + 2–4 TB NVMe', desc: '~750 GB–1 TB blocks; buy 2–4 TB NVMe for archival headroom. Pi 5 + NVMe HAT or N100 mini PC (~$150–180) plus $80–160 storage at era prices.', cost: '~$230–380' },
+  { until: 2030, emoji: '⚡', title: '2024–2030: Pi 5 / N100 Mini PC + 2–4 TB NVMe', desc: '~750 GB–1 TB blocks; buy 2–4 TB NVMe for archival headroom. Pi 5 + NVMe HAT or N100 mini PC (~$150–180). Storage spiked in 2026 (~$250–300 for 2 TB NVMe); model assumes gradual recovery toward ~$90–120/2 TB by 2030.', cost: '~$400–480 today · easing to ~$250–350' },
   {
     until: 2040, emoji: '🔮', projected: true,
     title: '2031–2040: Low-Power Mini PC + 4–8 TB NVMe (projected)',
-    desc: 'Baseline projection: ~1.0–1.7 TB blocks by 2030–2040 as growth slows toward ~65 GB/yr. Archival sweet spot shifts to 4 TB NVMe (8 TB if running Electrum or Core indexes). Expect post-N100 efficient x86 or next-gen ARM SBCs with 16 GB RAM — same class as today, cheaper $/TB.',
-    cost: '~$180–300 projected'
+    desc: 'Baseline projection: ~1.0–1.7 TB blocks by 2030–2040 as growth slows toward ~65 GB/yr. Archival sweet spot shifts to 4 TB NVMe (8 TB if running Electrum or Core indexes). Expect post-N100 efficient x86 or next-gen ARM SBCs with 16 GB RAM — NAND supply recovers and $/TB resumes long-run deflation.',
+    cost: '~$200–350 projected'
   }
 ];
 
@@ -670,8 +671,8 @@ const PROJ_DEFAULTS = {
 };
 
 const SCENARIO_TIPS = {
-  baseline: 'Baseline: ~12% storage deflation continues; +25% AI spike 2026–2028 then resumes.',
-  ai_shock: 'AI-Shock: elevated storage costs 2025–2030, sharper drop after 2030.',
+  baseline: 'Baseline: 2026 NAND spike baked into history (~$130/TB); sticky highs through 2028, then ~12%/yr deflation resumes.',
+  ai_shock: 'AI-Shock: prices stay elevated 2025–2030 on top of the 2026 spike, sharper drop after 2030.',
   optimistic: 'Hyper-deflation: storage −18%/yr, hardware −10%/yr — best-case tech curve.',
   pessimistic: 'Pessimistic: storage −2%/yr, hardware −1%, flat internet — still affordable.'
 };
@@ -791,15 +792,20 @@ function getScenarioModifiers(year) {
     storageDefl = Math.min(storageDefl, -0.18);
     hwDefl = Math.min(hwDefl, -0.10);
     internetTrend = Math.min(internetTrend, -0.03);
+    if (year >= 2027 && year <= 2028) storageDefl = Math.min(storageDefl, -0.15);
   } else if (s === 'pessimistic') {
     storageDefl = Math.max(storageDefl, -0.02);
     hwDefl = Math.max(hwDefl, -0.01);
     internetTrend = 0;
+    if (year >= 2027 && year <= 2030) storageDefl = Math.max(storageDefl, -0.01);
   } else if (s === 'ai_shock') {
-    if (year >= 2025 && year <= 2030) aiHike = 1.25;
+    if (year >= 2027 && year <= 2030) aiHike = 1.15;
     if (year > 2030) storageDefl = Math.min(storageDefl, -0.15);
-  } else if (year >= 2026 && year <= 2028) {
-    aiHike = 1.25;
+  } else if (s === 'baseline') {
+    // Spike is in 2026 historical $/TB; projections ease slowly then resume deflation
+    if (year === 2027) storageDefl = -0.05;
+    else if (year === 2028) storageDefl = -0.08;
+    else if (year >= 2029) storageDefl = Math.min(storageDefl, -0.12);
   }
   return { storageDefl, hwDefl, internetTrend, aiHike };
 }
@@ -1083,7 +1089,7 @@ function getHwRecommendation(year) {
   const utxo = getUtxoGB(year);
   return {
     ...rec,
-    desc: `Baseline projection for ${year}: ~${fmtGB(blocks)} blocks + ${fmtGB(utxo)} UTXO. Archival builds: 4 TB NVMe standard, 8 TB if optional indexes enabled. Low-power mini PC / ARM node (~16 GB RAM). Storage $/TB keeps deflating — setup cost flat or lower despite chain growth.`
+    desc: `Baseline projection for ${year}: ~${fmtGB(blocks)} blocks + ${fmtGB(utxo)} UTXO. Archival builds: 4 TB NVMe standard, 8 TB if optional indexes enabled. Low-power mini PC / ARM node (~16 GB RAM). Post-2026 NAND spike, $/TB resumes long-run deflation — setup cost trends down despite chain growth.`
   };
 }
 
@@ -1128,13 +1134,19 @@ function generateInsights(data) {
     sel.annualOpEx
   );
   const indexSnap = getIndexSnapshot(sel);
+  const storageShareVerb = storageShareLast >= storageShareFirst ? 'rose' : 'fell';
+  const kitLarger = last.basePC > last.storageCost;
+  const elecSharePct = sel.annualOpEx > 0 ? (sel.elecAnnual / sel.annualOpEx) * 100 : 0;
+  const elecShareNote = elecSharePct < 10
+    ? 'under 10% of total OpEx'
+    : `~${elecSharePct.toFixed(0)}% of total OpEx`;
 
   return `
     <p>🛒 <strong>One-time hardware (2015 → 2026):</strong> Block chain grew <strong class="text-btc">${sizeMult.toFixed(1)}×</strong> (${fmtGB(first.blocksGB)} → ${fmtGB(last.blocksGB)} blocks + ${fmtGB(last.utxoGB)} UTXO), yet buying storage + CPU/RAM to start a node <strong class="text-green-400">${setupDrop > 0 ? 'fell' : 'rose'} ${Math.abs(setupDrop).toFixed(0)}%</strong> (${fmtMoney(firstSetup)} → ${fmtMoney(lastSetup)}) — see the hero chart on the Charts tab.</p>
-    <p>💾 <strong>Storage vs CPU/RAM shift:</strong> Setup was ${fmtMoney(firstSetup)} in ${first.year} (storage ${fmtMoney(first.storageCost)}, kit ${fmtMoney(first.basePC)}) vs ${fmtMoney(lastSetup)} in ${last.year} (storage ${fmtMoney(last.storageCost)}, kit ${fmtMoney(last.basePC)}). Storage share dropped from ~${storageShareFirst.toFixed(0)}% to ~${storageShareLast.toFixed(0)}% of setup — Pi/mini-PC is now the bigger line item.</p>
+    <p>💾 <strong>Storage vs CPU/RAM shift:</strong> Setup was ${fmtMoney(firstSetup)} in ${first.year} (storage ${fmtMoney(first.storageCost)}, kit ${fmtMoney(first.basePC)}) vs ${fmtMoney(lastSetup)} in ${last.year} (storage ${fmtMoney(last.storageCost)}, kit ${fmtMoney(last.basePC)}). Storage share ${storageShareVerb} from ~${storageShareFirst.toFixed(0)}% to ~${storageShareLast.toFixed(0)}% of setup${kitLarger ? ' — CPU/RAM kit is still the larger line item' : ' — storage is now the larger line item'}.</p>
     <p>📊 <strong>Peak setup cost:</strong> The most expensive year to buy in was <strong class="text-btc">${peak.year}</strong> at <strong class="text-btc">${fmtMoney(peak.setup)}</strong> one-time (storage + CPU/RAM kit).</p>
     <p>📈 <strong>Annualized cost (2015 → 2026):</strong> Including 3-yr amortized setup + OpEx, running cost <strong class="text-green-400">${costDrop > 0 ? 'fell' : 'rose'} ${Math.abs(costDrop).toFixed(0)}%</strong> over the same period.</p>
-    <p>⚡ <strong>Power efficiency:</strong> At ${state.nodeWatts}W, electricity costs ~${fmtMoney(sel.elecAnnual)}/yr in the USA — often under 10% of total OpEx.</p>
+    <p>⚡ <strong>Power efficiency:</strong> At ${state.nodeWatts}W, electricity costs ~${fmtMoney(sel.elecAnnual)}/yr in the USA — ${elecShareNote}.</p>
     <p>🎯 <strong>${state.selectedYear} snapshot:</strong> Archival node needs ${fmtGB(sel.minStorage)} storage${indexSnap}. Base setup ${fmtMoney(sel.baseTotalSetup)}${sel.indexCost > 0 ? `, +${fmtMoney(sel.indexCost)} indexes → ${fmtMoney(sel.totalSetup)} total` : ''}. Annual OpEx ${fmtMoney(sel.annualOpEx)}. Score: <strong class="${score.color}">${score.label}</strong>.</p>
     ${state.projectionEnabled ? (() => {
       const y30 = getYearData(2030), y40 = getYearData(2040);
@@ -1142,7 +1154,8 @@ function generateInsights(data) {
       const refSetup = insightSetupCost(ref);
       const y40Setup = insightSetupCost(y40);
       const savePct = (1 - y40Setup / refSetup) * 100;
-      return `<p>🔮 <strong>2040 projection (${state.projectionScenario}):</strong> Chain ~${fmtGB(y40.sizeGB)}, one-time setup ${fmtMoney(y40Setup)} vs ${fmtMoney(refSetup)} in 2026 (<strong class="text-green-400">${savePct > 0 ? savePct.toFixed(0) + '% cheaper' : 'higher'}</strong>). 2030: ${fmtMoney(insightSetupCost(y30))}. OpEx stays ~${fmtMoney(y40.annualOpEx)}/yr.</p>`;
+      const opexVerb = y40.annualOpEx < ref.annualOpEx - 5 ? 'falls to' : y40.annualOpEx > ref.annualOpEx + 5 ? 'rises to' : 'stays ~';
+      return `<p>🔮 <strong>2040 projection (${state.projectionScenario}):</strong> Chain ~${fmtGB(y40.sizeGB)}, one-time setup ${fmtMoney(y40Setup)} vs ${fmtMoney(refSetup)} in 2026 (<strong class="text-green-400">${savePct > 0 ? savePct.toFixed(0) + '% cheaper' : 'higher'}</strong>). 2030: ${fmtMoney(insightSetupCost(y30))}. OpEx ${opexVerb} ${fmtMoney(y40.annualOpEx)}/yr (from ${fmtMoney(ref.annualOpEx)} in 2026).</p>`;
     })() : `<p>🔮 <strong>Projection to 2030:</strong> At ${state.growthRate} GB/yr growth, chain hits ~${fmtGB(getSizeGB(2030))} by 2030.</p>`}
   `;
 }
