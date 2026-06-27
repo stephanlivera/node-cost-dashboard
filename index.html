@@ -426,8 +426,8 @@
         </div>
         <div class="flex flex-wrap gap-3">
           <button id="btnExportCSV" class="px-4 py-2 rounded-lg border border-btc text-btc text-sm hover:bg-btc/10">Export CSV</button>
-          <button id="btnExportPNG" class="px-4 py-2 rounded-lg border border-gray-600 text-sm hover:border-btc">Download Annual Chart</button>
-          <button id="btnCopyPNG" class="px-4 py-2 rounded-lg border border-gray-600 text-sm hover:border-btc">Copy Annual Chart</button>
+          <button id="btnExportPNG" class="px-4 py-2 rounded-lg border border-gray-600 text-sm hover:border-btc">Download Hardware Chart</button>
+          <button id="btnCopyPNG" class="px-4 py-2 rounded-lg border border-gray-600 text-sm hover:border-btc">Copy Hardware Chart</button>
         </div>
         <div class="bg-surface-card rounded-xl p-4 border border-gray-700 text-sm text-gray-400">
           <h4 class="font-semibold text-btc mb-2">Compare to VPS</h4>
@@ -899,14 +899,26 @@ function getHwRecommendation(year) {
   return HW_RECOMMENDATIONS.find(h => year <= h.until) || HW_RECOMMENDATIONS[HW_RECOMMENDATIONS.length - 1];
 }
 
+function insightSetupCost(d) {
+  const withElectrum = state.electrumMode !== 'none' && isElectrumActive(d.year);
+  return withElectrum ? d.totalSetup : d.baseTotalSetup;
+}
+
 function generateInsights(data) {
   const hist = data.filter(d => d.year >= 2015 && d.year <= 2026);
   if (hist.length < 2) return '<p>Adjust year range for insights.</p>';
   const first = hist[0], last = hist[hist.length - 1];
   const sizeMult = last.sizeGB / first.sizeGB;
+  const firstSetup = insightSetupCost(first);
+  const lastSetup = insightSetupCost(last);
+  const setupDrop = (1 - lastSetup / firstSetup) * 100;
   const costDrop = (1 - last.annualizedTotal / first.annualizedTotal) * 100;
-  const storageShareFirst = first.storageOnly / first.totalSetup * 100;
-  const storageShareLast = last.storageOnly / last.totalSetup * 100;
+  const storageShareFirst = first.storageCost / firstSetup * 100;
+  const storageShareLast = last.storageCost / lastSetup * 100;
+  const peak = data.filter(d => !d.isProjected).reduce((best, d) => {
+    const setup = insightSetupCost(d);
+    return setup > best.setup ? { year: d.year, setup } : best;
+  }, { year: 0, setup: 0 });
   const sel = getSelected();
   const selElectrum = state.electrumMode !== 'none' && isElectrumActive(state.selectedYear);
   const score = affordabilityScore(selElectrum ? sel.annualizedTotal : sel.baseAnnualizedTotal);
@@ -917,15 +929,19 @@ function generateInsights(data) {
       : '';
 
   return `
-    <p>📈 <strong>2015 → 2026:</strong> Chain size grew <strong class="text-btc">${sizeMult.toFixed(1)}×</strong> (${fmtGB(first.sizeGB)} → ${fmtGB(last.sizeGB)}), yet annualized node cost <strong class="text-green-400">${costDrop > 0 ? 'fell' : 'rose'} ${Math.abs(costDrop).toFixed(0)}%</strong> — tech deflation outpaced blockchain growth.</p>
-    <p>💾 <strong>Storage dominance fading:</strong> Storage was ~${storageShareFirst.toFixed(0)}% of setup cost in ${first.year} vs ~${storageShareLast.toFixed(0)}% in ${last.year}. Base hardware (Pi/mini PC) is now the bigger line item.</p>
+    <p>🛒 <strong>One-time hardware (2015 → 2026):</strong> Chain size grew <strong class="text-btc">${sizeMult.toFixed(1)}×</strong> (${fmtGB(first.sizeGB)} → ${fmtGB(last.sizeGB)}), yet buying storage + CPU/RAM to start a node <strong class="text-green-400">${setupDrop > 0 ? 'fell' : 'rose'} ${Math.abs(setupDrop).toFixed(0)}%</strong> (${fmtMoney(firstSetup)} → ${fmtMoney(lastSetup)}) — see the hero chart on the Charts tab.</p>
+    <p>💾 <strong>Storage vs CPU/RAM shift:</strong> Setup was ${fmtMoney(firstSetup)} in ${first.year} (storage ${fmtMoney(first.storageCost)}, kit ${fmtMoney(first.basePC)}) vs ${fmtMoney(lastSetup)} in ${last.year} (storage ${fmtMoney(last.storageCost)}, kit ${fmtMoney(last.basePC)}). Storage share dropped from ~${storageShareFirst.toFixed(0)}% to ~${storageShareLast.toFixed(0)}% of setup — Pi/mini-PC is now the bigger line item.</p>
+    <p>📊 <strong>Peak setup cost:</strong> The most expensive year to buy in was <strong class="text-btc">${peak.year}</strong> at <strong class="text-btc">${fmtMoney(peak.setup)}</strong> one-time (storage + CPU/RAM kit).</p>
+    <p>📈 <strong>Annualized cost (2015 → 2026):</strong> Including 3-yr amortized setup + OpEx, running cost <strong class="text-green-400">${costDrop > 0 ? 'fell' : 'rose'} ${Math.abs(costDrop).toFixed(0)}%</strong> over the same period.</p>
     <p>⚡ <strong>Power efficiency:</strong> At ${state.nodeWatts}W, electricity costs ~${fmtMoney(sel.elecAnnual)}/yr in the USA — often under 10% of total OpEx.</p>
     <p>🎯 <strong>${state.selectedYear} snapshot:</strong> ${state.pruned ? 'Pruned' : 'Archival'} node needs ${fmtGB(sel.minStorage)} storage${electrumSnap}. Base setup ${fmtMoney(sel.baseTotalSetup)}${sel.electrumIndexCost > 0 ? `, +${fmtMoney(sel.electrumIndexCost)} index → ${fmtMoney(sel.totalSetup)} total` : ''}. Annual OpEx ${fmtMoney(sel.annualOpEx)}. Score: <strong class="${score.color}">${score.label}</strong>.</p>
     ${state.projectionEnabled ? (() => {
       const y30 = getYearData(2030), y40 = getYearData(2040);
       const ref = getYearData(2026);
-      const savePct = (1 - y40.totalSetup / ref.totalSetup) * 100;
-      return `<p>🔮 <strong>2040 projection (${state.projectionScenario}):</strong> Chain ~${fmtGB(y40.sizeGB)}, setup ${fmtMoney(y40.totalSetup)} vs ${fmtMoney(ref.totalSetup)} in 2026 (<strong class="text-green-400">${savePct > 0 ? savePct.toFixed(0) + '% cheaper' : 'higher'}</strong>). 2030: ${fmtMoney(y30.totalSetup)}. OpEx stays ~${fmtMoney(y40.annualOpEx)}/yr.</p>`;
+      const refSetup = insightSetupCost(ref);
+      const y40Setup = insightSetupCost(y40);
+      const savePct = (1 - y40Setup / refSetup) * 100;
+      return `<p>🔮 <strong>2040 projection (${state.projectionScenario}):</strong> Chain ~${fmtGB(y40.sizeGB)}, one-time setup ${fmtMoney(y40Setup)} vs ${fmtMoney(refSetup)} in 2026 (<strong class="text-green-400">${savePct > 0 ? savePct.toFixed(0) + '% cheaper' : 'higher'}</strong>). 2030: ${fmtMoney(insightSetupCost(y30))}. OpEx stays ~${fmtMoney(y40.annualOpEx)}/yr.</p>`;
     })() : `<p>🔮 <strong>Projection to 2030:</strong> At ${state.growthRate} GB/yr growth, chain hits ~${fmtGB(getSizeGB(2030))} by 2030.</p>`}
   `;
 }
@@ -1428,7 +1444,7 @@ function exportCSV() {
 }
 
 function exportPNG() {
-  downloadChartImage('annual');
+  downloadChartImage('setup');
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -1615,7 +1631,7 @@ function bindEvents() {
   document.getElementById('themeToggle').addEventListener('click', () => setTheme(!state.dark));
   document.getElementById('btnExportCSV').addEventListener('click', exportCSV);
   document.getElementById('btnExportPNG').addEventListener('click', exportPNG);
-  document.getElementById('btnCopyPNG').addEventListener('click', () => copyChartImage('annual'));
+  document.getElementById('btnCopyPNG').addEventListener('click', () => copyChartImage('setup'));
 
   document.getElementById('tabCharts').addEventListener('click', (e) => {
     const btn = e.target.closest('[data-chart-action]');
