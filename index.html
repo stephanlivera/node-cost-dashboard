@@ -51,10 +51,40 @@
     .kpi-card:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(247,147,26,0.15); }
     .tab-active { border-bottom: 2px solid var(--btc); color: var(--btc); }
     .hardware-img {
-      background: linear-gradient(145deg, #1e293b 0%, #0f172a 100%);
-      border: 1px dashed rgba(247,147,26,0.4);
+      background: #0f172a;
+      border: 1px solid rgba(247,147,26,0.25);
     }
-    .light .hardware-img { background: linear-gradient(145deg, #e2e8f0 0%, #f8fafc 100%); }
+    .light .hardware-img { background: #e2e8f0; }
+    .hero-banner {
+      position: relative;
+      height: clamp(168px, 30vw, 300px);
+      background: #16213e;
+    }
+    .hero-slides { position: absolute; inset: 0; }
+    .hero-slide {
+      position: absolute; inset: 0; width: 100%; height: 100%;
+      object-fit: cover; object-position: center;
+      opacity: 0; transition: opacity 0.7s ease;
+    }
+    .hero-slide.active { opacity: 1; }
+    .hero-overlay {
+      position: absolute; inset: 0;
+      background: linear-gradient(to top, rgba(22,33,62,0.94) 0%, rgba(22,33,62,0.4) 50%, transparent 78%);
+      display: flex; flex-direction: column; justify-content: flex-end;
+      padding: 1rem 1.25rem; pointer-events: none;
+    }
+    .hero-era-label { font-size: clamp(1rem, 2.5vw, 1.25rem); font-weight: 700; color: #f7931a; }
+    .hero-dots {
+      position: absolute; bottom: 0.85rem; right: 1rem;
+      display: flex; gap: 6px; pointer-events: auto;
+    }
+    .hero-dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: rgba(148,163,184,0.35); border: none; padding: 0;
+      cursor: pointer; transition: background 0.2s, transform 0.2s;
+    }
+    .hero-dot:hover { background: rgba(247,147,26,0.6); }
+    .hero-dot.active { background: #f7931a; transform: scale(1.25); }
     #projPanel { max-height: min(85vh, 720px); }
     .proj-open #projPanel { display: block; }
     .milestone-row { background: rgba(247,147,26,0.06); }
@@ -285,6 +315,25 @@
     <!-- Main -->
     <main class="flex-1 p-4 lg:p-6 space-y-6 min-w-0">
 
+      <!-- Hero: hardware evolution (syncs with year slider) -->
+      <section id="heroBanner" class="hero-banner rounded-xl overflow-hidden border border-btc/20 glow-btc" aria-label="Node hardware evolution over time">
+        <div class="hero-slides">
+          <img class="hero-slide" data-era="0" src="assets/hero/era-2009.jpg" alt="2009 era desktop PC running a Bitcoin node" loading="eager" decoding="async" />
+          <img class="hero-slide" data-era="1" src="assets/hero/era-2013.jpg" alt="2013 era laptop with external hard drive" loading="lazy" decoding="async" />
+          <img class="hero-slide" data-era="2" src="assets/hero/era-2018.jpg" alt="2018 era Raspberry Pi node" loading="lazy" decoding="async" />
+          <img class="hero-slide" data-era="3" src="assets/hero/era-2026.jpg" alt="2026 era mini PC node" loading="lazy" decoding="async" />
+        </div>
+        <div class="hero-overlay">
+          <p id="heroEraLabel" class="hero-era-label">—</p>
+        </div>
+        <div class="hero-dots" id="heroDots" role="tablist" aria-label="Hardware era">
+          <button type="button" class="hero-dot" data-era="0" data-year="2010" aria-label="2009–2011" title="2009–2011"></button>
+          <button type="button" class="hero-dot" data-era="1" data-year="2013" aria-label="2012–2014" title="2012–2014"></button>
+          <button type="button" class="hero-dot" data-era="2" data-year="2018" aria-label="2015–2020" title="2015–2020"></button>
+          <button type="button" class="hero-dot" data-era="3" data-year="2026" aria-label="2021 onward" title="2021 onward"></button>
+        </div>
+      </section>
+
       <!-- KPI Cards -->
       <section class="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3">
         <div class="kpi-card bg-surface-card rounded-xl p-4 border border-gray-700/50">
@@ -319,7 +368,9 @@
       <section class="bg-surface-card rounded-xl p-5 border border-btc/20 glow-btc">
         <h2 class="text-lg font-semibold text-btc mb-3">Hardware Recommendation</h2>
         <div class="flex flex-col md:flex-row gap-4">
-          <div id="hwImage" class="hardware-img w-full md:w-48 h-36 rounded-lg flex items-center justify-center text-4xl shrink-0">💻</div>
+          <div id="hwImage" class="hardware-img w-full md:w-48 h-36 rounded-lg overflow-hidden shrink-0">
+            <img id="hwImageImg" class="w-full h-full object-cover" src="assets/hero/era-2026.jpg" alt="" loading="lazy" decoding="async" />
+          </div>
           <div class="flex-1">
             <p id="hwTitle" class="font-semibold text-lg">—</p>
             <p id="hwDesc" class="text-sm text-gray-400 mt-2 leading-relaxed">—</p>
@@ -516,6 +567,39 @@ const ELECTRUM_OPTIONS = {
     debut: 'Esplora fork 2018; home-scale heavy index practical ~2021 (~35–70% of chain)'
   }
 };
+
+const HERO_ERAS = [
+  { until: 2011, image: 'assets/hero/era-2009.jpg', label: '2009–2011', subtitle: 'Any spare PC', jumpYear: 2010 },
+  { until: 2014, image: 'assets/hero/era-2013.jpg', label: '2012–2014', subtitle: 'Laptop + external HDD', jumpYear: 2013 },
+  { until: 2020, image: 'assets/hero/era-2018.jpg', label: '2015–2020', subtitle: 'Raspberry Pi + drive', jumpYear: 2018 },
+  { until: 9999, image: 'assets/hero/era-2026.jpg', label: '2021+', subtitle: 'NUC / mini PC + NVMe', jumpYear: 2026 }
+];
+
+let currentHeroEra = -1;
+
+function getHeroEraIndex(year) {
+  const idx = HERO_ERAS.findIndex(e => year <= e.until);
+  return idx >= 0 ? idx : HERO_ERAS.length - 1;
+}
+
+function updateHeroBanner(year) {
+  const idx = getHeroEraIndex(year);
+  if (idx === currentHeroEra) return;
+  currentHeroEra = idx;
+  const era = HERO_ERAS[idx];
+  document.querySelectorAll('.hero-slide').forEach((img, i) => img.classList.toggle('active', i === idx));
+  document.querySelectorAll('.hero-dot').forEach((dot, i) => {
+    dot.classList.toggle('active', i === idx);
+    dot.setAttribute('aria-selected', i === idx ? 'true' : 'false');
+  });
+  const label = document.getElementById('heroEraLabel');
+  if (label) label.textContent = `${era.label} · ${era.subtitle}`;
+  const hwImg = document.getElementById('hwImageImg');
+  if (hwImg) {
+    hwImg.src = era.image;
+    hwImg.alt = `Bitcoin node hardware ${era.label}`;
+  }
+}
 
 const HW_RECOMMENDATIONS = [
   { until: 2011, emoji: '🖥️', title: '2009–2011: Any Spare PC', desc: 'Bitcoin launched with a tiny chain. Any old desktop with 512 MB RAM and a few GB free could run the sole reference client. Storage was negligible.', cost: '~$0 marginal' },
@@ -1053,8 +1137,8 @@ function updateKPIs() {
   document.getElementById('kpiScore').className = 'text-lg font-bold mt-1 ' + score.color;
   document.getElementById('kpiScoreSub').textContent = score.sub;
 
+  updateHeroBanner(state.selectedYear);
   const hw = getHwRecommendation(state.selectedYear);
-  document.getElementById('hwImage').textContent = hw.emoji;
   document.getElementById('hwTitle').textContent = hw.title;
   document.getElementById('hwDesc').textContent = hw.desc;
   document.getElementById('hwCost').textContent = 'Typical cost: ' + hw.cost;
@@ -1515,6 +1599,17 @@ function bindEvents() {
   yearSlider.addEventListener('input', e => {
     state.selectedYear = +e.target.value;
     document.getElementById('yearDisplay').textContent = state.selectedYear;
+    refresh();
+  });
+
+  document.getElementById('heroDots')?.addEventListener('click', (e) => {
+    const dot = e.target.closest('.hero-dot');
+    if (!dot) return;
+    const year = +dot.dataset.year;
+    state.selectedYear = year;
+    yearSlider.value = year;
+    document.getElementById('yearDisplay').textContent = year;
+    currentHeroEra = -1;
     refresh();
   });
 
