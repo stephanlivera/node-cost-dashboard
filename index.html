@@ -1,0 +1,1520 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Bitcoin Archival Node Cost Tracker: 2009–2040</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            btc: { DEFAULT: '#f7931a', dark: '#e07b00', light: '#ffb347' },
+            surface: { DEFAULT: '#1a1a2e', light: '#f8f9fc', card: '#16213e', 'card-light': '#ffffff' }
+          },
+          fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'], mono: ['JetBrains Mono', 'monospace'] }
+        }
+      }
+    }
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    :root { --btc: #f7931a; --btc-glow: rgba(247,147,26,0.25); }
+    * { scrollbar-width: thin; scrollbar-color: var(--btc) transparent; }
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-thumb { background: var(--btc); border-radius: 3px; }
+    .btc-gradient { background: linear-gradient(135deg, #f7931a 0%, #e07b00 100%); }
+    .glow-btc { box-shadow: 0 0 20px var(--btc-glow); }
+    .chart-container { position: relative; height: 280px; }
+    @media (min-width: 768px) { .chart-container { height: 320px; } }
+    .tooltip-wrap { position: relative; display: inline-flex; align-items: center; }
+    .tooltip-wrap .tip {
+      visibility: hidden; opacity: 0; position: absolute; bottom: calc(100% + 8px); left: 50%;
+      transform: translateX(-50%); background: #0f0f1a; color: #e2e8f0; padding: 8px 12px;
+      border-radius: 8px; font-size: 11px; line-height: 1.4; width: max-content; max-width: 260px;
+      z-index: 50; border: 1px solid rgba(247,147,26,0.3); transition: opacity 0.2s; pointer-events: none;
+    }
+    .tooltip-wrap:hover .tip { visibility: visible; opacity: 1; }
+    .row-active { background: rgba(247,147,26,0.12) !important; border-left: 3px solid var(--btc); }
+    .sidebar-transition { transition: transform 0.3s ease, width 0.3s ease; }
+    input[type="range"] { accent-color: var(--btc); }
+    .light .tip { background: #1e293b; }
+    .light body { background: #f1f5f9; color: #0f172a; }
+    .kpi-card { transition: transform 0.2s, box-shadow 0.2s; }
+    .kpi-card:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(247,147,26,0.15); }
+    .tab-active { border-bottom: 2px solid var(--btc); color: var(--btc); }
+    .hardware-img {
+      background: linear-gradient(145deg, #1e293b 0%, #0f172a 100%);
+      border: 1px dashed rgba(247,147,26,0.4);
+    }
+    .light .hardware-img { background: linear-gradient(145deg, #e2e8f0 0%, #f8fafc 100%); }
+    #projPanel { max-height: min(85vh, 720px); }
+    .proj-open #projPanel { display: block; }
+    .milestone-row { background: rgba(247,147,26,0.06); }
+    .milestone-row td:first-child { font-weight: 700; color: #f7931a; }
+  </style>
+</head>
+<body class="bg-surface text-gray-100 font-sans min-h-screen transition-colors duration-300">
+
+  <!-- Navbar -->
+  <nav class="sticky top-0 z-40 bg-surface/95 backdrop-blur-md border-b border-btc/20">
+    <div class="max-w-[1600px] mx-auto px-4 py-3">
+      <div class="flex flex-wrap items-center justify-between gap-3">
+        <div class="flex items-center gap-3 min-w-0">
+          <button id="sidebarToggle" class="lg:hidden p-2 rounded-lg hover:bg-btc/10" aria-label="Toggle sidebar">
+            <svg class="w-6 h-6 text-btc" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+          </button>
+          <div class="min-w-0">
+            <h1 id="pageTitle" class="text-lg sm:text-xl font-bold text-btc truncate">Bitcoin Archival Node Cost Tracker: 2009–2040</h1>
+            <p class="text-xs sm:text-sm text-gray-400 hidden sm:block max-w-2xl">How affordable was a full archival (non-pruned) Bitcoin node over time? Storage + CPU/RAM + internet + elec.</p>
+          </div>
+        </div>
+        <div class="flex flex-wrap items-center gap-2 sm:gap-3">
+          <!-- Nominal / Inflation -->
+          <div class="flex rounded-lg overflow-hidden border border-gray-600 text-xs">
+            <button id="btnNominal" class="px-3 py-1.5 bg-btc text-black font-medium">Nominal</button>
+            <button id="btnInflation" class="px-3 py-1.5 bg-surface-card hover:bg-btc/10">Inflation-Adj.</button>
+          </div>
+          <span class="px-3 py-1.5 text-xs sm:text-sm rounded-lg border border-gray-600 bg-surface-card text-gray-300">🇺🇸 USA</span>
+          <!-- Node Mode -->
+          <div class="flex rounded-lg overflow-hidden border border-gray-600 text-xs">
+            <button id="btnArchival" class="px-3 py-1.5 bg-btc text-black font-medium">Archival</button>
+            <button id="btnPruned" class="px-3 py-1.5 bg-surface-card hover:bg-btc/10">Pruned</button>
+          </div>
+          <!-- Theme -->
+          <button id="themeToggle" class="p-2 rounded-lg border border-gray-600 hover:border-btc" title="Toggle dark/light">
+            <svg id="iconMoon" class="w-5 h-5 text-btc" fill="currentColor" viewBox="0 0 20 20"><path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"/></svg>
+            <svg id="iconSun" class="w-5 h-5 text-btc hidden" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" clip-rule="evenodd"/></svg>
+          </button>
+          <button id="btnProjPanel" class="px-3 py-1.5 text-xs rounded-lg border border-btc/60 bg-btc/10 text-btc hover:bg-btc/20 font-medium">Projections to 2040</button>
+          <button id="btnShare" class="px-3 py-1.5 text-xs rounded-lg border border-gray-600 hover:border-btc" title="Copy share link">Share</button>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- 2040 Projection Panel (top-right) -->
+  <div id="projPanel" class="hidden fixed right-2 sm:right-4 top-[60px] z-50 w-[min(100vw-1rem,420px)] bg-surface-card border border-btc/30 rounded-xl shadow-2xl overflow-y-auto proj-panel">
+    <div class="sticky top-0 bg-surface-card border-b border-btc/20 px-4 py-3 flex justify-between items-center">
+      <h2 class="text-sm font-bold text-btc">Projections to 2040</h2>
+      <button id="btnProjClose" class="text-gray-400 hover:text-btc text-xl leading-none">&times;</button>
+    </div>
+    <div class="p-4 space-y-4 text-xs">
+      <label class="flex items-center justify-between gap-2 p-2 rounded-lg bg-btc/10 border border-btc/30 cursor-pointer">
+        <span class="font-medium text-gray-200">Enable 2040 Projection</span>
+        <input type="checkbox" id="projEnabled" checked class="w-4 h-4 accent-[#f7931a]" />
+      </label>
+      <div>
+        <label class="text-gray-400 flex items-center gap-1 mb-1">Scenario
+          <span class="tooltip-wrap"><span class="cursor-help">ⓘ</span><span class="tip" id="projScenarioTip">Baseline: historical ~12% storage deflation continues; +25% AI spike 2026–2028 then resumes.</span></span>
+        </label>
+        <select id="projScenario" class="w-full bg-surface border border-gray-600 rounded-lg px-2 py-2">
+          <option value="baseline">Baseline (historical deflation continues)</option>
+          <option value="ai_shock">AI-Shock 2025–2030 then Drop</option>
+          <option value="optimistic">Optimistic Hyper-Deflation</option>
+          <option value="pessimistic">Pessimistic (slow/no deflation)</option>
+        </select>
+      </div>
+      <div class="space-y-3 border-t border-gray-700 pt-3">
+        <p class="text-btc font-semibold flex items-center gap-1">Projection Sliders
+          <span class="tooltip-wrap"><span class="cursor-help text-gray-500">ⓘ</span><span class="tip" id="projAssumptionTip">Storage follows ~13% historical CAGR adjusted for recent AI spike. Hardware mini-PC/RPi deflation ~6%/yr.</span></span>
+        </p>
+        <div><label class="text-gray-400">Blockchain growth: <span id="projGrowthVal" class="text-btc font-mono">65</span> GB/yr</label><input type="range" id="projGrowth" min="40" max="120" value="65" class="w-full" /></div>
+        <div><label class="text-gray-400">Storage deflation: <span id="projStorageDeflVal" class="text-btc font-mono">-12%</span>/yr</label><input type="range" id="projStorageDefl" min="-20" max="-2" value="-12" class="w-full" /></div>
+        <div><label class="text-gray-400">Hardware/CPU deflation: <span id="projHwDeflVal" class="text-btc font-mono">-6%</span>/yr</label><input type="range" id="projHwDefl" min="-12" max="-1" value="-6" class="w-full" /></div>
+        <div><label class="text-gray-400">Internet real trend: <span id="projInternetVal" class="text-btc font-mono">-2%</span>/yr</label><input type="range" id="projInternet" min="-5" max="0" value="-2" class="w-full" /></div>
+        <div><label class="text-gray-400">SSD premium: <span id="projSsdPremVal" class="text-btc font-mono">0%</span></label><input type="range" id="projSsdPrem" min="0" max="50" value="0" class="w-full" /></div>
+        <div><label class="text-gray-400">Electricity deflation: <span id="projElecDeflVal" class="text-btc font-mono">-1%</span>/yr</label><input type="range" id="projElecDefl" min="-5" max="2" value="-1" class="w-full" /></div>
+        <div><label class="text-gray-400">Electrum index multiplier: <span id="projElectrumMultVal" class="text-btc font-mono">1.0×</span></label><input type="range" id="projElectrumMult" min="0.5" max="2" step="0.1" value="1" class="w-full" /></div>
+      </div>
+      <button id="btnProjReset" class="w-full py-2 rounded-lg border border-btc/40 text-btc hover:bg-btc/10">Reset Projection Sliders</button>
+      <details class="rounded-lg border border-gray-700">
+        <summary class="p-3 cursor-pointer font-semibold text-btc text-xs">Why projections are reliable</summary>
+        <div class="px-3 pb-3 text-[11px] text-gray-400 space-y-2 leading-relaxed">
+          <p>Storage $/GB has fallen exponentially for decades — HDD and SSD both averaged ~12–14% annual declines (Backblaze, industry data). Post-AI demand may spike 2026–2028, but manufacturing scale historically resumes deflation.</p>
+          <p>Mini-PCs, ARM boards, and efficient SoCs compound cheaper + lower watts. Internet is flat-to-down in real terms while speeds rise.</p>
+          <p><strong class="text-gray-200">Even conservative (pessimistic) assumptions show the node stays trivially affordable forever</strong> — chain growth is linear, tech deflation is exponential.</p>
+        </div>
+      </details>
+    </div>
+  </div>
+  <div id="projPanelOverlay" class="hidden fixed inset-0 z-40 bg-black/40"></div>
+
+  <div class="flex max-w-[1600px] mx-auto">
+    <!-- Sidebar -->
+    <aside id="sidebar" class="sidebar-transition fixed lg:sticky top-[57px] left-0 z-30 w-72 h-[calc(100vh-57px)] bg-surface-card border-r border-btc/10 overflow-y-auto -translate-x-full lg:translate-x-0 p-4 space-y-5">
+      <button id="sidebarClose" class="lg:hidden absolute top-2 right-2 p-1 text-gray-400 hover:text-btc">&times;</button>
+
+      <!-- Year Range -->
+      <section>
+        <h3 class="text-sm font-semibold text-btc mb-2 flex items-center gap-1">
+          Year Range
+          <span class="tooltip-wrap"><span class="text-gray-500 cursor-help text-xs">ⓘ</span><span class="tip">Filter charts and table to a year window. KPI cards use the selected year slider.</span></span>
+        </h3>
+        <div class="space-y-2">
+          <label class="text-xs text-gray-400">Selected Year: <span id="yearDisplay" class="text-btc font-mono font-bold">2026</span></label>
+          <input type="range" id="yearSlider" min="2009" max="2040" value="2026" class="w-full" />
+          <div class="flex justify-between text-xs text-gray-500"><span>2009</span><span id="yearSliderMax">2040</span></div>
+          <p id="yearRangeHint" class="text-[10px] text-amber-400/70 hidden">Projection on — table &amp; charts extend to 2040</p>
+          <div class="grid grid-cols-2 gap-2 text-xs">
+            <div><label class="text-gray-400">From</label><input type="number" id="yearFrom" min="2009" max="2040" value="2009" class="w-full mt-1 bg-surface border border-gray-600 rounded px-2 py-1"/></div>
+            <div><label class="text-gray-400">To</label><input type="number" id="yearTo" min="2009" max="2040" value="2040" class="w-full mt-1 bg-surface border border-gray-600 rounded px-2 py-1"/></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Electrum Server -->
+      <section class="rounded-xl border-2 border-btc/40 bg-btc/5 p-3 space-y-2">
+        <h3 class="text-sm font-bold text-btc flex items-center gap-1">
+          Include Electrum Server
+          <span class="tooltip-wrap"><span class="text-gray-500 cursor-help text-xs">ⓘ</span><span class="tip">Index servers didn't exist for home nodes until electrs (Jul 2018). Costs &amp; storage only apply from each software's debut year. Index size scales ~10–45% of chain size (electrs docs; Casa 2022 benchmarks).</span></span>
+        </h3>
+        <p class="text-[10px] text-gray-400">Scales with chain size · zero before debut year</p>
+        <div id="electrumOptions" class="space-y-1.5 text-xs">
+          <label class="flex items-start gap-2 p-2 rounded-lg border border-transparent hover:border-btc/30 cursor-pointer electrum-opt">
+            <input type="radio" name="electrum" value="none" checked class="mt-0.5 accent-[#f7931a]" />
+            <span><span class="font-medium text-gray-200">None</span> <span class="text-gray-500">(default)</span></span>
+          </label>
+          <label class="flex items-start gap-2 p-2 rounded-lg border border-transparent hover:border-btc/30 cursor-pointer electrum-opt">
+            <input type="radio" name="electrum" value="electrs" class="mt-0.5 accent-[#f7931a]" />
+            <span><span class="font-medium text-gray-200">electrs Light</span> <span class="text-btc/80 text-[10px]">~10% of chain · from 2019</span></span>
+          </label>
+          <label class="flex items-start gap-2 p-2 rounded-lg border border-transparent hover:border-btc/30 cursor-pointer electrum-opt">
+            <input type="radio" name="electrum" value="fulcrum" class="mt-0.5 accent-[#f7931a]" />
+            <span><span class="font-medium text-gray-200">Fulcrum Standard</span> <span class="text-btc/80 text-[10px]">~18% of chain · from 2020</span></span>
+          </label>
+          <label class="flex items-start gap-2 p-2 rounded-lg border border-transparent hover:border-btc/30 cursor-pointer electrum-opt">
+            <input type="radio" name="electrum" value="fulcrum_full" class="mt-0.5 accent-[#f7931a]" />
+            <span><span class="font-medium text-gray-200">Fulcrum Full / Esplora Heavy</span> <span class="text-btc/80 text-[10px]">~35–70% of chain · from 2021</span></span>
+          </label>
+        </div>
+        <p id="electrumHint" class="text-[10px] text-gray-500"></p>
+      </section>
+
+      <!-- Assumptions -->
+      <section class="border-t border-gray-700 pt-4">
+        <h3 class="text-sm font-semibold text-btc mb-3">Assumptions</h3>
+        <div class="space-y-3 text-xs">
+          <div>
+            <label class="text-gray-400 flex items-center gap-1">Storage Type
+              <span class="tooltip-wrap"><span class="cursor-help">ⓘ</span><span class="tip">Auto uses HDD before 2018, SSD from 2018 onward (when SSDs became practical for node storage). You always buy a whole drive (1–4 TB), not exact chain size.</span></span>
+            </label>
+            <select id="storageType" class="w-full mt-1 bg-surface border border-gray-600 rounded px-2 py-1.5">
+              <option value="auto" selected>Auto (SSD from 2018)</option>
+              <option value="hdd">HDD (era $/TB)</option>
+              <option value="ssd">SSD (era $/TB)</option>
+              <option value="hybrid">Hybrid SSD+HDD blend</option>
+            </select>
+            <p id="storageTypeHint" class="text-[10px] text-gray-500 mt-1"></p>
+          </div>
+          <div>
+            <label class="text-gray-400">Storage $/TB Multiplier: <span id="storageMultDisplay" class="text-btc">1.0×</span></label>
+            <input type="range" id="storageMult" min="0.5" max="3" step="0.1" value="1" class="w-full" />
+          </div>
+          <div>
+            <label class="text-gray-400">Base PC Cost Override ($)</label>
+            <input type="number" id="basePCOverride" placeholder="Auto" class="w-full mt-1 bg-surface border border-gray-600 rounded px-2 py-1.5" />
+          </div>
+          <div>
+            <label class="text-gray-400 flex items-center gap-1">Internet Attribution
+              <span class="tooltip-wrap"><span class="cursor-help">ⓘ</span><span class="tip">How much of your monthly internet bill you attribute to the node. Initial sync downloads the full chain once; ongoing traffic is lighter on unlimited plans.</span></span>
+            </label>
+            <div class="flex gap-2 mt-1">
+              <select id="internetMode" class="bg-surface border border-gray-600 rounded px-2 py-1 flex-1">
+                <option value="percent">% of plan</option>
+                <option value="fixed">Fixed $/mo</option>
+              </select>
+              <input type="number" id="internetValue" value="15" min="0" max="100" class="w-20 bg-surface border border-gray-600 rounded px-2 py-1" />
+            </div>
+          </div>
+          <div>
+            <label class="text-gray-400">Electricity $/kWh</label>
+            <input type="number" id="elecPrice" step="0.01" class="w-full mt-1 bg-surface border border-gray-600 rounded px-2 py-1.5" />
+          </div>
+          <div>
+            <label class="text-gray-400">Node Power Draw (watts)</label>
+            <input type="range" id="nodeWatts" min="5" max="150" value="15" class="w-full" />
+            <span id="wattsDisplay" class="text-btc font-mono">15 W</span>
+          </div>
+          <div>
+            <label class="text-gray-400">Future Growth (GB/yr projection)</label>
+            <input type="number" id="growthRate" value="90" min="30" max="150" class="w-full mt-1 bg-surface border border-gray-600 rounded px-2 py-1.5" />
+          </div>
+        </div>
+        <button id="btnReset" class="w-full mt-4 px-3 py-2 text-xs rounded-lg border border-btc/40 text-btc hover:bg-btc/10">Reset to Historical</button>
+      </section>
+
+      <!-- Simulate Setup -->
+      <section class="border-t border-gray-700 pt-4">
+        <h3 class="text-sm font-semibold text-btc mb-2">Simulate My Setup</h3>
+        <div class="space-y-2 text-xs">
+          <div><label class="text-gray-400">Custom Storage (GB)</label><input type="number" id="customStorage" placeholder="e.g. 2000" class="w-full mt-1 bg-surface border border-gray-600 rounded px-2 py-1.5"/></div>
+          <div><label class="text-gray-400">Custom PC Cost ($)</label><input type="number" id="customPC" placeholder="e.g. 150" class="w-full mt-1 bg-surface border border-gray-600 rounded px-2 py-1.5"/></div>
+          <button id="btnSimulate" class="w-full px-3 py-2 text-xs rounded-lg btc-gradient text-black font-medium hover:opacity-90">Apply Custom Setup</button>
+        </div>
+      </section>
+    </aside>
+
+    <!-- Overlay -->
+    <div id="sidebarOverlay" class="fixed inset-0 bg-black/50 z-20 hidden lg:hidden"></div>
+
+    <!-- Main -->
+    <main class="flex-1 p-4 lg:p-6 space-y-6 min-w-0">
+
+      <!-- KPI Cards -->
+      <section class="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3">
+        <div class="kpi-card bg-surface-card rounded-xl p-4 border border-gray-700/50">
+          <p class="text-xs text-gray-400 flex items-center gap-1">Blockchain Size
+            <span class="tooltip-wrap"><span class="cursor-help">ⓘ</span><span class="tip">Full archival on-disk size (blocks + chainstate + indexes/undo). Calibrated from Blockchain.com block data with overhead; ~855 GB in Jun 2026. Pruned nodes store ~550 MB + recent blocks.</span></span>
+          </p>
+          <p id="kpiSize" class="text-xl font-bold text-btc font-mono mt-1">—</p>
+        </div>
+        <div class="kpi-card bg-surface-card rounded-xl p-4 border border-gray-700/50">
+          <p class="text-xs text-gray-400 flex items-center gap-1">Min Storage Needed
+            <span class="tooltip-wrap"><span class="cursor-help">ⓘ</span><span class="tip">Chain headroom (×1.15) plus Electrum index DB if enabled. Index size grows ~0.5–1%/yr of chain size for realism.</span></span>
+          </p>
+          <p id="kpiMinStorage" class="text-xl font-bold font-mono mt-1">—</p>
+          <p id="kpiMinStorageSub" class="text-[10px] text-gray-500 mt-0.5"></p>
+        </div>
+        <div class="kpi-card bg-surface-card rounded-xl p-4 border border-gray-700/50">
+          <p class="text-xs text-gray-400">One-Time Hardware</p>
+          <p id="kpiHardware" class="text-xl font-bold font-mono mt-1">—</p>
+        </div>
+        <div class="kpi-card bg-surface-card rounded-xl p-4 border border-gray-700/50">
+          <p class="text-xs text-gray-400">Annual Running Cost</p>
+          <p id="kpiOpEx" class="text-xl font-bold font-mono mt-1">—</p>
+        </div>
+        <div class="kpi-card bg-surface-card rounded-xl p-4 border border-gray-700/50 col-span-2">
+          <p class="text-xs text-gray-400">Affordability Score</p>
+          <p id="kpiScore" class="text-lg font-bold mt-1">—</p>
+          <p id="kpiScoreSub" class="text-xs text-gray-500 mt-0.5">—</p>
+        </div>
+      </section>
+
+      <!-- Hardware Recommendation -->
+      <section class="bg-surface-card rounded-xl p-5 border border-btc/20 glow-btc">
+        <h2 class="text-lg font-semibold text-btc mb-3">Hardware Recommendation</h2>
+        <div class="flex flex-col md:flex-row gap-4">
+          <div id="hwImage" class="hardware-img w-full md:w-48 h-36 rounded-lg flex items-center justify-center text-4xl shrink-0">💻</div>
+          <div class="flex-1">
+            <p id="hwTitle" class="font-semibold text-lg">—</p>
+            <p id="hwDesc" class="text-sm text-gray-400 mt-2 leading-relaxed">—</p>
+            <p id="hwCost" class="text-btc font-mono mt-2 text-sm">—</p>
+            <p id="hwElectrum" class="text-sm text-purple-300 mt-2 hidden"></p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Tabs -->
+      <div class="flex gap-4 border-b border-gray-700 text-sm">
+        <button class="tab-btn tab-active pb-2 px-1" data-tab="table">Data Table</button>
+        <button class="tab-btn pb-2 px-1 text-gray-400 hover:text-btc" data-tab="charts">Charts</button>
+        <button class="tab-btn pb-2 px-1 text-gray-400 hover:text-btc" data-tab="insights">Insights</button>
+      </div>
+
+      <!-- Table Tab -->
+      <section id="tabTable" class="tab-panel">
+        <div class="overflow-x-auto rounded-xl border border-gray-700">
+          <table class="w-full text-xs sm:text-sm">
+            <thead class="bg-surface-card text-gray-400">
+              <tr>
+                <th class="px-3 py-3 text-left">Year</th>
+                <th class="px-3 py-3 text-right">Size (GB)</th>
+                <th class="px-3 py-3 text-right">Storage $</th>
+                <th class="px-3 py-3 text-right electrum-col hidden">Electrum $</th>
+                <th class="px-3 py-3 text-left">CPU/RAM</th>
+                <th class="px-3 py-3 text-right">Internet/mo</th>
+                <th class="px-3 py-3 text-right" id="thSetupBase">Total Setup</th>
+                <th class="px-3 py-3 text-right electrum-col hidden" id="thSetupElectrum">With Electrum</th>
+                <th class="px-3 py-3 text-right">Annual OpEx</th>
+              </tr>
+            </thead>
+            <tbody id="dataTable" class="divide-y divide-gray-700/50"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- Charts Tab -->
+      <section id="tabCharts" class="tab-panel hidden">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <div class="bg-surface-card rounded-xl p-4 border border-gray-700">
+            <h3 id="chartSizeTitle" class="text-sm font-semibold text-btc mb-2">Blockchain Size Growth (GB)</h3>
+            <div class="chart-container"><canvas id="chartSize"></canvas></div>
+          </div>
+          <div class="bg-surface-card rounded-xl p-4 border border-gray-700">
+            <h3 class="text-sm font-semibold text-btc mb-2">Cost Breakdown Over Time</h3>
+            <div class="chart-container"><canvas id="chartBreakdown"></canvas></div>
+          </div>
+          <div class="bg-surface-card rounded-xl p-4 border border-gray-700">
+            <h3 class="text-sm font-semibold text-btc mb-2">Total Annualized Cost (3-yr amortized setup + OpEx)</h3>
+            <div class="chart-container"><canvas id="chartAnnual"></canvas></div>
+          </div>
+          <div class="bg-surface-card rounded-xl p-4 border border-gray-700">
+            <h3 class="text-sm font-semibold text-btc mb-2">Current Year Breakdown</h3>
+            <div class="chart-container"><canvas id="chartPie"></canvas></div>
+          </div>
+          <div id="chartSavingsWrap" class="bg-surface-card rounded-xl p-4 border border-green-500/30 lg:col-span-2">
+            <h3 class="text-sm font-semibold text-btc mb-2">Cumulative Savings vs Buying in 2026</h3>
+            <div class="chart-container"><canvas id="chartSavings"></canvas></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Insights Tab -->
+      <section id="tabInsights" class="tab-panel hidden space-y-4">
+        <div class="bg-surface-card rounded-xl p-5 border border-btc/20">
+          <h3 class="text-lg font-semibold text-btc mb-3">Auto-Generated Insights</h3>
+          <div id="insightsText" class="text-sm text-gray-300 space-y-3 leading-relaxed"></div>
+        </div>
+        <div class="flex flex-wrap gap-3">
+          <button id="btnExportCSV" class="px-4 py-2 rounded-lg border border-btc text-btc text-sm hover:bg-btc/10">Export CSV</button>
+          <button id="btnExportPNG" class="px-4 py-2 rounded-lg border border-gray-600 text-sm hover:border-btc">Export Chart PNG</button>
+        </div>
+        <div class="bg-surface-card rounded-xl p-4 border border-gray-700 text-sm text-gray-400">
+          <h4 class="font-semibold text-btc mb-2">Compare to VPS</h4>
+          <p>Cloud VPS nodes (e.g. $40–80/mo for 500 GB+) often cost <strong class="text-gray-200">2–5× more annually</strong> than a home Pi setup by 2024. Self-hosting wins on long-term hodler timelines, especially with pruned mode for non-archival use. Trade-off: you manage uptime, security patches, and power outages.</p>
+        </div>
+
+        <!-- FAQ -->
+        <details class="bg-surface-card rounded-xl border border-gray-700 group">
+          <summary class="p-4 cursor-pointer font-semibold text-btc hover:bg-btc/5 rounded-xl">Why It Got Cheaper — FAQ</summary>
+          <div class="px-4 pb-4 text-sm text-gray-400 space-y-3">
+            <div><strong class="text-gray-200">HDD price deflation:</strong> $/TB fell from ~$110 (2009) to ~$10 (2026) — a 90%+ drop in storage cost per gigabyte.</div>
+            <div><strong class="text-gray-200">Efficient hardware:</strong> Raspberry Pi 4/5 runs Bitcoin Core with 4–8 GB RAM, replacing $500+ desktops from 2009–2012.</div>
+            <div><strong class="text-gray-200">Bandwidth abundance:</strong> Unlimited home internet became standard; node traffic is a tiny fraction of monthly caps after initial sync.</div>
+            <div><strong class="text-gray-200">Software optimization:</strong> Pruning, compact blocks, and better I/O reduced resource needs without sacrificing network participation.</div>
+            <div><strong class="text-gray-200">The catch:</strong> Absolute chain size still grows ~50–60 GB/year. Archival nodes always need more disk — but disk got cheaper faster than the chain grew.</div>
+          </div>
+        </details>
+      </section>
+    </main>
+  </div>
+
+  <!-- Footer -->
+  <footer class="border-t border-gray-700 mt-8 py-6 px-4 text-center text-xs text-gray-500 max-w-[1600px] mx-auto">
+    <p class="mb-2"><strong class="text-btc">Sources & Notes:</strong> Data synthesized from Blockchain.com, YCharts, Backblaze, Bitcoin.org, historical HDD pricing; approximations for illustration — edit JS arrays to tweak.</p>
+    <p>CPI inflation factors use approximate US BLS trends. Regional electricity/internet rates are estimates. Not financial advice. Built for Bitcoin educators & hodlers.</p>
+    <p class="mt-2 text-gray-600">Bitcoin Archival Node Cost Tracker © 2026 — Open the file, tweak assumptions, learn.</p>
+  </footer>
+
+<script>
+// ═══════════════════════════════════════════════════════════════
+// DATA — edit these arrays to tweak the model
+// ═══════════════════════════════════════════════════════════════
+const RAW = {
+  years: [2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025, 2026, 2027, 2028, 2029, 2030],
+  // Full archival on-disk size: Blockchain.com block data + chainstate/indexes/undo (~17% overhead in 2026)
+  // Anchored to ~855 GB in Jun 2026; historical points calibrated from Blockchain.com API
+  sizesGB: [0.01, 0.2, 0.4, 2.2, 10.3, 23.3, 44.1, 84.6, 140, 198, 258.6, 324.9, 401.7, 471.5, 560, 663.6, 761.8, 855, 945, 1035, 1125, 1215],
+  // Bulk external / NAS-grade HDD $/TB (nominal, that year)
+  hddPerTB: [110, 95, 80, 60, 50, 42, 35, 30, 28, 25, 22, 18, 16, 15, 13, 12, 11, 10, 9.5, 9, 8.5, 8],
+  // Consumer SATA/NVMe SSD $/TB — much pricier than HDD pre-2020
+  ssdPerTB: [600, 500, 400, 300, 250, 200, 160, 130, 110, 95, 85, 75, 70, 60, 55, 50, 48, 45, 42, 40, 38, 35],
+  // Full node kit: board or mini-PC + PSU + case + boot media + cables (not board MSRP alone)
+  basePCCost: [0, 400, 350, 300, 280, 250, 200, 180, 165, 130, 115, 120, 175, 155, 145, 175, 170, 165, 155, 150, 145, 140],
+  // USB enclosure or powered USB hub for external drives
+  enclosureCost: [5, 8, 10, 12, 14, 15, 16, 18, 18, 20, 20, 22, 22, 24, 24, 25, 25, 26, 26, 28, 28, 30],
+  internetMonthly: [25, 30, 35, 40, 45, 50, 55, 58, 60, 65, 68, 70, 72, 75, 78, 80, 82, 85, 87, 90, 92, 95],
+  cpuDesc: [
+    'Any PC (Satoshi era)', 'Old laptop', 'Old laptop', 'Budget desktop',
+    'Budget desktop', 'Used desktop', 'Mini PC / old laptop', 'NUC / mini PC',
+    'NUC / used desktop', 'Raspberry Pi 3 + PSU', 'Raspberry Pi 4 (4GB)', 'Raspberry Pi 4 (8GB)',
+    'Raspberry Pi 4 (8GB)', 'Raspberry Pi 4 / mini PC', 'Raspberry Pi 5 (4GB)', 'Raspberry Pi 5 (8GB)',
+    'Raspberry Pi 5 (8GB)', 'Raspberry Pi 5 + NVMe hat', 'Pi 5 / N100 mini PC', 'N100 mini PC',
+    'N100 / ARM SBC', 'Efficient ARM / N100'
+  ],
+  // CPI index (2009 = 100)
+  cpiIndex: [100, 102, 105, 108, 110, 112, 114, 116, 118, 120, 123, 126, 133, 140, 145, 150, 153, 156, 159, 162, 165, 168]
+};
+
+const US_RATES = { elec: 0.16, internetMult: 1.0, label: 'USA' };
+
+const DRIVE_SKUS_TB = [0.5, 1, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20];
+
+// Index DB scales with chain size. Debut years from release history:
+// electrs v0.1.0 Jul 2018 (romanz) → home viable ~2019; Fulcrum 2020; Esplora-style heavy ~2021+
+// Ratios calibrated to electrs ~10% of blocks (usage.md) & Casa 2022: Fulcrum ~110GB, Esplora ~820GB @ ~500GB chain
+const ELECTRUM_OPTIONS = {
+  none: {
+    label: 'None', short: '', availableFrom: 9999,
+    baseRatio: 0, ratioPerYear: 0, maxRatio: 0, minGB: 0, ssdPremium: 1,
+    debut: ''
+  },
+  electrs: {
+    label: 'electrs Light', short: 'electrs', availableFrom: 2019,
+    baseRatio: 0.10, ratioPerYear: 0.002, maxRatio: 0.14, minGB: 12, ssdPremium: 1.15,
+    debut: 'electrs released Jul 2018; ~10% of chain size for RocksDB index'
+  },
+  fulcrum: {
+    label: 'Fulcrum Standard', short: 'Fulcrum', availableFrom: 2020,
+    baseRatio: 0.17, ratioPerYear: 0.003, maxRatio: 0.24, minGB: 35, ssdPremium: 1.2,
+    debut: 'Fulcrum v1.0 (2020); ~18% of chain — faster queries, more disk than electrs'
+  },
+  fulcrum_full: {
+    label: 'Fulcrum Full / Esplora Heavy', short: 'Esplora', availableFrom: 2021,
+    baseRatio: 0.32, ratioPerYear: 0.022, maxRatio: 0.72, minGB: 90, ssdPremium: 1.25,
+    debut: 'Esplora fork 2018; home-scale heavy index practical ~2021 (~35–70% of chain)'
+  }
+};
+
+const HW_RECOMMENDATIONS = [
+  { until: 2011, emoji: '🖥️', title: '2009–2011: Any Spare PC', desc: 'Bitcoin launched with a tiny chain. Any old desktop with 512 MB RAM and a few GB free could run the sole reference client. Storage was negligible.', cost: '~$0 marginal' },
+  { until: 2014, emoji: '💻', title: '2012–2014: Old Laptop + 500 GB HDD', desc: 'Chain reached tens of GB. A used laptop with a 500 GB HDD (~$50) sufficed. Sync took hours, not days.', cost: '~$50–150 total' },
+  { until: 2017, emoji: '🖥️', title: '2015–2017: Budget Desktop / NUC', desc: '80–130 GB chain. Mini PCs and used desktops with 4 GB RAM became the sweet spot. Full archival still affordable.', cost: '~$150–250' },
+  { until: 2020, emoji: '🥧', title: '2018–2020: Raspberry Pi 3/4 + External HDD', desc: 'Pi kit (~$95–120: board, PSU, case, SD card) plus a 1–2 TB USB HDD ($40–70 at the time). 180–300 GB chain, but you buy whole drives — not exact-size slices.', cost: '~$150–190' },
+  { until: 2023, emoji: '🥧', title: '2021–2023: Raspberry Pi 4/5 + SSD', desc: 'Pi scalping pushed kits to $150–200. SSDs still cost more per TB than HDDs. Realistic archival build: 8 GB Pi + 2 TB SSD/NVMe + accessories.', cost: '~$220–320' },
+  { until: 2031, emoji: '⚡', title: '2024–2030: Pi 5 / N100 Mini PC + 2–4 TB NVMe', desc: '600–1100 GB chain needs 2–4 TB purchased for headroom. Pi 5 + NVMe HAT or N100 mini PC (~$150–180) plus $80–160 storage at era prices.', cost: '~$230–380' }
+];
+
+// ═══════════════════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════════════════
+const state = {
+  selectedYear: 2026,
+  yearFrom: 2009,
+  yearTo: 2040,
+  inflationAdjusted: false,
+  pruned: false,
+  storageType: 'auto',
+  storageMult: 1,
+  basePCOverride: null,
+  internetMode: 'percent',
+  internetValue: 15,
+  elecPrice: null,
+  nodeWatts: 15,
+  growthRate: 90,
+  customStorage: null,
+  customPC: null,
+  electrumMode: 'none',
+  projectionEnabled: true,
+  projectionScenario: 'baseline',
+  projGrowthRate: 65,
+  projStorageDeflation: -12,
+  projHardwareDeflation: -6,
+  projInternetTrend: -2,
+  projSsdPremiumPct: 0,
+  projElecDeflation: -1,
+  projElectrumMult: 1,
+  dark: true
+};
+
+const PROJ_DEFAULTS = {
+  projGrowthRate: 65, projStorageDeflation: -12, projHardwareDeflation: -6,
+  projInternetTrend: -2, projSsdPremiumPct: 0, projElecDeflation: -1, projElectrumMult: 1
+};
+
+const SCENARIO_TIPS = {
+  baseline: 'Baseline: ~12% storage deflation continues; +25% AI spike 2026–2028 then resumes.',
+  ai_shock: 'AI-Shock: elevated storage costs 2025–2030, sharper drop after 2030.',
+  optimistic: 'Hyper-deflation: storage −18%/yr, hardware −10%/yr — best-case tech curve.',
+  pessimistic: 'Pessimistic: storage −2%/yr, hardware −1%, flat internet — still affordable.'
+};
+
+const HISTORICAL_THROUGH = 2026;
+const PROJECTION_THROUGH = 2040;
+
+let charts = {};
+let computedCache = [];
+let projectionCache = null;
+
+// ═══════════════════════════════════════════════════════════════
+// HELPERS
+// ═══════════════════════════════════════════════════════════════
+function lerp(arr, years, year) {
+  if (year <= years[0]) return arr[0];
+  if (year >= years[years.length - 1]) return arr[arr.length - 1];
+  for (let i = 0; i < years.length - 1; i++) {
+    if (year >= years[i] && year <= years[i + 1]) {
+      const t = (year - years[i]) / (years[i + 1] - years[i]);
+      return arr[i] + t * (arr[i + 1] - arr[i]);
+    }
+  }
+  return arr[arr.length - 1];
+}
+
+function fmtMoney(n, short) {
+  if (n == null || isNaN(n)) return '—';
+  const adj = state.inflationAdjusted ? ' (2024$)' : '';
+  if (short && n >= 1000) return '$' + (n / 1000).toFixed(1) + 'k' + adj;
+  return '$' + n.toFixed(n < 10 ? 2 : 0) + adj;
+}
+
+function fmtGB(gb) {
+  if (gb < 1) return (gb * 1000).toFixed(0) + ' MB';
+  if (gb >= 1000) return (gb / 1000).toFixed(2) + ' TB';
+  return gb.toFixed(gb < 10 ? 2 : 0) + ' GB';
+}
+
+function cpiFactor(year) {
+  const cpiYear = lerp(RAW.cpiIndex, RAW.years, year);
+  const cpi2024 = lerp(RAW.cpiIndex, RAW.years, 2024);
+  return state.inflationAdjusted ? cpi2024 / cpiYear : 1;
+}
+
+function getRegion() { return US_RATES; }
+
+function getStorageTypeForYear(year) {
+  if (state.storageType === 'auto') return year >= 2018 ? 'ssd' : 'hdd';
+  return state.storageType;
+}
+
+function getStoragePricePerTB(year) {
+  const hdd = lerp(RAW.hddPerTB, RAW.years, year);
+  const ssd = lerp(RAW.ssdPerTB, RAW.years, year);
+  const mult = state.storageMult;
+  const type = getStorageTypeForYear(year);
+  if (type === 'ssd') return ssd * mult;
+  if (type === 'hybrid') return (hdd * 0.35 + ssd * 0.65) * mult;
+  return hdd * mult;
+}
+
+function syncStorageTypeHint() {
+  const hint = document.getElementById('storageTypeHint');
+  if (!hint) return;
+  if (state.storageType === 'auto') {
+    const effective = getStorageTypeForYear(state.selectedYear);
+    hint.textContent = `${state.selectedYear}: using ${effective.toUpperCase()} pricing`;
+  } else {
+    hint.textContent = `All years: ${state.storageType.toUpperCase()} pricing`;
+  }
+}
+
+/** Real drives are sold in fixed SKUs — you buy 1/2/4 TB, not exact chain size */
+function getPurchaseTB(year, headroomTB) {
+  let eraMin = 0.5;
+  if (year >= 2015) eraMin = 1;
+  if (year >= 2019) eraMin = 2;
+  if (year >= 2028) eraMin = 4;
+  const needed = Math.max(headroomTB, eraMin);
+  return DRIVE_SKUS_TB.find(sku => sku >= needed) ?? DRIVE_SKUS_TB[DRIVE_SKUS_TB.length - 1];
+}
+
+function getMaxYear() {
+  return state.projectionEnabled ? PROJECTION_THROUGH : 2030;
+}
+
+/** Table & charts always extend to 2040 when projection is enabled */
+function getDataEndYear() {
+  if (state.projectionEnabled) return PROJECTION_THROUGH;
+  return Math.min(state.yearTo, 2030);
+}
+
+function getSizeGB(year) {
+  if (state.customStorage && year === state.selectedYear) return state.customStorage;
+  let size;
+  if (year <= HISTORICAL_THROUGH) {
+    size = lerp(RAW.sizesGB, RAW.years, year);
+  } else {
+    const base = lerp(RAW.sizesGB, RAW.years, HISTORICAL_THROUGH);
+    const rate = state.projectionEnabled ? state.projGrowthRate : state.growthRate;
+    size = base + (year - HISTORICAL_THROUGH) * rate;
+  }
+  if (state.pruned) size = size * 0.5;
+  return size;
+}
+
+function getScenarioModifiers(year) {
+  const s = state.projectionScenario;
+  let storageDefl = state.projStorageDeflation / 100;
+  let hwDefl = state.projHardwareDeflation / 100;
+  let internetTrend = state.projInternetTrend / 100;
+  let aiHike = 1;
+
+  if (s === 'optimistic') {
+    storageDefl = Math.min(storageDefl, -0.18);
+    hwDefl = Math.min(hwDefl, -0.10);
+    internetTrend = Math.min(internetTrend, -0.03);
+  } else if (s === 'pessimistic') {
+    storageDefl = Math.max(storageDefl, -0.02);
+    hwDefl = Math.max(hwDefl, -0.01);
+    internetTrend = 0;
+  } else if (s === 'ai_shock') {
+    if (year >= 2025 && year <= 2030) aiHike = 1.25;
+    if (year > 2030) storageDefl = Math.min(storageDefl, -0.15);
+  } else if (year >= 2026 && year <= 2028) {
+    aiHike = 1.25;
+  }
+  return { storageDefl, hwDefl, internetTrend, aiHike };
+}
+
+function getProjectedStoragePricePerTB(year) {
+  const ssdPrem = 1 + state.projSsdPremiumPct / 100;
+  let price = getStoragePricePerTB(HISTORICAL_THROUGH) * ssdPrem;
+  for (let y = 2027; y <= year; y++) {
+    const mods = getScenarioModifiers(y);
+    price *= mods.aiHike * (1 + mods.storageDefl);
+  }
+  return Math.max(price, 0.5);
+}
+
+function getBasePC(year) {
+  if (state.customPC && year === state.selectedYear) return state.customPC;
+  if (state.basePCOverride != null && state.basePCOverride !== '') return +state.basePCOverride;
+  return lerp(RAW.basePCCost, RAW.years, year);
+}
+
+function isElectrumActive(year) {
+  if (state.electrumMode === 'none' || state.pruned) return false;
+  return year >= ELECTRUM_OPTIONS[state.electrumMode].availableFrom;
+}
+
+function getElectrumIndexGB(year, chainSizeGB) {
+  if (!isElectrumActive(year)) return 0;
+  const opt = ELECTRUM_OPTIONS[state.electrumMode];
+  const yearsActive = year - opt.availableFrom;
+  let ratio = opt.baseRatio + opt.ratioPerYear * yearsActive;
+  ratio = Math.min(ratio, opt.maxRatio);
+  let indexGB = chainSizeGB * ratio * state.projElectrumMult;
+  // Early years: index still building, floor scales with chain maturity
+  const maturity = Math.min(1, chainSizeGB / 180);
+  indexGB = Math.max(indexGB, opt.minGB * maturity);
+  return indexGB;
+}
+
+function getElectrumRatioDisplay(year) {
+  if (!isElectrumActive(year)) return 0;
+  const opt = ELECTRUM_OPTIONS[state.electrumMode];
+  const yearsActive = year - opt.availableFrom;
+  return Math.min(opt.baseRatio + opt.ratioPerYear * yearsActive, opt.maxRatio);
+}
+
+function getElectrumPricePerTB(year) {
+  const opt = ELECTRUM_OPTIONS[state.electrumMode] || ELECTRUM_OPTIONS.none;
+  const ssd = lerp(RAW.ssdPerTB, RAW.years, year);
+  return ssd * opt.ssdPremium * state.storageMult;
+}
+
+function calcChainStorage(year, sizeGB, extraIndexGB, cpi) {
+  const headroomTB = (sizeGB * 1.15 + extraIndexGB) / 1000;
+  const purchaseTB = getPurchaseTB(year, headroomTB);
+  const pricePerTB = getStoragePricePerTB(year);
+  const enclosure = lerp(RAW.enclosureCost, RAW.years, year) * cpi;
+  return {
+    headroomTB, purchaseTB,
+    storageCost: purchaseTB * pricePerTB * cpi + enclosure
+  };
+}
+
+function calcYearHistorical(year) {
+  const cpi = cpiFactor(year);
+  const region = getRegion();
+  const sizeGB = getSizeGB(year);
+  const electrumIndexGB = getElectrumIndexGB(year, sizeGB);
+  const basePC = getBasePC(year) * cpi;
+
+  const baseStore = calcChainStorage(year, sizeGB, 0, cpi);
+  const fullStore = calcChainStorage(year, sizeGB, electrumIndexGB, cpi);
+  const electrumMarginalCost = (electrumIndexGB / 1000) * getElectrumPricePerTB(year) * cpi;
+  const driveSkuDelta = fullStore.storageCost - baseStore.storageCost;
+  const electrumIndexCost = electrumMarginalCost + driveSkuDelta;
+
+  const storageCost = baseStore.storageCost;
+  const baseTotalSetup = storageCost + basePC;
+  const totalSetup = baseTotalSetup + electrumIndexCost;
+  const baseMinStorage = state.pruned ? 1 : sizeGB * 1.15;
+  const minStorage = baseMinStorage + electrumIndexGB;
+
+  const internetBase = lerp(RAW.internetMonthly, RAW.years, year) * region.internetMult * cpi;
+  let internetPortion;
+  if (state.internetMode === 'percent') {
+    internetPortion = internetBase * (state.internetValue / 100);
+  } else {
+    internetPortion = state.internetValue * cpi;
+  }
+  const elecPrice = (state.elecPrice ?? region.elec) * cpi;
+  const elecAnnual = (state.nodeWatts / 1000) * 24 * 365 * elecPrice;
+  const annualOpEx = internetPortion * 12 + elecAnnual;
+  const baseAnnualizedTotal = baseTotalSetup / 3 + annualOpEx;
+  const annualizedTotal = totalSetup / 3 + annualOpEx;
+  const cpuIdx = RAW.years.findIndex(y => y >= year);
+  const cpuDesc = RAW.cpuDesc[cpuIdx >= 0 ? cpuIdx : RAW.cpuDesc.length - 1];
+
+  return {
+    year, sizeGB, minStorage, baseMinStorage, electrumIndexGB,
+    storageCost, electrumIndexCost, basePC, baseTotalSetup, totalSetup,
+    internetPortion, elecAnnual, annualOpEx, baseAnnualizedTotal, annualizedTotal,
+    cpuDesc, pricePerTB: getStoragePricePerTB(year),
+    purchaseTB: fullStore.purchaseTB, basePurchaseTB: baseStore.purchaseTB,
+    storageOnly: storageCost, isProjected: false
+  };
+}
+
+function buildProjectionSeries() {
+  const anchor = calcYearHistorical(HISTORICAL_THROUGH);
+  const cpiAt = y => cpiFactor(y);
+  const region = getRegion();
+  const anchorHwNominal = anchor.basePC / cpiAt(HISTORICAL_THROUGH);
+  const anchorInternetPlan = lerp(RAW.internetMonthly, RAW.years, HISTORICAL_THROUGH) * region.internetMult;
+  const anchorElecNominal = anchor.elecAnnual / cpiAt(HISTORICAL_THROUGH);
+  const series = { [HISTORICAL_THROUGH]: anchor };
+
+  for (let y = 2027; y <= PROJECTION_THROUGH; y++) {
+    const mods = getScenarioModifiers(y);
+    const yrs = y - HISTORICAL_THROUGH;
+    const cpi = cpiAt(y);
+    const sizeGB = getSizeGB(y);
+    const electrumIndexGB = getElectrumIndexGB(y, sizeGB);
+    const baseMinStorage = state.pruned ? 1 : sizeGB * 1.15;
+    const minStorage = baseMinStorage + electrumIndexGB;
+    const pricePerTB = getProjectedStoragePricePerTB(y);
+
+    const baseStore = baseStoreCost(y, sizeGB, 0, cpi, pricePerTB);
+    const fullStore = baseStoreCost(y, sizeGB, electrumIndexGB, cpi, pricePerTB);
+    const storageCost = baseStore.storageCost;
+    const opt = ELECTRUM_OPTIONS[state.electrumMode] || ELECTRUM_OPTIONS.none;
+    const electrumMarginal = (electrumIndexGB / 1000) * pricePerTB * opt.ssdPremium * cpi;
+    const electrumIndexCost = state.electrumMode === 'none' ? 0 : electrumMarginal + (fullStore.storageCost - storageCost);
+
+    const basePC = anchorHwNominal * Math.pow(1 + mods.hwDefl, yrs) * cpi;
+    const internetBase = anchorInternetPlan * Math.pow(1 + mods.internetTrend, yrs) * cpi;
+    const internetPortion = state.internetMode === 'percent'
+      ? internetBase * (state.internetValue / 100)
+      : state.internetValue * cpi;
+    const elecAnnual = anchorElecNominal * Math.pow(1 + state.projElecDeflation / 100, yrs) * cpi;
+
+    const baseTotalSetup = storageCost + basePC;
+    const totalSetup = baseTotalSetup + electrumIndexCost;
+    const annualOpEx = internetPortion * 12 + elecAnnual;
+
+    series[y] = {
+      year: y, sizeGB, minStorage, baseMinStorage, electrumIndexGB,
+      storageCost, electrumIndexCost, basePC, baseTotalSetup, totalSetup,
+      internetPortion, elecAnnual, annualOpEx,
+      baseAnnualizedTotal: baseTotalSetup / 3 + annualOpEx,
+      annualizedTotal: totalSetup / 3 + annualOpEx,
+      cpuDesc: 'Efficient ARM / N100+ (projected)', pricePerTB,
+      purchaseTB: fullStore.purchaseTB, basePurchaseTB: baseStore.purchaseTB,
+      storageOnly: storageCost, isProjected: true
+    };
+  }
+  projectionCache = series;
+  return series;
+}
+
+function baseStoreCost(year, sizeGB, extraIndexGB, cpi, pricePerTB) {
+  const headroomTB = (sizeGB * 1.15 + extraIndexGB) / 1000;
+  const purchaseTB = getPurchaseTB(year, headroomTB);
+  const enclosure = lerp(RAW.enclosureCost, RAW.years, Math.min(year, HISTORICAL_THROUGH)) * cpi;
+  return { purchaseTB, storageCost: purchaseTB * pricePerTB * cpi + enclosure };
+}
+
+function calcYear(year) {
+  if (year <= HISTORICAL_THROUGH) return calcYearHistorical(year);
+  if (!state.projectionEnabled) return calcYearHistorical(year);
+  if (!projectionCache) buildProjectionSeries();
+  return projectionCache[year] || calcYearHistorical(year);
+}
+
+function computeAll() {
+  projectionCache = null;
+  if (state.projectionEnabled) buildProjectionSeries();
+  const end = getDataEndYear();
+  const start = Math.min(state.yearFrom, end);
+  const years = [];
+  for (let y = start; y <= end; y++) years.push(y);
+  computedCache = years.map(calcYear);
+  return computedCache;
+}
+
+function getYearData(year) {
+  if (!projectionCache && state.projectionEnabled) buildProjectionSeries();
+  return calcYear(year);
+}
+
+function getSelected() {
+  return calcYear(state.selectedYear);
+}
+
+function affordabilityScore(annualized) {
+  const monthly = annualized / 12;
+  if (monthly < 2) return { label: 'Very Affordable', sub: 'Cheaper than a coffee/month', color: 'text-green-400' };
+  if (monthly < 5) return { label: 'Affordable', sub: 'Less than a streaming subscription', color: 'text-green-400' };
+  if (monthly < 15) return { label: 'Moderate', sub: 'Comparable to a phone plan add-on', color: 'text-yellow-400' };
+  if (monthly < 40) return { label: 'Pricey', sub: 'Noticeable but doable for enthusiasts', color: 'text-orange-400' };
+  return { label: 'Expensive', sub: 'Consider pruned mode or VPS comparison', color: 'text-red-400' };
+}
+
+function getHwRecommendation(year) {
+  return HW_RECOMMENDATIONS.find(h => year <= h.until) || HW_RECOMMENDATIONS[HW_RECOMMENDATIONS.length - 1];
+}
+
+function generateInsights(data) {
+  const hist = data.filter(d => d.year >= 2015 && d.year <= 2026);
+  if (hist.length < 2) return '<p>Adjust year range for insights.</p>';
+  const first = hist[0], last = hist[hist.length - 1];
+  const sizeMult = last.sizeGB / first.sizeGB;
+  const costDrop = (1 - last.annualizedTotal / first.annualizedTotal) * 100;
+  const storageShareFirst = first.storageOnly / first.totalSetup * 100;
+  const storageShareLast = last.storageOnly / last.totalSetup * 100;
+  const sel = getSelected();
+  const selElectrum = state.electrumMode !== 'none' && isElectrumActive(state.selectedYear);
+  const score = affordabilityScore(selElectrum ? sel.annualizedTotal : sel.baseAnnualizedTotal);
+  const electrumSnap = sel.electrumIndexGB > 0
+    ? ` (incl. ${fmtGB(sel.electrumIndexGB)} ${ELECTRUM_OPTIONS[state.electrumMode].short} index)`
+    : state.electrumMode !== 'none' && !isElectrumActive(state.selectedYear)
+      ? ` (no index server — ${ELECTRUM_OPTIONS[state.electrumMode].short} debuts ${ELECTRUM_OPTIONS[state.electrumMode].availableFrom})`
+      : '';
+
+  return `
+    <p>📈 <strong>2015 → 2026:</strong> Chain size grew <strong class="text-btc">${sizeMult.toFixed(1)}×</strong> (${fmtGB(first.sizeGB)} → ${fmtGB(last.sizeGB)}), yet annualized node cost <strong class="text-green-400">${costDrop > 0 ? 'fell' : 'rose'} ${Math.abs(costDrop).toFixed(0)}%</strong> — tech deflation outpaced blockchain growth.</p>
+    <p>💾 <strong>Storage dominance fading:</strong> Storage was ~${storageShareFirst.toFixed(0)}% of setup cost in ${first.year} vs ~${storageShareLast.toFixed(0)}% in ${last.year}. Base hardware (Pi/mini PC) is now the bigger line item.</p>
+    <p>⚡ <strong>Power efficiency:</strong> At ${state.nodeWatts}W, electricity costs ~${fmtMoney(sel.elecAnnual)}/yr in the USA — often under 10% of total OpEx.</p>
+    <p>🎯 <strong>${state.selectedYear} snapshot:</strong> ${state.pruned ? 'Pruned' : 'Archival'} node needs ${fmtGB(sel.minStorage)} storage${electrumSnap}. Base setup ${fmtMoney(sel.baseTotalSetup)}${sel.electrumIndexCost > 0 ? `, +${fmtMoney(sel.electrumIndexCost)} index → ${fmtMoney(sel.totalSetup)} total` : ''}. Annual OpEx ${fmtMoney(sel.annualOpEx)}. Score: <strong class="${score.color}">${score.label}</strong>.</p>
+    ${state.projectionEnabled ? (() => {
+      const y30 = getYearData(2030), y40 = getYearData(2040);
+      const ref = getYearData(2026);
+      const savePct = (1 - y40.totalSetup / ref.totalSetup) * 100;
+      return `<p>🔮 <strong>2040 projection (${state.projectionScenario}):</strong> Chain ~${fmtGB(y40.sizeGB)}, setup ${fmtMoney(y40.totalSetup)} vs ${fmtMoney(ref.totalSetup)} in 2026 (<strong class="text-green-400">${savePct > 0 ? savePct.toFixed(0) + '% cheaper' : 'higher'}</strong>). 2030: ${fmtMoney(y30.totalSetup)}. OpEx stays ~${fmtMoney(y40.annualOpEx)}/yr.</p>`;
+    })() : `<p>🔮 <strong>Projection to 2030:</strong> At ${state.growthRate} GB/yr growth, chain hits ~${fmtGB(getSizeGB(2030))} by 2030.</p>`}
+  `;
+}
+
+function syncProjectionUI() {
+  const maxY = getMaxYear();
+  document.getElementById('yearSlider').max = maxY;
+  document.getElementById('yearFrom').max = maxY;
+  document.getElementById('yearTo').max = maxY;
+  document.getElementById('yearSliderMax').textContent = maxY;
+  if (state.selectedYear > maxY) {
+    state.selectedYear = maxY;
+    document.getElementById('yearSlider').value = maxY;
+    document.getElementById('yearDisplay').textContent = maxY;
+  }
+  const yearToInput = document.getElementById('yearTo');
+  if (state.projectionEnabled) {
+    state.yearTo = PROJECTION_THROUGH;
+    yearToInput.value = PROJECTION_THROUGH;
+    yearToInput.min = HISTORICAL_THROUGH;
+  } else {
+    if (state.yearTo > 2030) state.yearTo = 2030;
+    yearToInput.value = state.yearTo;
+    yearToInput.min = 2009;
+  }
+  yearToInput.max = maxY;
+  document.getElementById('projEnabled').checked = state.projectionEnabled;
+  document.getElementById('projScenario').value = state.projectionScenario;
+  const tip = document.getElementById('projScenarioTip');
+  if (tip) tip.textContent = SCENARIO_TIPS[state.projectionScenario] || '';
+  const aTip = document.getElementById('projAssumptionTip');
+  if (aTip) aTip.textContent =
+    `Chain +${state.projGrowthRate} GB/yr · Storage ${state.projStorageDeflation}%/yr (AI +25% 2026–28 baseline) · HW ${state.projHardwareDeflation}%/yr · Internet ${state.projInternetTrend}% real/yr.`;
+  document.getElementById('chartSavingsWrap')?.classList.toggle('hidden', !state.projectionEnabled);
+  document.getElementById('yearRangeHint')?.classList.toggle('hidden', !state.projectionEnabled);
+  const ext = state.projectionEnabled ? ' (2009–2040)' : '';
+  const cst = document.getElementById('chartSizeTitle');
+  if (cst) cst.textContent = 'Blockchain Size Growth (GB)' + ext;
+}
+
+function syncProjSliderLabels() {
+  const set = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+  set('projGrowthVal', state.projGrowthRate);
+  set('projStorageDeflVal', state.projStorageDeflation + '%');
+  set('projHwDeflVal', state.projHardwareDeflation + '%');
+  set('projInternetVal', state.projInternetTrend + '%');
+  set('projSsdPremVal', state.projSsdPremiumPct + '%');
+  set('projElecDeflVal', state.projElecDeflation + '%');
+  set('projElectrumMultVal', state.projElectrumMult.toFixed(1) + '×');
+}
+
+// ═══════════════════════════════════════════════════════════════
+// UI UPDATE
+// ═══════════════════════════════════════════════════════════════
+function syncElectrumUI() {
+  const hasElectrum = state.electrumMode !== 'none';
+  document.querySelectorAll('.electrum-col').forEach(el => el.classList.toggle('hidden', !hasElectrum));
+  const thBase = document.getElementById('thSetupBase');
+  if (thBase) thBase.textContent = hasElectrum ? 'Base Setup' : 'Total Setup';
+  document.querySelectorAll('.electrum-opt').forEach(label => {
+    const radio = label.querySelector('input');
+    const active = radio.value === state.electrumMode;
+    label.classList.toggle('border-btc/50', active);
+    label.classList.toggle('bg-btc/10', active);
+  });
+  const hint = document.getElementById('electrumHint');
+  if (hint) {
+    if (!hasElectrum) hint.textContent = '';
+    else {
+      const d = getSelected();
+      const opt = ELECTRUM_OPTIONS[state.electrumMode];
+      if (!isElectrumActive(state.selectedYear)) {
+        hint.textContent = `Not available until ${opt.availableFrom} — ${opt.debut}`;
+      } else {
+        const pct = (getElectrumRatioDisplay(state.selectedYear) * 100).toFixed(0);
+        hint.textContent = `+${fmtGB(d.electrumIndexGB)} index (~${pct}% of chain) → ${fmtMoney(d.electrumIndexCost)} extra`;
+      }
+    }
+  }
+}
+
+function getElectrumHwNote(d) {
+  if (state.electrumMode === 'none' || d.electrumIndexGB <= 0) return '';
+  const opt = ELECTRUM_OPTIONS[state.electrumMode];
+  const driveTB = d.purchaseTB;
+  const extra = d.electrumIndexCost;
+  const lo = Math.round(extra * 0.85);
+  const hi = Math.round(extra * 1.15);
+  return `${state.selectedYear} full setup with ${opt.short} → recommend ${driveTB} TB ${getStorageTypeForYear(state.selectedYear).toUpperCase()}, ~$${lo}–$${hi} extra one-time for index storage.`;
+}
+
+function updateKPIs() {
+  const d = getSelected();
+  const withElectrum = state.electrumMode !== 'none' && isElectrumActive(state.selectedYear);
+  const score = affordabilityScore(withElectrum ? d.annualizedTotal : d.baseAnnualizedTotal);
+  document.getElementById('kpiSize').textContent = fmtGB(d.sizeGB);
+  document.getElementById('kpiMinStorage').textContent = fmtGB(d.minStorage);
+  const sub = document.getElementById('kpiMinStorageSub');
+  if (state.electrumMode !== 'none' && isElectrumActive(state.selectedYear) && d.electrumIndexGB > 0) {
+    sub.textContent = `Base ${fmtGB(d.baseMinStorage)} + ${fmtGB(d.electrumIndexGB)} ${ELECTRUM_OPTIONS[state.electrumMode].short} index`;
+  } else if (state.electrumMode !== 'none' && !isElectrumActive(state.selectedYear)) {
+    sub.textContent = `${ELECTRUM_OPTIONS[state.electrumMode].short} not available until ${ELECTRUM_OPTIONS[state.electrumMode].availableFrom}`;
+  } else {
+    sub.textContent = state.pruned ? 'Pruned mode' : 'Archival headroom ×1.15';
+  }
+  document.getElementById('kpiHardware').textContent = fmtMoney(withElectrum ? d.totalSetup : d.baseTotalSetup);
+  document.getElementById('kpiOpEx').textContent = fmtMoney(d.annualOpEx);
+  document.getElementById('kpiScore').textContent = score.label;
+  document.getElementById('kpiScore').className = 'text-lg font-bold mt-1 ' + score.color;
+  document.getElementById('kpiScoreSub').textContent = score.sub;
+
+  const hw = getHwRecommendation(state.selectedYear);
+  document.getElementById('hwImage').textContent = hw.emoji;
+  document.getElementById('hwTitle').textContent = hw.title;
+  document.getElementById('hwDesc').textContent = hw.desc;
+  document.getElementById('hwCost').textContent = 'Typical cost: ' + hw.cost;
+  const hwE = document.getElementById('hwElectrum');
+  const note = getElectrumHwNote(d);
+  if (note) {
+    hwE.textContent = '⚡ ' + note;
+    hwE.classList.remove('hidden');
+  } else {
+    hwE.classList.add('hidden');
+  }
+}
+
+function updateTable() {
+  const data = computeAll();
+  const hasElectrum = state.electrumMode !== 'none';
+  const tbody = document.getElementById('dataTable');
+  tbody.innerHTML = data.map(d => `
+    <tr class="hover:bg-btc/5 cursor-pointer transition-colors ${d.year === state.selectedYear ? 'row-active' : ''} ${[2030, 2040].includes(d.year) ? 'milestone-row' : ''} ${d.isProjected ? 'opacity-90' : ''}" data-year="${d.year}">
+      <td class="px-3 py-2.5 font-mono font-medium">${d.year}${d.isProjected ? '<span class="ml-1 text-[9px] text-amber-400/80 font-sans">proj</span>' : ''}</td>
+      <td class="px-3 py-2.5 text-right font-mono" title="${hasElectrum && d.electrumIndexGB > 0 ? 'Base: ' + fmtGB(d.baseMinStorage) + ' / With index: ' + fmtGB(d.minStorage) : ''}">${fmtGB(d.sizeGB)}${hasElectrum && d.electrumIndexGB > 0 ? `<br><span class="text-[10px] text-purple-400">${fmtGB(d.minStorage)} tot</span>` : ''}</td>
+      <td class="px-3 py-2.5 text-right font-mono">${fmtMoney(d.storageCost, true)}</td>
+      ${hasElectrum ? `<td class="px-3 py-2.5 text-right font-mono text-purple-400 electrum-col">${d.electrumIndexGB > 0 ? fmtMoney(d.electrumIndexCost, true) : '<span class="text-gray-600">—</span>'}</td>` : ''}
+      <td class="px-3 py-2.5 text-left"><span class="text-gray-400">${d.cpuDesc}</span> <span class="text-btc font-mono">${fmtMoney(d.basePC, true)}</span></td>
+      <td class="px-3 py-2.5 text-right font-mono">${fmtMoney(d.internetPortion)}</td>
+      <td class="px-3 py-2.5 text-right font-mono ${hasElectrum ? '' : 'text-btc'}">${fmtMoney(hasElectrum ? d.baseTotalSetup : d.totalSetup, true)}</td>
+      ${hasElectrum ? `<td class="px-3 py-2.5 text-right font-mono electrum-col ${d.electrumIndexGB > 0 ? 'text-btc' : 'text-gray-500'}">${d.electrumIndexGB > 0 ? fmtMoney(d.totalSetup, true) : fmtMoney(d.baseTotalSetup, true)}</td>` : ''}
+      <td class="px-3 py-2.5 text-right font-mono">${fmtMoney(d.annualOpEx, true)}</td>
+    </tr>
+  `).join('');
+
+  tbody.querySelectorAll('tr').forEach(tr => {
+    tr.addEventListener('click', () => {
+      state.selectedYear = +tr.dataset.year;
+      document.getElementById('yearSlider').value = state.selectedYear;
+      document.getElementById('yearDisplay').textContent = state.selectedYear;
+      refresh();
+    });
+  });
+}
+
+function chartColors() {
+  return state.dark
+    ? { text: '#94a3b8', grid: 'rgba(148,163,184,0.1)', bg: 'transparent' }
+    : { text: '#475569', grid: 'rgba(71,85,105,0.15)', bg: 'transparent' };
+}
+
+function destroyChart(id) {
+  if (charts[id]) { charts[id].destroy(); delete charts[id]; }
+}
+
+function splitHistProj(data, field) {
+  const hist = data.map(d => d.isProjected ? null : d[field]);
+  const proj = data.map(d => d.isProjected ? d[field] : null);
+  if (!state.projectionEnabled) return { hist: data.map(d => d[field]), proj: data.map(() => null) };
+  const bridge = data.findIndex(d => d.isProjected);
+  if (bridge > 0) proj[bridge - 1] = data[bridge - 1][field];
+  return { hist, proj };
+}
+
+function milestoneLabelsPlugin() {
+  return {
+    id: 'milestoneLabels',
+    afterDatasetsDraw(chart) {
+      if (!state.projectionEnabled) return;
+      const { ctx, scales: { x, y }, data } = chart;
+      [2030, 2040].forEach(year => {
+        const idx = data.labels.indexOf(year);
+        if (idx < 0) return;
+        const val = chart.data.datasets[0]?.data[idx] ?? chart.data.datasets[chart.data.datasets.length - 1]?.data[idx];
+        if (val == null) return;
+        ctx.save();
+        ctx.fillStyle = '#f7931a';
+        ctx.font = 'bold 10px Inter';
+        ctx.fillText(String(year), x.getPixelForValue(idx) - 12, y.getPixelForValue(val) - 8);
+        ctx.restore();
+      });
+    }
+  };
+}
+
+function updateCharts() {
+  const data = computeAll();
+  const years = data.map(d => d.year);
+  const c = chartColors();
+  const hasElectrum = state.electrumMode !== 'none';
+  const scenarioColors = { baseline: '#ffb347', ai_shock: '#f87171', optimistic: '#4ade80', pessimistic: '#94a3b8' };
+  const projColor = scenarioColors[state.projectionScenario] || '#ffb347';
+
+  destroyChart('size');
+  const sizeBase = splitHistProj(data, hasElectrum ? 'baseMinStorage' : 'sizeGB');
+  const sizeDatasets = [
+    {
+      label: hasElectrum ? 'Base Archival (historical)' : 'Chain size (historical)',
+      data: sizeBase.hist, borderColor: '#f7931a', backgroundColor: 'rgba(247,147,26,0.1)', fill: true, tension: 0.3, pointRadius: 2
+    }
+  ];
+  if (state.projectionEnabled) {
+    sizeDatasets.push({
+      label: 'Projected size (' + state.projectionScenario + ')',
+      data: sizeBase.proj, borderColor: projColor, borderDash: [6, 4], fill: false, tension: 0.3, pointRadius: 2
+    });
+  }
+  if (hasElectrum) {
+    const availFrom = ELECTRUM_OPTIONS[state.electrumMode].availableFrom;
+    const electrumHist = data.map(d => d.year >= availFrom && !d.isProjected ? d.minStorage : null);
+    const electrumProj = data.map(d => d.year >= availFrom && d.isProjected ? d.minStorage : null);
+    if (electrumHist.some(v => v != null)) {
+      const bridge = data.findIndex(d => d.year >= availFrom);
+      if (bridge > 0) electrumHist[bridge] = data[bridge].minStorage;
+    }
+    if (electrumProj.some(v => v != null)) {
+      const bridge = data.findIndex(d => d.isProjected && d.year >= availFrom);
+      if (bridge > 0) electrumProj[bridge - 1] = data[bridge - 1].minStorage;
+    }
+    sizeDatasets.push({
+      label: 'With ' + ELECTRUM_OPTIONS[state.electrumMode].short + ' index (historical)',
+      data: electrumHist, borderColor: '#a855f7', backgroundColor: 'rgba(168,85,247,0.06)', fill: false, tension: 0.3, pointRadius: 2
+    });
+    if (state.projectionEnabled && electrumProj.some(v => v != null)) {
+      sizeDatasets.push({
+        label: 'With ' + ELECTRUM_OPTIONS[state.electrumMode].short + ' index (projected)',
+        data: electrumProj, borderColor: '#c084fc', borderDash: [4, 4], fill: false, tension: 0.3, pointRadius: 2
+      });
+    }
+  }
+  charts.size = new Chart(document.getElementById('chartSize'), {
+    type: 'line',
+    data: { labels: years, datasets: sizeDatasets },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { labels: { color: c.text, boxWidth: 12, font: { size: 10 } } } },
+      scales: {
+        x: { ticks: { color: c.text, maxRotation: 45 }, grid: { color: c.grid } },
+        y: { ticks: { color: c.text, callback: v => fmtGB(v) }, grid: { color: c.grid } }
+      }
+    },
+    plugins: [milestoneLabelsPlugin()]
+  });
+
+  destroyChart('breakdown');
+  const barColor = (base, proj) => data.map(d => d.isProjected ? proj : base);
+  const breakdownDatasets = [
+    { label: 'Chain Storage', data: data.map(d => d.storageCost), backgroundColor: barColor('rgba(247,147,26,0.85)', 'rgba(255,179,71,0.55)') },
+    ...(hasElectrum ? [{ label: 'Electrum Index', data: data.map(d => d.electrumIndexGB > 0 ? d.electrumIndexCost : 0), backgroundColor: barColor('rgba(168,85,247,0.85)', 'rgba(192,132,252,0.5)') }] : []),
+    { label: 'Base HW/CPU', data: data.map(d => d.basePC), backgroundColor: barColor('rgba(59,130,246,0.75)', 'rgba(96,165,250,0.45)') },
+    { label: 'Internet (yr)', data: data.map(d => d.internetPortion * 12), backgroundColor: barColor('rgba(99,102,241,0.6)', 'rgba(129,140,248,0.4)') },
+    { label: 'Electricity (yr)', data: data.map(d => d.elecAnnual), backgroundColor: barColor('rgba(34,197,94,0.7)', 'rgba(74,222,128,0.4)') }
+  ];
+  charts.breakdown = new Chart(document.getElementById('chartBreakdown'), {
+    type: 'bar',
+    data: { labels: years, datasets: breakdownDatasets },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { labels: { color: c.text } } },
+      scales: {
+        x: { stacked: true, ticks: { color: c.text }, grid: { color: c.grid } },
+        y: { stacked: true, ticks: { color: c.text, callback: v => '$' + v }, grid: { color: c.grid } }
+      }
+    }
+  });
+
+  destroyChart('annual');
+  const annBase = splitHistProj(data, 'baseAnnualizedTotal');
+  const annFull = splitHistProj(data, 'annualizedTotal');
+  const annualDatasets = [{
+    label: 'Base Archival (historical)',
+    data: annBase.hist, borderColor: '#f7931a', backgroundColor: 'rgba(247,147,26,0.15)', fill: true, tension: 0.35, pointRadius: 3
+  }];
+  if (state.projectionEnabled) {
+    annualDatasets.push({
+      label: 'Base (projected ' + state.projectionScenario + ')',
+      data: annBase.proj, borderColor: projColor, borderDash: [6, 4], fill: false, tension: 0.35, pointRadius: 3
+    });
+  }
+  if (hasElectrum) {
+    const availFrom = ELECTRUM_OPTIONS[state.electrumMode].availableFrom;
+    const annElectHist = data.map((d, i) => d.year >= availFrom && !d.isProjected ? d.annualizedTotal : null);
+    const annElectProj = data.map(d => d.year >= availFrom && d.isProjected ? d.annualizedTotal : null);
+    const bridgeH = data.findIndex(d => d.year >= availFrom);
+    if (bridgeH > 0) annElectHist[bridgeH] = data[bridgeH].annualizedTotal;
+    const bridgeP = data.findIndex(d => d.isProjected && d.year >= availFrom);
+    if (bridgeP > 0) annElectProj[bridgeP - 1] = data[bridgeP - 1].annualizedTotal;
+    if (annElectHist.some(v => v != null)) {
+      annualDatasets.push({
+        label: 'With ' + ELECTRUM_OPTIONS[state.electrumMode].short + ' (historical)',
+        data: annElectHist, borderColor: '#a855f7', fill: false, tension: 0.35, pointRadius: 3
+      });
+    }
+    if (state.projectionEnabled && annElectProj.some(v => v != null)) {
+      annualDatasets.push({
+        label: 'With ' + ELECTRUM_OPTIONS[state.electrumMode].short + ' (projected)',
+        data: annElectProj, borderColor: '#c084fc', borderDash: [4, 4], fill: false, tension: 0.35, pointRadius: 3
+      });
+    }
+  }
+  charts.annual = new Chart(document.getElementById('chartAnnual'), {
+    type: 'line',
+    data: { labels: years, datasets: annualDatasets },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { labels: { color: c.text, boxWidth: 12, font: { size: 10 } } } },
+      scales: {
+        x: { ticks: { color: c.text, maxRotation: 45 }, grid: { color: c.grid } },
+        y: { ticks: { color: c.text, callback: v => '$' + Math.round(v) }, grid: { color: c.grid } }
+      }
+    },
+    plugins: [milestoneLabelsPlugin()]
+  });
+
+  const ref2026 = getYearData(2026);
+  const refSetup = state.electrumMode !== 'none' ? ref2026.totalSetup : ref2026.baseTotalSetup;
+  const savingsData = data.filter(d => d.year >= 2026).map(d => {
+    const setup = state.electrumMode !== 'none' ? d.totalSetup : d.baseTotalSetup;
+    return Math.max(0, refSetup - setup);
+  });
+  const savingsYears = data.filter(d => d.year >= 2026).map(d => d.year);
+  destroyChart('savings');
+  if (state.projectionEnabled && savingsYears.length) {
+    charts.savings = new Chart(document.getElementById('chartSavings'), {
+      type: 'bar',
+      data: {
+        labels: savingsYears,
+        datasets: [{
+          label: 'Savings vs 2026 setup ($)',
+          data: savingsData,
+          backgroundColor: savingsData.map((v, i) => {
+            const yr = savingsYears[i];
+            return yr >= 2030 ? 'rgba(74,222,128,0.75)' : 'rgba(247,147,26,0.6)';
+          })
+        }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { labels: { color: c.text } } },
+        scales: {
+          x: { ticks: { color: c.text }, grid: { color: c.grid } },
+          y: { ticks: { color: c.text, callback: v => '$' + v }, grid: { color: c.grid } }
+        }
+      }
+    });
+  }
+
+  const sel = getSelected();
+  const pieLabels = ['Chain Storage', 'Base HW', 'Internet/yr', 'Elec/yr'];
+  const pieData = [sel.storageCost, sel.basePC, sel.internetPortion * 12, sel.elecAnnual];
+  const pieColors = ['#f7931a', '#3b82f6', '#6366f1', '#22c55e'];
+  if (hasElectrum && sel.electrumIndexCost > 0) {
+    pieLabels.splice(1, 0, 'Electrum Index');
+    pieData.splice(1, 0, sel.electrumIndexCost);
+    pieColors.splice(1, 0, '#a855f7');
+  }
+  destroyChart('pie');
+  charts.pie = new Chart(document.getElementById('chartPie'), {
+    type: 'doughnut',
+    data: {
+      labels: pieLabels,
+      datasets: [{ data: pieData, backgroundColor: pieColors }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { position: 'bottom', labels: { color: c.text } },
+        title: { display: true, text: state.selectedYear + (hasElectrum ? ' With Electrum' : '') + ' Setup + Annual OpEx', color: c.text }
+      }
+    }
+  });
+}
+
+function updateInsights() {
+  document.getElementById('insightsText').innerHTML = generateInsights(computeAll());
+}
+
+function refresh() {
+  syncStorageTypeHint();
+  syncElectrumUI();
+  syncProjectionUI();
+  syncProjSliderLabels();
+  updateKPIs();
+  updateTable();
+  updateInsights();
+  updateCharts();
+}
+
+// ═══════════════════════════════════════════════════════════════
+// EXPORT
+// ═══════════════════════════════════════════════════════════════
+function exportCSV() {
+  const data = computeAll();
+  const headers = ['Year', 'Size_GB', 'Min_Storage_GB', 'Electrum_Index_GB', 'Storage_Cost', 'Electrum_Index_Cost', 'Base_PC', 'Internet_Monthly', 'Base_Setup', 'Total_Setup', 'Annual_OpEx', 'Base_Annualized', 'Annualized_Total'];
+  const rows = data.map(d => [d.year, d.sizeGB.toFixed(2), d.minStorage.toFixed(2), d.electrumIndexGB.toFixed(2), d.storageCost.toFixed(2), d.electrumIndexCost.toFixed(2), d.basePC.toFixed(2), d.internetPortion.toFixed(2), d.baseTotalSetup.toFixed(2), d.totalSetup.toFixed(2), d.annualOpEx.toFixed(2), d.baseAnnualizedTotal.toFixed(2), d.annualizedTotal.toFixed(2)]);
+  const csv = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'bitcoin-node-costs.csv';
+  a.click();
+}
+
+function exportPNG() {
+  const canvas = document.getElementById('chartAnnual');
+  if (!charts.annual) updateCharts();
+  const a = document.createElement('a');
+  a.href = canvas.toDataURL('image/png');
+  a.download = 'bitcoin-node-annual-cost.png';
+  a.click();
+}
+
+// ═══════════════════════════════════════════════════════════════
+// THEME
+// ═══════════════════════════════════════════════════════════════
+function setTheme(dark) {
+  state.dark = dark;
+  document.documentElement.classList.toggle('dark', dark);
+  document.documentElement.classList.toggle('light', !dark);
+  document.getElementById('iconMoon').classList.toggle('hidden', !dark);
+  document.getElementById('iconSun').classList.toggle('hidden', dark);
+  document.body.className = dark
+    ? 'bg-surface text-gray-100 font-sans min-h-screen transition-colors duration-300'
+    : 'bg-slate-100 text-slate-900 font-sans min-h-screen transition-colors duration-300';
+  document.querySelector('nav').className = dark
+    ? 'sticky top-0 z-40 bg-surface/95 backdrop-blur-md border-b border-btc/20'
+    : 'sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-btc/30 shadow-sm';
+  document.getElementById('sidebar').classList.toggle('bg-white', !dark);
+  document.getElementById('sidebar').classList.toggle('bg-surface-card', dark);
+  if (charts.size) updateCharts();
+}
+
+function resetProjSlidersUI() {
+  Object.assign(state, PROJ_DEFAULTS);
+  document.getElementById('projGrowth').value = state.projGrowthRate;
+  document.getElementById('projStorageDefl').value = state.projStorageDeflation;
+  document.getElementById('projHwDefl').value = state.projHardwareDeflation;
+  document.getElementById('projInternet').value = state.projInternetTrend;
+  document.getElementById('projSsdPrem').value = state.projSsdPremiumPct;
+  document.getElementById('projElecDefl').value = state.projElecDeflation;
+  document.getElementById('projElectrumMult').value = state.projElectrumMult;
+  syncProjSliderLabels();
+  refresh();
+}
+
+function resetDefaults() {
+  state.storageType = 'auto';
+  state.storageMult = 1;
+  state.basePCOverride = null;
+  state.internetMode = 'percent';
+  state.internetValue = 15;
+  state.elecPrice = null;
+  state.nodeWatts = 15;
+  state.growthRate = 90;
+  state.customStorage = null;
+  state.customPC = null;
+  state.electrumMode = 'none';
+  document.querySelector('input[name="electrum"][value="none"]').checked = true;
+  document.getElementById('storageType').value = 'auto';
+  document.getElementById('storageMult').value = 1;
+  document.getElementById('basePCOverride').value = '';
+  document.getElementById('internetMode').value = 'percent';
+  document.getElementById('internetValue').value = 15;
+  document.getElementById('elecPrice').value = US_RATES.elec;
+  document.getElementById('nodeWatts').value = 15;
+  document.getElementById('growthRate').value = 90;
+  document.getElementById('customStorage').value = '';
+  document.getElementById('customPC').value = '';
+  document.getElementById('storageMultDisplay').textContent = '1.0×';
+  document.getElementById('wattsDisplay').textContent = '15 W';
+  refresh();
+}
+
+// ═══════════════════════════════════════════════════════════════
+// EVENT BINDINGS
+// ═══════════════════════════════════════════════════════════════
+function bindEvents() {
+  const yearSlider = document.getElementById('yearSlider');
+  yearSlider.addEventListener('input', e => {
+    state.selectedYear = +e.target.value;
+    document.getElementById('yearDisplay').textContent = state.selectedYear;
+    refresh();
+  });
+
+  document.getElementById('yearFrom').addEventListener('change', e => {
+    state.yearFrom = +e.target.value;
+    refresh();
+  });
+  document.getElementById('yearTo').addEventListener('change', e => {
+    if (!state.projectionEnabled) state.yearTo = +e.target.value;
+    refresh();
+  });
+
+  document.getElementById('btnNominal').addEventListener('click', () => {
+    state.inflationAdjusted = false;
+    document.getElementById('btnNominal').className = 'px-3 py-1.5 bg-btc text-black font-medium';
+    document.getElementById('btnInflation').className = 'px-3 py-1.5 bg-surface-card hover:bg-btc/10';
+    refresh();
+  });
+  document.getElementById('btnInflation').addEventListener('click', () => {
+    state.inflationAdjusted = true;
+    document.getElementById('btnInflation').className = 'px-3 py-1.5 bg-btc text-black font-medium';
+    document.getElementById('btnNominal').className = 'px-3 py-1.5 bg-surface-card hover:bg-btc/10';
+    refresh();
+  });
+
+  document.getElementById('btnArchival').addEventListener('click', () => {
+    state.pruned = false;
+    document.getElementById('btnArchival').className = 'px-3 py-1.5 bg-btc text-black font-medium';
+    document.getElementById('btnPruned').className = 'px-3 py-1.5 bg-surface-card hover:bg-btc/10';
+    refresh();
+  });
+  document.getElementById('btnPruned').addEventListener('click', () => {
+    state.pruned = true;
+    document.getElementById('btnPruned').className = 'px-3 py-1.5 bg-btc text-black font-medium';
+    document.getElementById('btnArchival').className = 'px-3 py-1.5 bg-surface-card hover:bg-btc/10';
+    refresh();
+  });
+
+  document.querySelectorAll('input[name="electrum"]').forEach(radio => {
+    radio.addEventListener('change', e => { state.electrumMode = e.target.value; refresh(); });
+  });
+
+  const projPanel = document.getElementById('projPanel');
+  const projOverlay = document.getElementById('projPanelOverlay');
+  const openProj = () => { projPanel.classList.remove('hidden'); projOverlay.classList.remove('hidden'); };
+  const closeProj = () => { projPanel.classList.add('hidden'); projOverlay.classList.add('hidden'); };
+  document.getElementById('btnProjPanel').addEventListener('click', openProj);
+  document.getElementById('btnProjClose').addEventListener('click', closeProj);
+  projOverlay.addEventListener('click', closeProj);
+
+  document.getElementById('projEnabled').addEventListener('change', e => {
+    state.projectionEnabled = e.target.checked;
+    refresh();
+  });
+  document.getElementById('projScenario').addEventListener('change', e => { state.projectionScenario = e.target.value; refresh(); });
+  document.getElementById('btnProjReset').addEventListener('click', resetProjSlidersUI);
+
+  const projBind = (id, key, parse = Number) => {
+    document.getElementById(id).addEventListener('input', e => { state[key] = parse(e.target.value); refresh(); });
+  };
+  projBind('projGrowth', 'projGrowthRate');
+  projBind('projStorageDefl', 'projStorageDeflation');
+  projBind('projHwDefl', 'projHardwareDeflation');
+  projBind('projInternet', 'projInternetTrend');
+  projBind('projSsdPrem', 'projSsdPremiumPct');
+  projBind('projElecDefl', 'projElecDeflation');
+  projBind('projElectrumMult', 'projElectrumMult', v => +v);
+
+  document.getElementById('storageType').addEventListener('change', e => { state.storageType = e.target.value; refresh(); });
+  document.getElementById('storageMult').addEventListener('input', e => {
+    state.storageMult = +e.target.value;
+    document.getElementById('storageMultDisplay').textContent = (+e.target.value).toFixed(1) + '×';
+    refresh();
+  });
+  document.getElementById('basePCOverride').addEventListener('input', e => {
+    state.basePCOverride = e.target.value === '' ? null : +e.target.value;
+    refresh();
+  });
+  document.getElementById('internetMode').addEventListener('change', e => { state.internetMode = e.target.value; refresh(); });
+  document.getElementById('internetValue').addEventListener('input', e => { state.internetValue = +e.target.value; refresh(); });
+  document.getElementById('elecPrice').addEventListener('input', e => { state.elecPrice = +e.target.value; refresh(); });
+  document.getElementById('nodeWatts').addEventListener('input', e => {
+    state.nodeWatts = +e.target.value;
+    document.getElementById('wattsDisplay').textContent = e.target.value + ' W';
+    refresh();
+  });
+  document.getElementById('growthRate').addEventListener('input', e => { state.growthRate = +e.target.value; refresh(); });
+  document.getElementById('btnReset').addEventListener('click', resetDefaults);
+
+  document.getElementById('btnSimulate').addEventListener('click', () => {
+    const cs = document.getElementById('customStorage').value;
+    const cp = document.getElementById('customPC').value;
+    state.customStorage = cs ? +cs : null;
+    state.customPC = cp ? +cp : null;
+    refresh();
+  });
+
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.tab-btn').forEach(b => {
+        b.classList.remove('tab-active');
+        b.classList.add('text-gray-400');
+      });
+      btn.classList.add('tab-active');
+      btn.classList.remove('text-gray-400');
+      document.querySelectorAll('.tab-panel').forEach(p => p.classList.add('hidden'));
+      const panel = document.getElementById('tab' + btn.dataset.tab.charAt(0).toUpperCase() + btn.dataset.tab.slice(1));
+      panel.classList.remove('hidden');
+      if (btn.dataset.tab === 'charts') setTimeout(updateCharts, 50);
+    });
+  });
+
+  document.getElementById('themeToggle').addEventListener('click', () => setTheme(!state.dark));
+  document.getElementById('btnExportCSV').addEventListener('click', exportCSV);
+  document.getElementById('btnExportPNG').addEventListener('click', exportPNG);
+  document.getElementById('btnShare').addEventListener('click', () => {
+    const params = new URLSearchParams({
+      year: state.selectedYear, pruned: state.pruned, electrum: state.electrumMode,
+      proj: state.projectionEnabled, scenario: state.projectionScenario
+    });
+    const url = location.href.split('?')[0] + '?' + params;
+    navigator.clipboard?.writeText(url).then(() => alert('Share link copied (placeholder params):\n' + url));
+  });
+
+  const sidebar = document.getElementById('sidebar');
+  const overlay = document.getElementById('sidebarOverlay');
+  document.getElementById('sidebarToggle').addEventListener('click', () => { sidebar.classList.remove('-translate-x-full'); overlay.classList.remove('hidden'); });
+  document.getElementById('sidebarClose').addEventListener('click', () => { sidebar.classList.add('-translate-x-full'); overlay.classList.add('hidden'); });
+  overlay.addEventListener('click', () => { sidebar.classList.add('-translate-x-full'); overlay.classList.add('hidden'); });
+
+  // URL params
+  const params = new URLSearchParams(location.search);
+  if (params.has('year')) { state.selectedYear = +params.get('year'); yearSlider.value = state.selectedYear; document.getElementById('yearDisplay').textContent = state.selectedYear; }
+  if (params.has('pruned')) { state.pruned = params.get('pruned') === 'true'; if (state.pruned) document.getElementById('btnPruned').click(); }
+  if (params.has('electrum')) {
+    const mode = params.get('electrum');
+    if (ELECTRUM_OPTIONS[mode]) {
+      state.electrumMode = mode;
+      const radio = document.querySelector(`input[name="electrum"][value="${mode}"]`);
+      if (radio) radio.checked = true;
+    }
+  }
+  if (params.has('proj')) state.projectionEnabled = params.get('proj') !== 'false';
+  if (params.has('scenario') && SCENARIO_TIPS[params.get('scenario')]) {
+    state.projectionScenario = params.get('scenario');
+    document.getElementById('projScenario').value = state.projectionScenario;
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════════════
+document.getElementById('elecPrice').value = US_RATES.elec;
+bindEvents();
+refresh();
+</script>
+</body>
+</html>
