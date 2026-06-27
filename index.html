@@ -356,7 +356,9 @@
           <p id="kpiOpEx" class="text-xl font-bold font-mono mt-1">—</p>
         </div>
         <div class="kpi-card bg-surface-card rounded-xl p-4 border border-gray-700/50 col-span-2">
-          <p class="text-xs text-gray-400">Affordability Score</p>
+          <p class="text-xs text-gray-400 flex items-center gap-1">Hobbyist Affordability
+            <span class="tooltip-wrap"><span class="cursor-help">ⓘ</span><span class="tip">Monthly equivalent: one-time setup amortized over 3 years + annual internet &amp; electricity, divided by 12. Tuned for homelab/hobby budgets, not enterprise hosting.</span></span>
+          </p>
           <p id="kpiScore" class="text-lg font-bold mt-1">—</p>
           <p id="kpiScoreSub" class="text-xs text-gray-500 mt-0.5">—</p>
         </div>
@@ -1069,13 +1071,15 @@ function getSelected() {
   return calcYear(state.selectedYear);
 }
 
-function affordabilityScore(annualized) {
+function affordabilityScore(annualized, annualOpEx) {
   const monthly = annualized / 12;
-  if (monthly < 2) return { label: 'Very Affordable', sub: 'Cheaper than a coffee/month', color: 'text-green-400' };
-  if (monthly < 5) return { label: 'Affordable', sub: 'Less than a streaming subscription', color: 'text-green-400' };
-  if (monthly < 15) return { label: 'Moderate', sub: 'Comparable to a phone plan add-on', color: 'text-yellow-400' };
-  if (monthly < 40) return { label: 'Pricey', sub: 'Noticeable but doable for enthusiasts', color: 'text-orange-400' };
-  return { label: 'Expensive', sub: 'Consider pruned mode or VPS comparison', color: 'text-red-400' };
+  const monthlyRun = annualOpEx / 12;
+  const runNote = `~${fmtMoney(monthlyRun)}/mo running · ~${fmtMoney(monthly)}/mo all-in (3-yr setup)`;
+  if (monthly < 10) return { label: 'Very Affordable', sub: runNote + ' — easy homelab hobby', color: 'text-green-400' };
+  if (monthly < 25) return { label: 'Affordable', sub: runNote + ' — typical node hobbyist range', color: 'text-green-400' };
+  if (monthly < 50) return { label: 'Moderate', sub: runNote + ' — dedicated runner, still reasonable', color: 'text-yellow-400' };
+  if (monthly < 80) return { label: 'Enthusiast', sub: runNote + ' — index-heavy or peak-era hardware', color: 'text-orange-400' };
+  return { label: 'Premium', sub: runNote + ' — pruned mode or lower internet % helps', color: 'text-red-400' };
 }
 
 function getHwRecommendation(year) {
@@ -1125,7 +1129,10 @@ function generateInsights(data) {
   }, { year: 0, setup: 0 });
   const sel = getSelected();
   const withIndex = (sel.optionalIndexGB ?? 0) > 0;
-  const score = affordabilityScore(withIndex ? sel.annualizedTotal : sel.baseAnnualizedTotal);
+  const score = affordabilityScore(
+    withIndex ? sel.annualizedTotal : sel.baseAnnualizedTotal,
+    sel.annualOpEx
+  );
   const indexSnap = getIndexSnapshot(sel);
 
   return `
@@ -1267,7 +1274,10 @@ function getElectrumHwNote(d) {
 function updateKPIs() {
   const d = getSelected();
   const withIndex = (d.optionalIndexGB ?? 0) > 0;
-  const score = affordabilityScore(withIndex ? d.annualizedTotal : d.baseAnnualizedTotal);
+  const score = affordabilityScore(
+    withIndex ? d.annualizedTotal : d.baseAnnualizedTotal,
+    d.annualOpEx
+  );
   document.getElementById('kpiSize').textContent = fmtGB(d.blocksGB);
   const sizeSub = document.getElementById('kpiSizeSub');
   if (sizeSub) {
