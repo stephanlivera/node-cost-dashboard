@@ -726,12 +726,11 @@ function syncStorageTypeHint() {
   }
 }
 
-/** Real drives are sold in fixed SKUs — you buy 1/2/4 TB, not exact chain size */
+/** Real drives are sold in fixed SKUs — you buy 1/2/4 TB, not exact chain size; 4 TB only when headroom exceeds 2 TB */
 function getPurchaseTB(year, headroomTB) {
   let eraMin = 0.5;
   if (year >= 2015) eraMin = 1;
   if (year >= 2019) eraMin = 2;
-  if (year >= 2028) eraMin = 4;
   const needed = Math.max(headroomTB, eraMin);
   return DRIVE_SKUS_TB.find(sku => sku >= needed) ?? DRIVE_SKUS_TB[DRIVE_SKUS_TB.length - 1];
 }
