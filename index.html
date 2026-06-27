@@ -57,6 +57,23 @@
     .proj-open #projPanel { display: block; }
     .milestone-row { background: rgba(247,147,26,0.06); }
     .milestone-row td:first-child { font-weight: 700; color: #f7931a; }
+    .chart-action-btn {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 28px; height: 28px; border-radius: 6px;
+      border: 1px solid rgba(148,163,184,0.25); color: #94a3b8;
+      background: transparent; transition: color 0.15s, border-color 0.15s, background 0.15s;
+    }
+    .chart-action-btn:hover { color: var(--btc); border-color: rgba(247,147,26,0.5); background: rgba(247,147,26,0.08); }
+    .chart-action-btn svg { width: 14px; height: 14px; }
+    .export-toast {
+      position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(8px);
+      padding: 10px 18px; border-radius: 8px; font-size: 13px;
+      background: #16213e; color: #e2e8f0; border: 1px solid rgba(247,147,26,0.4);
+      z-index: 100; opacity: 0; transition: opacity 0.25s, transform 0.25s; pointer-events: none;
+    }
+    .export-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+    .export-toast.error { border-color: rgba(248,113,113,0.5); color: #fecaca; }
+    .light .export-toast { background: #1e293b; }
   </style>
 </head>
 <body class="bg-surface text-gray-100 font-sans min-h-screen transition-colors duration-300">
@@ -341,25 +358,56 @@
 
       <!-- Charts Tab -->
       <section id="tabCharts" class="tab-panel hidden">
+        <p class="text-xs text-gray-500 mb-3">Use the clipboard or download icon on any chart to copy or save it as a PNG screenshot.</p>
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          <div class="bg-surface-card rounded-xl p-4 border border-gray-700">
-            <h3 id="chartSizeTitle" class="text-sm font-semibold text-btc mb-2">Blockchain Size Growth (GB)</h3>
+          <div class="bg-surface-card rounded-xl p-4 border border-gray-700" data-chart-card="size">
+            <div class="flex items-start justify-between gap-2 mb-2">
+              <h3 id="chartSizeTitle" class="text-sm font-semibold text-btc">Blockchain Size Growth (GB)</h3>
+              <div class="chart-actions flex shrink-0 gap-1">
+                <button type="button" class="chart-action-btn" data-chart-action="copy" data-chart="size" title="Copy chart image" aria-label="Copy chart image"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg></button>
+                <button type="button" class="chart-action-btn" data-chart-action="download" data-chart="size" title="Download chart PNG" aria-label="Download chart PNG"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg></button>
+              </div>
+            </div>
             <div class="chart-container"><canvas id="chartSize"></canvas></div>
           </div>
-          <div class="bg-surface-card rounded-xl p-4 border border-gray-700">
-            <h3 class="text-sm font-semibold text-btc mb-2">Cost Breakdown Over Time</h3>
+          <div class="bg-surface-card rounded-xl p-4 border border-gray-700" data-chart-card="breakdown">
+            <div class="flex items-start justify-between gap-2 mb-2">
+              <h3 class="text-sm font-semibold text-btc">Cost Breakdown Over Time</h3>
+              <div class="chart-actions flex shrink-0 gap-1">
+                <button type="button" class="chart-action-btn" data-chart-action="copy" data-chart="breakdown" title="Copy chart image" aria-label="Copy chart image"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg></button>
+                <button type="button" class="chart-action-btn" data-chart-action="download" data-chart="breakdown" title="Download chart PNG" aria-label="Download chart PNG"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg></button>
+              </div>
+            </div>
             <div class="chart-container"><canvas id="chartBreakdown"></canvas></div>
           </div>
-          <div class="bg-surface-card rounded-xl p-4 border border-gray-700">
-            <h3 class="text-sm font-semibold text-btc mb-2">Total Annualized Cost (3-yr amortized setup + OpEx)</h3>
+          <div class="bg-surface-card rounded-xl p-4 border border-gray-700" data-chart-card="annual">
+            <div class="flex items-start justify-between gap-2 mb-2">
+              <h3 class="text-sm font-semibold text-btc">Total Annualized Cost (3-yr amortized setup + OpEx)</h3>
+              <div class="chart-actions flex shrink-0 gap-1">
+                <button type="button" class="chart-action-btn" data-chart-action="copy" data-chart="annual" title="Copy chart image" aria-label="Copy chart image"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg></button>
+                <button type="button" class="chart-action-btn" data-chart-action="download" data-chart="annual" title="Download chart PNG" aria-label="Download chart PNG"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg></button>
+              </div>
+            </div>
             <div class="chart-container"><canvas id="chartAnnual"></canvas></div>
           </div>
-          <div class="bg-surface-card rounded-xl p-4 border border-gray-700">
-            <h3 class="text-sm font-semibold text-btc mb-2">Current Year Breakdown</h3>
+          <div class="bg-surface-card rounded-xl p-4 border border-gray-700" data-chart-card="pie">
+            <div class="flex items-start justify-between gap-2 mb-2">
+              <h3 class="text-sm font-semibold text-btc">Current Year Breakdown</h3>
+              <div class="chart-actions flex shrink-0 gap-1">
+                <button type="button" class="chart-action-btn" data-chart-action="copy" data-chart="pie" title="Copy chart image" aria-label="Copy chart image"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg></button>
+                <button type="button" class="chart-action-btn" data-chart-action="download" data-chart="pie" title="Download chart PNG" aria-label="Download chart PNG"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg></button>
+              </div>
+            </div>
             <div class="chart-container"><canvas id="chartPie"></canvas></div>
           </div>
-          <div id="chartSavingsWrap" class="bg-surface-card rounded-xl p-4 border border-green-500/30 lg:col-span-2">
-            <h3 class="text-sm font-semibold text-btc mb-2">Cumulative Savings vs Buying in 2026</h3>
+          <div id="chartSavingsWrap" class="bg-surface-card rounded-xl p-4 border border-green-500/30 lg:col-span-2" data-chart-card="savings">
+            <div class="flex items-start justify-between gap-2 mb-2">
+              <h3 class="text-sm font-semibold text-btc">Cumulative Savings vs Buying in 2026</h3>
+              <div class="chart-actions flex shrink-0 gap-1">
+                <button type="button" class="chart-action-btn" data-chart-action="copy" data-chart="savings" title="Copy chart image" aria-label="Copy chart image"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg></button>
+                <button type="button" class="chart-action-btn" data-chart-action="download" data-chart="savings" title="Download chart PNG" aria-label="Download chart PNG"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg></button>
+              </div>
+            </div>
             <div class="chart-container"><canvas id="chartSavings"></canvas></div>
           </div>
         </div>
@@ -373,7 +421,8 @@
         </div>
         <div class="flex flex-wrap gap-3">
           <button id="btnExportCSV" class="px-4 py-2 rounded-lg border border-btc text-btc text-sm hover:bg-btc/10">Export CSV</button>
-          <button id="btnExportPNG" class="px-4 py-2 rounded-lg border border-gray-600 text-sm hover:border-btc">Export Chart PNG</button>
+          <button id="btnExportPNG" class="px-4 py-2 rounded-lg border border-gray-600 text-sm hover:border-btc">Download Annual Chart</button>
+          <button id="btnCopyPNG" class="px-4 py-2 rounded-lg border border-gray-600 text-sm hover:border-btc">Copy Annual Chart</button>
         </div>
         <div class="bg-surface-card rounded-xl p-4 border border-gray-700 text-sm text-gray-400">
           <h4 class="font-semibold text-btc mb-2">Compare to VPS</h4>
@@ -396,6 +445,8 @@
   </div>
 
   <!-- Footer -->
+  <div id="exportToast" class="export-toast" role="status" aria-live="polite"></div>
+
   <footer class="border-t border-gray-700 mt-8 py-6 px-4 text-center text-xs text-gray-500 max-w-[1600px] mx-auto">
     <p class="mb-2"><strong class="text-btc">Sources & Notes:</strong> Data synthesized from Blockchain.com, YCharts, Backblaze, Bitcoin.org, historical HDD pricing; approximations for illustration — edit JS arrays to tweak.</p>
     <p>CPI inflation factors use approximate US BLS trends. Regional electricity/internet rates are estimates. Not financial advice. Built for Bitcoin educators & hodlers.</p>
@@ -1270,6 +1321,98 @@ function refresh() {
 // ═══════════════════════════════════════════════════════════════
 // EXPORT
 // ═══════════════════════════════════════════════════════════════
+const CHART_EXPORT_META = {
+  size: { filename: 'blockchain-size-growth' },
+  breakdown: { filename: 'cost-breakdown' },
+  annual: { filename: 'annual-cost' },
+  pie: { filename: 'year-breakdown' },
+  savings: { filename: 'cumulative-savings' }
+};
+
+let exportToastTimer;
+
+function showExportToast(message, type = 'success') {
+  const toast = document.getElementById('exportToast');
+  toast.textContent = message;
+  toast.classList.toggle('error', type === 'error');
+  toast.classList.add('show');
+  clearTimeout(exportToastTimer);
+  exportToastTimer = setTimeout(() => toast.classList.remove('show'), 2400);
+}
+
+function chartExportFilename(key) {
+  const base = CHART_EXPORT_META[key]?.filename || key;
+  return key === 'pie' ? `${base}-${state.selectedYear}` : base;
+}
+
+function ensureChartReady(key) {
+  if (!charts[key]) updateCharts();
+  const chart = charts[key];
+  if (!chart) return null;
+  if (chart.canvas.width === 0 || chart.canvas.height === 0) chart.resize();
+  return chart;
+}
+
+function renderChartScreenshot(key) {
+  const chart = ensureChartReady(key);
+  if (!chart) return null;
+
+  const title = document.querySelector(`[data-chart-card="${key}"] h3`)?.textContent?.trim() || key;
+  const src = chart.canvas;
+  const ratio = src.width / chart.width;
+  const pad = Math.round(16 * ratio);
+  const titleH = Math.round(24 * ratio);
+  const bg = state.dark ? '#16213e' : '#ffffff';
+  const titleColor = state.dark ? '#f7931a' : '#e07b00';
+
+  const out = document.createElement('canvas');
+  out.width = src.width;
+  out.height = src.height + titleH + pad * 2;
+  const ctx = out.getContext('2d');
+  ctx.fillStyle = bg;
+  ctx.fillRect(0, 0, out.width, out.height);
+  ctx.fillStyle = titleColor;
+  ctx.font = `bold ${Math.round(14 * ratio)}px Inter, system-ui, sans-serif`;
+  ctx.fillText(title, pad, pad + Math.round(14 * ratio));
+  ctx.drawImage(src, 0, titleH + pad);
+  return out;
+}
+
+function canvasToBlob(canvas) {
+  return new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
+}
+
+function downloadChartImage(key, silent = false) {
+  const canvas = renderChartScreenshot(key);
+  if (!canvas) {
+    showExportToast('Chart not available', 'error');
+    return;
+  }
+  const a = document.createElement('a');
+  a.href = canvas.toDataURL('image/png');
+  a.download = `bitcoin-node-${chartExportFilename(key)}.png`;
+  a.click();
+  if (!silent) showExportToast('Chart downloaded');
+}
+
+async function copyChartImage(key) {
+  const canvas = renderChartScreenshot(key);
+  if (!canvas) {
+    showExportToast('Chart not available', 'error');
+    return;
+  }
+  try {
+    const blob = await canvasToBlob(canvas);
+    if (!blob) throw new Error('render failed');
+    if (!navigator.clipboard?.write) throw new Error('clipboard unavailable');
+    await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
+    showExportToast('Chart copied — paste into Slack, docs, etc.');
+  } catch {
+    downloadChartImage(key, true);
+    showExportToast('Clipboard blocked — downloaded PNG instead');
+  }
+}
+
 function exportCSV() {
   const data = computeAll();
   const headers = ['Year', 'Size_GB', 'Min_Storage_GB', 'Electrum_Index_GB', 'Storage_Cost', 'Electrum_Index_Cost', 'Base_PC', 'Internet_Monthly', 'Base_Setup', 'Total_Setup', 'Annual_OpEx', 'Base_Annualized', 'Annualized_Total'];
@@ -1283,12 +1426,7 @@ function exportCSV() {
 }
 
 function exportPNG() {
-  const canvas = document.getElementById('chartAnnual');
-  if (!charts.annual) updateCharts();
-  const a = document.createElement('a');
-  a.href = canvas.toDataURL('image/png');
-  a.download = 'bitcoin-node-annual-cost.png';
-  a.click();
+  downloadChartImage('annual');
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -1475,6 +1613,15 @@ function bindEvents() {
   document.getElementById('themeToggle').addEventListener('click', () => setTheme(!state.dark));
   document.getElementById('btnExportCSV').addEventListener('click', exportCSV);
   document.getElementById('btnExportPNG').addEventListener('click', exportPNG);
+  document.getElementById('btnCopyPNG').addEventListener('click', () => copyChartImage('annual'));
+
+  document.getElementById('tabCharts').addEventListener('click', (e) => {
+    const btn = e.target.closest('[data-chart-action]');
+    if (!btn) return;
+    const { chart: key, chartAction: action } = btn.dataset;
+    if (action === 'copy') copyChartImage(key);
+    else if (action === 'download') downloadChartImage(key);
+  });
   document.getElementById('btnShare').addEventListener('click', () => {
     const params = new URLSearchParams({
       year: state.selectedYear, pruned: state.pruned, electrum: state.electrumMode,
