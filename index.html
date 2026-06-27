@@ -123,12 +123,7 @@
           </div>
         </div>
         <div class="flex flex-wrap items-center gap-2 sm:gap-3">
-          <!-- Nominal / Inflation -->
-          <div class="flex rounded-lg overflow-hidden border border-gray-600 text-xs">
-            <button id="btnNominal" class="px-3 py-1.5 bg-btc text-black font-medium">Nominal</button>
-            <button id="btnInflation" class="px-3 py-1.5 bg-surface-card hover:bg-btc/10">Inflation-Adj.</button>
-          </div>
-          <span class="px-3 py-1.5 text-xs sm:text-sm rounded-lg border border-gray-600 bg-surface-card text-gray-300">🇺🇸 USA</span>
+          <span class="px-3 py-1.5 text-xs sm:text-sm rounded-lg border border-gray-600 bg-surface-card text-gray-300">🇺🇸 USA · Nominal USD</span>
           <!-- Node Mode -->
           <div class="flex rounded-lg overflow-hidden border border-gray-600 text-xs">
             <button id="btnArchival" class="px-3 py-1.5 bg-btc text-black font-medium">Archival</button>
@@ -307,16 +302,6 @@
         </div>
         <button id="btnReset" class="w-full mt-4 px-3 py-2 text-xs rounded-lg border border-btc/40 text-btc hover:bg-btc/10">Reset to Historical</button>
       </section>
-
-      <!-- Simulate Setup -->
-      <section class="border-t border-gray-700 pt-4">
-        <h3 class="text-sm font-semibold text-btc mb-2">Simulate My Setup</h3>
-        <div class="space-y-2 text-xs">
-          <div><label class="text-gray-400">Custom Storage (GB)</label><input type="number" id="customStorage" placeholder="e.g. 2000" class="w-full mt-1 bg-surface border border-gray-600 rounded px-2 py-1.5"/></div>
-          <div><label class="text-gray-400">Custom PC Cost ($)</label><input type="number" id="customPC" placeholder="e.g. 150" class="w-full mt-1 bg-surface border border-gray-600 rounded px-2 py-1.5"/></div>
-          <button id="btnSimulate" class="w-full px-3 py-2 text-xs rounded-lg btc-gradient text-black font-medium hover:opacity-90">Apply Custom Setup</button>
-        </div>
-      </section>
     </aside>
 
     <!-- Overlay -->
@@ -332,6 +317,7 @@
           <img class="hero-slide" data-era="1" src="assets/hero/era-2013.jpg" alt="2013 era laptop with external hard drive" loading="lazy" decoding="async" />
           <img class="hero-slide" data-era="2" src="assets/hero/era-2018.jpg" alt="2018 era Raspberry Pi node" loading="lazy" decoding="async" />
           <img class="hero-slide" data-era="3" src="assets/hero/era-2026.jpg" alt="2026 era mini PC node" loading="lazy" decoding="async" />
+          <img class="hero-slide" data-era="4" src="assets/hero/era-2035.jpg" alt="2035 era projected mini PC with 4-8 TB NVMe node" loading="lazy" decoding="async" />
         </div>
         <div class="hero-overlay">
           <p id="heroEraLabel" class="hero-era-label">—</p>
@@ -340,7 +326,8 @@
           <button type="button" class="hero-dot" data-era="0" data-year="2010" aria-label="2009–2011" title="2009–2011"></button>
           <button type="button" class="hero-dot" data-era="1" data-year="2013" aria-label="2012–2014" title="2012–2014"></button>
           <button type="button" class="hero-dot" data-era="2" data-year="2018" aria-label="2015–2020" title="2015–2020"></button>
-          <button type="button" class="hero-dot" data-era="3" data-year="2026" aria-label="2021 onward" title="2021 onward"></button>
+          <button type="button" class="hero-dot" data-era="3" data-year="2026" aria-label="2021–2030" title="2021–2030"></button>
+          <button type="button" class="hero-dot" data-era="4" data-year="2035" aria-label="2031–2040 projected" title="2031–2040 (projected)"></button>
         </div>
       </section>
 
@@ -501,11 +488,13 @@
         <details class="bg-surface-card rounded-xl border border-gray-700 group">
           <summary class="p-4 cursor-pointer font-semibold text-btc hover:bg-btc/5 rounded-xl">Why It Got Cheaper — FAQ</summary>
           <div class="px-4 pb-4 text-sm text-gray-400 space-y-3">
+            <div><strong class="text-gray-200">2009–2011 spare-PC era:</strong> Early nodes reused desktops you already owned — we show ~$50 marginal kit cost, not a $400 laptop purchase. Dedicated hardware pricing kicks in from 2012 as the chain grew.</div>
             <div><strong class="text-gray-200">HDD price deflation:</strong> $/TB fell from ~$110 (2009) to ~$10 (2026) — a 90%+ drop in storage cost per gigabyte.</div>
             <div><strong class="text-gray-200">Efficient hardware:</strong> Raspberry Pi 4/5 runs Bitcoin Core with 4–8 GB RAM, replacing $500+ desktops from 2009–2012.</div>
             <div><strong class="text-gray-200">Bandwidth abundance:</strong> Unlimited home internet became standard; node traffic is a tiny fraction of monthly caps after initial sync.</div>
             <div><strong class="text-gray-200">Software optimization:</strong> Pruning, compact blocks, and better I/O reduced resource needs without sacrificing network participation.</div>
             <div><strong class="text-gray-200">The catch:</strong> Absolute chain size still grows ~50–60 GB/year. Archival nodes always need more disk — but disk got cheaper faster than the chain grew.</div>
+            <div><strong class="text-gray-200">2031–2040 (projected):</strong> Hardware class stays similar (efficient mini PC / ARM, 16 GB RAM) — bigger change is buying 4–8 TB NVMe instead of 2–4 TB. The cost model assumes continued storage deflation offsets chain growth.</div>
           </div>
         </details>
       </section>
@@ -517,7 +506,7 @@
 
   <footer class="border-t border-gray-700 mt-8 py-6 px-4 text-center text-xs text-gray-500 max-w-[1600px] mx-auto">
     <p class="mb-2"><strong class="text-btc">Sources & Notes:</strong> Data synthesized from Blockchain.com, YCharts, Backblaze, Bitcoin.org, historical HDD pricing; approximations for illustration — edit JS arrays to tweak.</p>
-    <p>CPI inflation factors use approximate US BLS trends. Regional electricity/internet rates are estimates. Not financial advice. Built for Bitcoin educators & hodlers.</p>
+    <p>All costs in nominal USD for the selected year. Regional electricity/internet rates are estimates. Not financial advice. Built for Bitcoin educators & hodlers.</p>
   </footer>
 
 <script>
@@ -537,20 +526,19 @@ const RAW = {
   // Consumer SATA/NVMe SSD $/TB — much pricier than HDD pre-2020
   ssdPerTB: [600, 500, 400, 300, 250, 200, 160, 130, 110, 95, 85, 75, 70, 60, 55, 50, 48, 45, 42, 40, 38, 35],
   // Full node kit: board or mini-PC + PSU + case + boot media + cables (not board MSRP alone)
-  basePCCost: [0, 400, 350, 300, 280, 250, 200, 180, 165, 130, 115, 120, 175, 155, 145, 175, 170, 165, 155, 150, 145, 140],
+  // 2009–2011: marginal cost of reusing a PC you already owned (not a new purchase); dedicated hardware from 2012
+  basePCCost: [50, 50, 50, 200, 280, 250, 200, 180, 165, 130, 115, 120, 175, 155, 145, 175, 170, 165, 155, 150, 145, 140],
   // USB enclosure or powered USB hub for external drives
   enclosureCost: [5, 8, 10, 12, 14, 15, 16, 18, 18, 20, 20, 22, 22, 24, 24, 25, 25, 26, 26, 28, 28, 30],
   internetMonthly: [25, 30, 35, 40, 45, 50, 55, 58, 60, 65, 68, 70, 72, 75, 78, 80, 82, 85, 87, 90, 92, 95],
   cpuDesc: [
-    'Any PC (Satoshi era)', 'Old laptop', 'Old laptop', 'Budget desktop',
+    'Any spare PC (Satoshi era)', 'Any spare PC', 'Any spare PC', 'Old laptop + HDD',
     'Budget desktop', 'Used desktop', 'Mini PC / old laptop', 'NUC / mini PC',
     'NUC / used desktop', 'Raspberry Pi 3 + PSU', 'Raspberry Pi 4 (4GB)', 'Raspberry Pi 4 (8GB)',
     'Raspberry Pi 4 (8GB)', 'Raspberry Pi 4 / mini PC', 'Raspberry Pi 5 (4GB)', 'Raspberry Pi 5 (8GB)',
     'Raspberry Pi 5 (8GB)', 'Raspberry Pi 5 + NVMe hat', 'Pi 5 / N100 mini PC', 'N100 mini PC',
     'N100 / ARM SBC', 'Efficient ARM / N100'
-  ],
-  // CPI index (2009 = 100)
-  cpiIndex: [100, 102, 105, 108, 110, 112, 114, 116, 118, 120, 123, 126, 133, 140, 145, 150, 153, 156, 159, 162, 165, 168]
+  ]
 };
 
 const US_RATES = { elec: 0.16, internetMult: 1.0, label: 'USA' };
@@ -606,7 +594,8 @@ const HERO_ERAS = [
   { until: 2011, image: 'assets/hero/era-2009.jpg', label: '2009–2011', subtitle: 'Any spare PC', jumpYear: 2010 },
   { until: 2014, image: 'assets/hero/era-2013.jpg', label: '2012–2014', subtitle: 'Laptop + external HDD', jumpYear: 2013 },
   { until: 2020, image: 'assets/hero/era-2018.jpg', label: '2015–2020', subtitle: 'Raspberry Pi + drive', jumpYear: 2018 },
-  { until: 9999, image: 'assets/hero/era-2026.jpg', label: '2021+', subtitle: 'NUC / mini PC + NVMe', jumpYear: 2026 }
+  { until: 2030, image: 'assets/hero/era-2026.jpg', label: '2021–2030', subtitle: 'NUC / mini PC + NVMe', jumpYear: 2026 },
+  { until: 9999, image: 'assets/hero/era-2035.jpg', label: '2031–2040', subtitle: '4–8 TB NVMe · projected', jumpYear: 2035 }
 ];
 
 let currentHeroEra = -1;
@@ -636,12 +625,18 @@ function updateHeroBanner(year) {
 }
 
 const HW_RECOMMENDATIONS = [
-  { until: 2011, emoji: '🖥️', title: '2009–2011: Any Spare PC', desc: 'Bitcoin launched with a tiny chain. Any old desktop with 512 MB RAM and a few GB free could run the sole reference client. Storage was negligible.', cost: '~$0 marginal' },
+  { until: 2011, emoji: '🖥️', title: '2009–2011: Any Spare PC', desc: 'Bitcoin launched with a tiny chain. You ran the reference client on hardware you already had — no new PC purchase. We model ~$50 marginal kit cost (cables, wear) plus minimal storage; the chain was MB-scale.', cost: '~$50–80 total' },
   { until: 2014, emoji: '💻', title: '2012–2014: Old Laptop + 500 GB HDD', desc: 'Chain reached tens of GB. A used laptop with a 500 GB HDD (~$50) sufficed. Sync took hours, not days.', cost: '~$50–150 total' },
   { until: 2017, emoji: '🖥️', title: '2015–2017: Budget Desktop / NUC', desc: '80–130 GB chain. Mini PCs and used desktops with 4 GB RAM became the sweet spot. Full archival still affordable.', cost: '~$150–250' },
   { until: 2020, emoji: '🥧', title: '2018–2020: Raspberry Pi 3/4 + External HDD', desc: 'Pi kit (~$95–120: board, PSU, case, SD card) plus a 1–2 TB USB HDD ($40–70 at the time). 180–300 GB chain, but you buy whole drives — not exact-size slices.', cost: '~$150–190' },
   { until: 2023, emoji: '🥧', title: '2021–2023: Raspberry Pi 4/5 + SSD', desc: 'Pi scalping pushed kits to $150–200. SSDs still cost more per TB than HDDs. Realistic archival build: 8 GB Pi + 2 TB SSD/NVMe + accessories.', cost: '~$220–320' },
-  { until: 2031, emoji: '⚡', title: '2024–2030: Pi 5 / N100 Mini PC + 2–4 TB NVMe', desc: '~750 GB blocks + ~12 GB UTXO today; buy 2–4 TB for headroom. Pi 5 + NVMe HAT or N100 mini PC (~$150–180) plus $80–160 storage at era prices.', cost: '~$230–380' }
+  { until: 2030, emoji: '⚡', title: '2024–2030: Pi 5 / N100 Mini PC + 2–4 TB NVMe', desc: '~750 GB–1 TB blocks; buy 2–4 TB NVMe for archival headroom. Pi 5 + NVMe HAT or N100 mini PC (~$150–180) plus $80–160 storage at era prices.', cost: '~$230–380' },
+  {
+    until: 2040, emoji: '🔮', projected: true,
+    title: '2031–2040: Low-Power Mini PC + 4–8 TB NVMe (projected)',
+    desc: 'Baseline projection: ~1.0–1.7 TB blocks by 2030–2040 as growth slows toward ~65 GB/yr. Archival sweet spot shifts to 4 TB NVMe (8 TB if running Electrum or Core indexes). Expect post-N100 efficient x86 or next-gen ARM SBCs with 16 GB RAM — same class as today, cheaper $/TB. Pruned nodes stay viable on 500 GB–1 TB.',
+    cost: '~$180–300 projected'
+  }
 ];
 
 // ═══════════════════════════════════════════════════════════════
@@ -651,7 +646,6 @@ const state = {
   selectedYear: 2026,
   yearFrom: 2009,
   yearTo: 2040,
-  inflationAdjusted: false,
   pruned: false,
   storageType: 'auto',
   storageMult: 1,
@@ -661,8 +655,6 @@ const state = {
   elecPrice: null,
   nodeWatts: 15,
   growthRate: 90,
-  customStorage: null,
-  customPC: null,
   electrumMode: 'none',
   coreIndexes: { txindex: false, coinstatsindex: false, blockfilterindex: false },
   projectionEnabled: true,
@@ -714,21 +706,14 @@ function lerp(arr, years, year) {
 
 function fmtMoney(n, short) {
   if (n == null || isNaN(n)) return '—';
-  const adj = state.inflationAdjusted ? ' (2024$)' : '';
-  if (short && n >= 1000) return '$' + (n / 1000).toFixed(1) + 'k' + adj;
-  return '$' + n.toFixed(n < 10 ? 2 : 0) + adj;
+  if (short && n >= 1000) return '$' + (n / 1000).toFixed(1) + 'k';
+  return '$' + n.toFixed(n < 10 ? 2 : 0);
 }
 
 function fmtGB(gb) {
   if (gb < 1) return (gb * 1000).toFixed(0) + ' MB';
   if (gb >= 1000) return (gb / 1000).toFixed(2) + ' TB';
   return gb.toFixed(gb < 10 ? 2 : 0) + ' GB';
-}
-
-function cpiFactor(year) {
-  const cpiYear = lerp(RAW.cpiIndex, RAW.years, year);
-  const cpi2024 = lerp(RAW.cpiIndex, RAW.years, 2024);
-  return state.inflationAdjusted ? cpi2024 / cpiYear : 1;
 }
 
 function getRegion() { return US_RATES; }
@@ -783,7 +768,6 @@ function getDataEndYear() {
 }
 
 function getBlocksGB(year) {
-  if (state.customStorage && year === state.selectedYear && !state.pruned) return state.customStorage;
   if (year <= HISTORICAL_THROUGH) return lerp(RAW.blocksGB, RAW.years, year);
   const rate = state.projectionEnabled ? state.projGrowthRate : state.growthRate;
   return BLOCKS_ANCHOR_2026 + (year - HISTORICAL_THROUGH) * rate;
@@ -843,7 +827,6 @@ function getProjectedStoragePricePerTB(year) {
 }
 
 function getBasePC(year) {
-  if (state.customPC && year === state.selectedYear) return state.customPC;
   if (state.basePCOverride != null && state.basePCOverride !== '') return +state.basePCOverride;
   return lerp(RAW.basePCCost, RAW.years, year);
 }
@@ -939,7 +922,7 @@ function calcChainStorage(year, storageGB, extraIndexGB, cpi) {
 }
 
 function calcYearHistorical(year) {
-  const cpi = cpiFactor(year);
+  const cpi = 1;
   const region = getRegion();
   const blocksGB = getBlocksGB(year);
   const utxoGB = getUtxoGB(year);
@@ -993,7 +976,7 @@ function calcYearHistorical(year) {
 
 function buildProjectionSeries() {
   const anchor = calcYearHistorical(HISTORICAL_THROUGH);
-  const cpiAt = y => cpiFactor(y);
+  const cpiAt = () => 1;
   const region = getRegion();
   const anchorHwNominal = anchor.basePC / cpiAt(HISTORICAL_THROUGH);
   const anchorInternetPlan = lerp(RAW.internetMonthly, RAW.years, HISTORICAL_THROUGH) * region.internetMult;
@@ -1096,7 +1079,14 @@ function affordabilityScore(annualized) {
 }
 
 function getHwRecommendation(year) {
-  return HW_RECOMMENDATIONS.find(h => year <= h.until) || HW_RECOMMENDATIONS[HW_RECOMMENDATIONS.length - 1];
+  const rec = HW_RECOMMENDATIONS.find(h => year <= h.until) || HW_RECOMMENDATIONS[HW_RECOMMENDATIONS.length - 1];
+  if (!rec.projected || year <= HISTORICAL_THROUGH) return rec;
+  const blocks = getBlocksGB(year);
+  const utxo = getUtxoGB(year);
+  return {
+    ...rec,
+    desc: `Baseline projection for ${year}: ~${fmtGB(blocks)} blocks + ${fmtGB(utxo)} UTXO. Archival builds: 4 TB NVMe standard, 8 TB if optional indexes enabled. Low-power mini PC / ARM node (~16 GB RAM). Storage $/TB keeps deflating — setup cost flat or lower despite chain growth. Pruned nodes still fit 500 GB–1 TB.`
+  };
 }
 
 function insightSetupCost(d) {
@@ -1306,12 +1296,19 @@ function updateKPIs() {
   updateHeroBanner(state.selectedYear);
   const hw = getHwRecommendation(state.selectedYear);
   document.getElementById('hwTitle').textContent = hw.title;
+  const hwCostEl = document.getElementById('hwCost');
+  if (hw.projected && state.selectedYear > HISTORICAL_THROUGH) {
+    const setup = withIndex ? d.totalSetup : d.baseTotalSetup;
+    hwCostEl.textContent = `Modeled setup in ${state.selectedYear}: ${fmtMoney(setup)} (${hw.cost})`;
+  }
   document.getElementById('hwDesc').textContent = state.pruned
     ? `Pruned node: ~${PRUNED_STORAGE_GB} GB disk for chain data (not full archival). ${hw.desc}`
     : hw.desc;
-  document.getElementById('hwCost').textContent = state.pruned
-    ? `Typical cost: ${hw.cost} — pruned storage ~${fmtMoney(d.storageCost)} (500 GB–1 TB drive)`
-    : 'Typical cost: ' + hw.cost;
+  if (!(hw.projected && state.selectedYear > HISTORICAL_THROUGH)) {
+    hwCostEl.textContent = state.pruned
+      ? `Typical cost: ${hw.cost} — pruned storage ~${fmtMoney(d.storageCost)} (500 GB–1 TB drive)`
+      : 'Typical cost: ' + hw.cost;
+  }
   const hwE = document.getElementById('hwElectrum');
   const note = getElectrumHwNote(d);
   if (note) {
@@ -1732,8 +1729,6 @@ function resetDefaults() {
   state.elecPrice = null;
   state.nodeWatts = 15;
   state.growthRate = 90;
-  state.customStorage = null;
-  state.customPC = null;
   state.electrumMode = 'none';
   state.coreIndexes = { txindex: false, coinstatsindex: false, blockfilterindex: false };
   document.querySelector('input[name="electrum"][value="none"]').checked = true;
@@ -1746,8 +1741,6 @@ function resetDefaults() {
   document.getElementById('elecPrice').value = US_RATES.elec;
   document.getElementById('nodeWatts').value = 15;
   document.getElementById('growthRate').value = 90;
-  document.getElementById('customStorage').value = '';
-  document.getElementById('customPC').value = '';
   document.getElementById('storageMultDisplay').textContent = '1.0×';
   document.getElementById('wattsDisplay').textContent = '15 W';
   refresh();
@@ -1781,19 +1774,6 @@ function bindEvents() {
   });
   document.getElementById('yearTo').addEventListener('change', e => {
     if (!state.projectionEnabled) state.yearTo = +e.target.value;
-    refresh();
-  });
-
-  document.getElementById('btnNominal').addEventListener('click', () => {
-    state.inflationAdjusted = false;
-    document.getElementById('btnNominal').className = 'px-3 py-1.5 bg-btc text-black font-medium';
-    document.getElementById('btnInflation').className = 'px-3 py-1.5 bg-surface-card hover:bg-btc/10';
-    refresh();
-  });
-  document.getElementById('btnInflation').addEventListener('click', () => {
-    state.inflationAdjusted = true;
-    document.getElementById('btnInflation').className = 'px-3 py-1.5 bg-btc text-black font-medium';
-    document.getElementById('btnNominal').className = 'px-3 py-1.5 bg-surface-card hover:bg-btc/10';
     refresh();
   });
 
@@ -1866,14 +1846,6 @@ function bindEvents() {
   });
   document.getElementById('growthRate').addEventListener('input', e => { state.growthRate = +e.target.value; refresh(); });
   document.getElementById('btnReset').addEventListener('click', resetDefaults);
-
-  document.getElementById('btnSimulate').addEventListener('click', () => {
-    const cs = document.getElementById('customStorage').value;
-    const cp = document.getElementById('customPC').value;
-    state.customStorage = cs ? +cs : null;
-    state.customPC = cp ? +cp : null;
-    refresh();
-  });
 
   document.querySelectorAll('.tab-btn').forEach(btn => {
     btn.addEventListener('click', () => {
