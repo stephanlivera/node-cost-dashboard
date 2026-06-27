@@ -119,16 +119,11 @@
           </button>
           <div class="min-w-0">
             <h1 id="pageTitle" class="text-lg sm:text-xl font-bold text-btc truncate">Bitcoin Archival Node Cost Tracker: 2009–2040</h1>
-            <p class="text-xs sm:text-sm text-gray-400 hidden sm:block max-w-2xl">How affordable was a full archival (non-pruned) Bitcoin node over time? Storage + CPU/RAM + internet + elec.</p>
+            <p class="text-xs sm:text-sm text-gray-400 hidden sm:block max-w-2xl">How affordable was a full archival Bitcoin node over time? Storage + CPU/RAM + internet + elec.</p>
           </div>
         </div>
         <div class="flex flex-wrap items-center gap-2 sm:gap-3">
           <span class="px-3 py-1.5 text-xs sm:text-sm rounded-lg border border-gray-600 bg-surface-card text-gray-300">🇺🇸 USA · Nominal USD</span>
-          <!-- Node Mode -->
-          <div class="flex rounded-lg overflow-hidden border border-gray-600 text-xs">
-            <button id="btnArchival" class="px-3 py-1.5 bg-btc text-black font-medium">Archival</button>
-            <button id="btnPruned" class="px-3 py-1.5 bg-surface-card hover:bg-btc/10">Pruned</button>
-          </div>
           <button id="btnProjPanel" class="px-3 py-1.5 text-xs rounded-lg border border-btc/60 bg-btc/10 text-btc hover:bg-btc/20 font-medium">Projections to 2040</button>
           <button id="btnShare" class="px-3 py-1.5 text-xs rounded-lg border border-gray-600 hover:border-btc" title="Copy share link">Share</button>
         </div>
@@ -240,11 +235,11 @@
           </label>
           <label class="flex items-start gap-2 p-2 rounded-lg border border-transparent hover:border-btc/30 cursor-pointer electrum-opt">
             <input type="radio" name="electrum" value="fulcrum" class="mt-0.5 accent-[#f7931a]" />
-            <span><span class="font-medium text-gray-200">Fulcrum Standard</span> <span class="text-btc/80 text-[10px]">~18% of blocks · from 2020</span></span>
+            <span><span class="font-medium text-gray-200">Fulcrum Standard</span> <span class="text-btc/80 text-[10px]">~18% of blocks · requires txindex · from 2020</span></span>
           </label>
           <label class="flex items-start gap-2 p-2 rounded-lg border border-transparent hover:border-btc/30 cursor-pointer electrum-opt">
             <input type="radio" name="electrum" value="fulcrum_full" class="mt-0.5 accent-[#f7931a]" />
-            <span><span class="font-medium text-gray-200">Fulcrum Full / Esplora Heavy</span> <span class="text-btc/80 text-[10px]">~35–70% of blocks · from 2021</span></span>
+            <span><span class="font-medium text-gray-200">Fulcrum Full / Esplora Heavy</span> <span class="text-btc/80 text-[10px]">~35–70% of blocks · requires txindex · from 2021</span></span>
           </label>
         </div>
         <p id="indexHint" class="text-[10px] text-gray-500"></p>
@@ -342,7 +337,7 @@
         </div>
         <div class="kpi-card bg-surface-card rounded-xl p-4 border border-gray-700/50">
           <p class="text-xs text-gray-400 flex items-center gap-1">Min Storage Needed
-            <span class="tooltip-wrap"><span class="cursor-help">ⓘ</span><span class="tip">Archival: (blocks + UTXO set) ×1.15 headroom, plus any optional index selected in the sidebar. Pruned: ~64 GB on disk — not full blocks.</span></span>
+            <span class="tooltip-wrap"><span class="cursor-help">ⓘ</span><span class="tip">(Blocks + UTXO set) ×1.15 headroom, plus any optional index selected in the sidebar.</span></span>
           </p>
           <p id="kpiMinStorage" class="text-xl font-bold font-mono mt-1">—</p>
           <p id="kpiMinStorageSub" class="text-[10px] text-gray-500 mt-0.5"></p>
@@ -483,7 +478,7 @@
         </div>
         <div class="bg-surface-card rounded-xl p-4 border border-gray-700 text-sm text-gray-400">
           <h4 class="font-semibold text-btc mb-2">Compare to VPS</h4>
-          <p>Cloud VPS nodes (e.g. $40–80/mo for 500 GB+) often cost <strong class="text-gray-200">2–5× more annually</strong> than a home Pi setup by 2024. Self-hosting wins on long-term hodler timelines, especially with pruned mode for non-archival use. Trade-off: you manage uptime, security patches, and power outages.</p>
+          <p>Cloud VPS nodes (e.g. $40–80/mo for 500 GB+) often cost <strong class="text-gray-200">2–5× more annually</strong> than a home archival setup by 2024. Self-hosting wins on long-term hodler timelines. Trade-off: you manage uptime, security patches, and power outages.</p>
         </div>
 
         <!-- FAQ -->
@@ -494,7 +489,7 @@
             <div><strong class="text-gray-200">HDD price deflation:</strong> $/TB fell from ~$110 (2009) to ~$10 (2026) — a 90%+ drop in storage cost per gigabyte.</div>
             <div><strong class="text-gray-200">Efficient hardware:</strong> Raspberry Pi 4/5 runs Bitcoin Core with 4–8 GB RAM, replacing $500+ desktops from 2009–2012.</div>
             <div><strong class="text-gray-200">Bandwidth abundance:</strong> Unlimited home internet became standard; node traffic is a tiny fraction of monthly caps after initial sync.</div>
-            <div><strong class="text-gray-200">Software optimization:</strong> Pruning, compact blocks, and better I/O reduced resource needs without sacrificing network participation.</div>
+            <div><strong class="text-gray-200">Software optimization:</strong> Compact blocks, assumevalid, and better I/O let Core run on modest hardware while still validating the full chain.</div>
             <div><strong class="text-gray-200">The catch:</strong> Absolute chain size still grows ~50–60 GB/year. Archival nodes always need more disk — but disk got cheaper faster than the chain grew.</div>
             <div><strong class="text-gray-200">2031–2040 (projected):</strong> Hardware class stays similar (efficient mini PC / ARM, 16 GB RAM) — bigger change is buying 4–8 TB NVMe instead of 2–4 TB. The cost model assumes continued storage deflation offsets chain growth.</div>
           </div>
@@ -554,7 +549,7 @@ const CORE_INDEX_OPTIONS = {
   txindex: {
     label: 'txindex', short: 'txindex', availableFrom: 2009,
     ratioOfBlocks: 44 / CORE_INDEX_ANCHOR_BLOCKS_GB,
-    debut: 'Maps txid → block location; incompatible with pruned mode'
+    debut: 'Maps txid → block location; requires full block files'
   },
   coinstatsindex: {
     label: 'coinstatsindex', short: 'coinstats', availableFrom: 2022,
@@ -636,7 +631,7 @@ const HW_RECOMMENDATIONS = [
   {
     until: 2040, emoji: '🔮', projected: true,
     title: '2031–2040: Low-Power Mini PC + 4–8 TB NVMe (projected)',
-    desc: 'Baseline projection: ~1.0–1.7 TB blocks by 2030–2040 as growth slows toward ~65 GB/yr. Archival sweet spot shifts to 4 TB NVMe (8 TB if running Electrum or Core indexes). Expect post-N100 efficient x86 or next-gen ARM SBCs with 16 GB RAM — same class as today, cheaper $/TB. Pruned nodes stay viable on 500 GB–1 TB.',
+    desc: 'Baseline projection: ~1.0–1.7 TB blocks by 2030–2040 as growth slows toward ~65 GB/yr. Archival sweet spot shifts to 4 TB NVMe (8 TB if running Electrum or Core indexes). Expect post-N100 efficient x86 or next-gen ARM SBCs with 16 GB RAM — same class as today, cheaper $/TB.',
     cost: '~$180–300 projected'
   }
 ];
@@ -648,7 +643,6 @@ const state = {
   selectedYear: 2026,
   yearFrom: 2009,
   yearTo: 2040,
-  pruned: false,
   storageType: 'auto',
   storageMult: 1,
   basePCOverride: null,
@@ -684,9 +678,6 @@ const SCENARIO_TIPS = {
 
 const HISTORICAL_THROUGH = 2026;
 const PROJECTION_THROUGH = 2040;
-/** Pruned nodes store ~550 MB chainstate + recent blocks; 64 GB covers OS, logs, and headroom */
-const PRUNED_STORAGE_GB = 64;
-
 let charts = {};
 let computedCache = [];
 let projectionCache = null;
@@ -748,10 +739,6 @@ function syncStorageTypeHint() {
 
 /** Real drives are sold in fixed SKUs — you buy 0.5/1/2/4 TB, not exact chain size; 4 TB only when headroom exceeds 2 TB */
 function getPurchaseTB(year, headroomTB) {
-  if (state.pruned) {
-    const needed = Math.max(headroomTB, PRUNED_STORAGE_GB / 1000);
-    return DRIVE_SKUS_TB.find(sku => sku >= needed) ?? DRIVE_SKUS_TB[0];
-  }
   let eraMin = 0.5;
   if (year >= 2015) eraMin = 1;
   if (year >= 2019) eraMin = 2;
@@ -790,7 +777,6 @@ function getChainSizeGB(year) { return getBlocksGB(year); }
 function getSizeGB(year) { return getBlocksGB(year); }
 
 function getNodeStorageGB(year) {
-  if (state.pruned) return PRUNED_STORAGE_GB;
   return getCoreChainGB(year) * 1.15;
 }
 
@@ -841,8 +827,16 @@ function hasOptionalIndexUI() {
   return hasAnyCoreIndex() || state.electrumMode !== 'none';
 }
 
+function electrumRequiresTxindex() {
+  return state.electrumMode === 'fulcrum' || state.electrumMode === 'fulcrum_full';
+}
+
+function applyElectrumTxindexDefaults() {
+  if (electrumRequiresTxindex()) state.coreIndexes.txindex = true;
+}
+
 function isCoreIndexActive(key, year) {
-  if (state.pruned || !state.coreIndexes[key]) return false;
+  if (!state.coreIndexes[key]) return false;
   return year >= CORE_INDEX_OPTIONS[key].availableFrom;
 }
 
@@ -857,7 +851,7 @@ function getCoreIndexGB(year, blocksGB) {
 }
 
 function isElectrumActive(year) {
-  if (state.electrumMode === 'none' || state.pruned) return false;
+  if (state.electrumMode === 'none') return false;
   return year >= ELECTRUM_OPTIONS[state.electrumMode].availableFrom;
 }
 
@@ -1079,7 +1073,7 @@ function affordabilityScore(annualized, annualOpEx) {
   if (monthly < 25) return { label: 'Affordable', sub: runNote + ' — typical node hobbyist range', color: 'text-green-400' };
   if (monthly < 50) return { label: 'Moderate', sub: runNote + ' — dedicated runner, still reasonable', color: 'text-yellow-400' };
   if (monthly < 80) return { label: 'Enthusiast', sub: runNote + ' — index-heavy or peak-era hardware', color: 'text-orange-400' };
-  return { label: 'Premium', sub: runNote + ' — pruned mode or lower internet % helps', color: 'text-red-400' };
+  return { label: 'Premium', sub: runNote + ' — index-heavy; lower internet % helps', color: 'text-red-400' };
 }
 
 function getHwRecommendation(year) {
@@ -1089,7 +1083,7 @@ function getHwRecommendation(year) {
   const utxo = getUtxoGB(year);
   return {
     ...rec,
-    desc: `Baseline projection for ${year}: ~${fmtGB(blocks)} blocks + ${fmtGB(utxo)} UTXO. Archival builds: 4 TB NVMe standard, 8 TB if optional indexes enabled. Low-power mini PC / ARM node (~16 GB RAM). Storage $/TB keeps deflating — setup cost flat or lower despite chain growth. Pruned nodes still fit 500 GB–1 TB.`
+    desc: `Baseline projection for ${year}: ~${fmtGB(blocks)} blocks + ${fmtGB(utxo)} UTXO. Archival builds: 4 TB NVMe standard, 8 TB if optional indexes enabled. Low-power mini PC / ARM node (~16 GB RAM). Storage $/TB keeps deflating — setup cost flat or lower despite chain growth.`
   };
 }
 
@@ -1141,7 +1135,7 @@ function generateInsights(data) {
     <p>📊 <strong>Peak setup cost:</strong> The most expensive year to buy in was <strong class="text-btc">${peak.year}</strong> at <strong class="text-btc">${fmtMoney(peak.setup)}</strong> one-time (storage + CPU/RAM kit).</p>
     <p>📈 <strong>Annualized cost (2015 → 2026):</strong> Including 3-yr amortized setup + OpEx, running cost <strong class="text-green-400">${costDrop > 0 ? 'fell' : 'rose'} ${Math.abs(costDrop).toFixed(0)}%</strong> over the same period.</p>
     <p>⚡ <strong>Power efficiency:</strong> At ${state.nodeWatts}W, electricity costs ~${fmtMoney(sel.elecAnnual)}/yr in the USA — often under 10% of total OpEx.</p>
-    <p>🎯 <strong>${state.selectedYear} snapshot:</strong> ${state.pruned ? 'Pruned' : 'Archival'} node needs ${fmtGB(sel.minStorage)} storage${indexSnap}. Base setup ${fmtMoney(sel.baseTotalSetup)}${sel.indexCost > 0 ? `, +${fmtMoney(sel.indexCost)} indexes → ${fmtMoney(sel.totalSetup)} total` : ''}. Annual OpEx ${fmtMoney(sel.annualOpEx)}. Score: <strong class="${score.color}">${score.label}</strong>.</p>
+    <p>🎯 <strong>${state.selectedYear} snapshot:</strong> Archival node needs ${fmtGB(sel.minStorage)} storage${indexSnap}. Base setup ${fmtMoney(sel.baseTotalSetup)}${sel.indexCost > 0 ? `, +${fmtMoney(sel.indexCost)} indexes → ${fmtMoney(sel.totalSetup)} total` : ''}. Annual OpEx ${fmtMoney(sel.annualOpEx)}. Score: <strong class="${score.color}">${score.label}</strong>.</p>
     ${state.projectionEnabled ? (() => {
       const y30 = getYearData(2030), y40 = getYearData(2040);
       const ref = getYearData(2026);
@@ -1207,18 +1201,19 @@ function syncProjSliderLabels() {
 function syncElectrumUI() {
   const hasServerIndex = state.electrumMode !== 'none';
   const showIndexCols = hasOptionalIndexUI();
-  const indexSection = document.getElementById('indexOptionsSection');
-  if (indexSection) {
-    indexSection.classList.toggle('opacity-50', state.pruned);
-    indexSection.querySelectorAll('input').forEach(inp => { inp.disabled = state.pruned; });
-  }
+
+  applyElectrumTxindexDefaults();
   document.querySelectorAll('.core-index-opt').forEach(label => {
     const cb = label.querySelector('input[data-core-index]');
     if (!cb) return;
+    const isTxindex = cb.dataset.coreIndex === 'txindex';
+    const locked = isTxindex && electrumRequiresTxindex();
     const active = state.coreIndexes[cb.dataset.coreIndex];
     label.classList.toggle('border-btc/50', active);
     label.classList.toggle('bg-btc/10', active);
+    label.classList.toggle('opacity-80', locked);
     cb.checked = !!active;
+    cb.disabled = locked;
   });
   document.querySelectorAll('.electrum-col').forEach(el => el.classList.toggle('hidden', !showIndexCols));
   const thBase = document.getElementById('thSetupBase');
@@ -1232,9 +1227,7 @@ function syncElectrumUI() {
   });
   const hint = document.getElementById('indexHint');
   if (hint) {
-    if (state.pruned) {
-      hint.textContent = 'Indexes need full block data — unavailable in pruned mode (txindex also incompatible with prune)';
-    } else if (!showIndexCols) {
+    if (!showIndexCols) {
       hint.textContent = '';
     } else {
       const d = getSelected();
@@ -1250,9 +1243,10 @@ function syncElectrumUI() {
         }
       }
       const cost = d.indexCost ?? d.electrumIndexCost ?? 0;
+      const fulcrumNote = electrumRequiresTxindex() ? 'Fulcrum uses Bitcoin Core txindex (auto-enabled). ' : '';
       hint.textContent = parts.length
-        ? `${parts.join(' · ')} → ${fmtMoney(cost)} extra storage`
-        : '';
+        ? `${fulcrumNote}${parts.join(' · ')} → ${fmtMoney(cost)} extra storage`
+        : (fulcrumNote || '');
     }
   }
 }
@@ -1280,11 +1274,7 @@ function updateKPIs() {
   );
   document.getElementById('kpiSize').textContent = fmtGB(d.blocksGB);
   const sizeSub = document.getElementById('kpiSizeSub');
-  if (sizeSub) {
-    sizeSub.textContent = state.pruned
-      ? 'Pruned — not storing full block chain'
-      : `+ ${fmtGB(d.utxoGB)} UTXO set`;
-  }
+  if (sizeSub) sizeSub.textContent = `+ ${fmtGB(d.utxoGB)} UTXO set`;
   document.getElementById('kpiMinStorage').textContent = fmtGB(d.minStorage);
   const sub = document.getElementById('kpiMinStorageSub');
   if ((d.optionalIndexGB ?? 0) > 0) {
@@ -1295,7 +1285,7 @@ function updateKPIs() {
   } else if (state.electrumMode !== 'none' && !isElectrumActive(state.selectedYear)) {
     sub.textContent = `${ELECTRUM_OPTIONS[state.electrumMode].short} not available until ${ELECTRUM_OPTIONS[state.electrumMode].availableFrom}`;
   } else {
-    sub.textContent = state.pruned ? `Pruned on-disk (~${PRUNED_STORAGE_GB} GB)` : 'Archival headroom ×1.15';
+    sub.textContent = 'Archival headroom ×1.15';
   }
   document.getElementById('kpiHardware').textContent = fmtMoney(withIndex ? d.totalSetup : d.baseTotalSetup);
   document.getElementById('kpiOpEx').textContent = fmtMoney(d.annualOpEx);
@@ -1311,13 +1301,9 @@ function updateKPIs() {
     const setup = withIndex ? d.totalSetup : d.baseTotalSetup;
     hwCostEl.textContent = `Modeled setup in ${state.selectedYear}: ${fmtMoney(setup)} (${hw.cost})`;
   }
-  document.getElementById('hwDesc').textContent = state.pruned
-    ? `Pruned node: ~${PRUNED_STORAGE_GB} GB disk for chain data (not full archival). ${hw.desc}`
-    : hw.desc;
+  document.getElementById('hwDesc').textContent = hw.desc;
   if (!(hw.projected && state.selectedYear > HISTORICAL_THROUGH)) {
-    hwCostEl.textContent = state.pruned
-      ? `Typical cost: ${hw.cost} — pruned storage ~${fmtMoney(d.storageCost)} (500 GB–1 TB drive)`
-      : 'Typical cost: ' + hw.cost;
+    hwCostEl.textContent = 'Typical cost: ' + hw.cost;
   }
   const hwE = document.getElementById('hwElectrum');
   const note = getElectrumHwNote(d);
@@ -1337,7 +1323,7 @@ function updateTable() {
     <tr class="hover:bg-btc/5 cursor-pointer transition-colors ${d.year === state.selectedYear ? 'row-active' : ''} ${[2030, 2040].includes(d.year) ? 'milestone-row' : ''} ${d.isProjected ? 'opacity-90' : ''}" data-year="${d.year}">
       <td class="px-3 py-2.5 font-mono font-medium">${d.year}${d.isProjected ? '<span class="ml-1 text-[9px] text-amber-400/80 font-sans">proj</span>' : ''}</td>
       <td class="px-3 py-2.5 text-right font-mono">${fmtGB(d.blocksGB)}</td>
-      <td class="px-3 py-2.5 text-right font-mono text-gray-400">${state.pruned ? '—' : fmtGB(d.utxoGB)}</td>
+      <td class="px-3 py-2.5 text-right font-mono text-gray-400">${fmtGB(d.utxoGB)}</td>
       <td class="px-3 py-2.5 text-right font-mono">${fmtMoney(d.storageCost, true)}</td>
       ${showIndexCols ? `<td class="px-3 py-2.5 text-right font-mono text-purple-400 electrum-col">${(d.optionalIndexGB ?? 0) > 0 ? fmtMoney(d.indexCost, true) : '<span class="text-gray-600">—</span>'}</td>` : ''}
       <td class="px-3 py-2.5 text-left"><span class="text-gray-400">${d.cpuDesc}</span> <span class="text-btc font-mono">${fmtMoney(d.basePC, true)}</span></td>
@@ -1787,25 +1773,22 @@ function bindEvents() {
     refresh();
   });
 
-  document.getElementById('btnArchival').addEventListener('click', () => {
-    state.pruned = false;
-    document.getElementById('btnArchival').className = 'px-3 py-1.5 bg-btc text-black font-medium';
-    document.getElementById('btnPruned').className = 'px-3 py-1.5 bg-surface-card hover:bg-btc/10';
-    refresh();
-  });
-  document.getElementById('btnPruned').addEventListener('click', () => {
-    state.pruned = true;
-    document.getElementById('btnPruned').className = 'px-3 py-1.5 bg-btc text-black font-medium';
-    document.getElementById('btnArchival').className = 'px-3 py-1.5 bg-surface-card hover:bg-btc/10';
-    refresh();
-  });
-
   document.querySelectorAll('input[name="electrum"]').forEach(radio => {
-    radio.addEventListener('change', e => { state.electrumMode = e.target.value; refresh(); });
+    radio.addEventListener('change', e => {
+      state.electrumMode = e.target.value;
+      applyElectrumTxindexDefaults();
+      refresh();
+    });
   });
   document.querySelectorAll('input[data-core-index]').forEach(cb => {
     cb.addEventListener('change', e => {
-      state.coreIndexes[e.target.dataset.coreIndex] = e.target.checked;
+      const key = e.target.dataset.coreIndex;
+      if (key === 'txindex' && electrumRequiresTxindex() && !e.target.checked) {
+        e.target.checked = true;
+        state.coreIndexes.txindex = true;
+        return;
+      }
+      state.coreIndexes[key] = e.target.checked;
       refresh();
     });
   });
@@ -1885,7 +1868,7 @@ function bindEvents() {
   });
   document.getElementById('btnShare').addEventListener('click', () => {
     const params = new URLSearchParams({
-      year: state.selectedYear, pruned: state.pruned, electrum: state.electrumMode,
+      year: state.selectedYear, electrum: state.electrumMode,
       proj: state.projectionEnabled, scenario: state.projectionScenario,
       ...(state.coreIndexes.txindex && { txindex: true }),
       ...(state.coreIndexes.coinstatsindex && { coinstats: true }),
@@ -1905,7 +1888,6 @@ function bindEvents() {
   const params = new URLSearchParams(location.search);
   if (params.has('year')) { state.selectedYear = +params.get('year'); yearSlider.value = state.selectedYear; document.getElementById('yearDisplay').textContent = state.selectedYear; }
   syncIndexOptionsState(params);
-  if (params.has('pruned')) { state.pruned = params.get('pruned') === 'true'; if (state.pruned) document.getElementById('btnPruned').click(); }
   if (params.has('proj')) state.projectionEnabled = params.get('proj') !== 'false';
   if (params.has('scenario') && SCENARIO_TIPS[params.get('scenario')]) {
     state.projectionScenario = params.get('scenario');
@@ -1941,6 +1923,7 @@ function syncIndexOptionsState(params = new URLSearchParams(location.search)) {
     const cb = document.getElementById('idxBlockfilter');
     if (cb) state.coreIndexes.blockfilterindex = cb.checked;
   }
+  applyElectrumTxindexDefaults();
 }
 
 // ═══════════════════════════════════════════════════════════════
