@@ -158,7 +158,7 @@
             <button id="btnPruned" class="px-3 py-2.5 sm:py-1.5 bg-surface-card hover:bg-btc/10">Pruned</button>
           </div>
           <button id="btnProjPanel" class="px-3 py-2.5 sm:py-1.5 text-xs rounded-lg border border-btc/60 bg-btc/10 text-btc hover:bg-btc/20 font-medium"><span class="sm:hidden">2040</span><span class="hidden sm:inline">Projections to 2040</span></button>
-          <button id="btnShare" class="px-3 py-2.5 sm:py-1.5 text-xs rounded-lg border border-gray-600 hover:border-btc" title="Copy share link">Share</button>
+          <button id="btnShare" class="px-3 py-2.5 sm:py-1.5 text-xs rounded-lg border border-gray-600 hover:border-btc" title="Copy or share a link to this view">Share</button>
         </div>
       </div>
     </div>
@@ -814,6 +814,8 @@ const SCENARIO_TIPS = {
 
 const HISTORICAL_THROUGH = 2026;
 const PROJECTION_THROUGH = 2040;
+/** Canonical share URL (GitHub Pages project site) */
+const SHARE_BASE_URL = 'https://stephanlivera.github.io/node-cost-dashboard/';
 /** Pruned steady-state on disk — calibrated to chainstate growth + headroom (field estimates, not block files) */
 const PRUNED_SIZE_ANCHORS = {
   years: [2009, 2010, 2012, 2015, 2017, 2018, 2020, 2021, 2022, 2025, 2026],
@@ -1843,6 +1845,127 @@ const CHART_EXPORT_META = {
 
 let exportToastTimer;
 
+function getShareBaseUrl() {
+  if (location.hostname === 'stephanlivera.github.io' || location.hostname === 'localhost' || location.hostname === '127.0.0.1') {
+    return SHARE_BASE_URL;
+  }
+  const url = new URL(location.href);
+  url.search = '';
+  url.hash = '';
+  let path = url.pathname.replace(/index\.html$/i, '');
+  if (!path.endsWith('/')) path += '/';
+  url.pathname = path;
+  return url.href;
+}
+
+function buildShareParams() {
+  const params = new URLSearchParams();
+  if (state.selectedYear !== 2026) params.set('year', String(state.selectedYear));
+  if (state.pruned) params.set('pruned', 'true');
+  if (state.pruned && state.prunedStorageCost !== 'marginal') {
+    params.set('prunedStorage', state.prunedStorageCost);
+  }
+  if (state.electrumMode !== 'none') params.set('electrum', state.electrumMode);
+  if (state.projectionScenario !== 'baseline') params.set('scenario', state.projectionScenario);
+  if (state.coreIndexes.txindex) params.set('txindex', 'true');
+  if (state.coreIndexes.coinstatsindex) params.set('coinstats', 'true');
+  if (state.coreIndexes.blockfilterindex) params.set('blockfilter', 'true');
+  if (state.yearFrom !== 2009) params.set('from', String(state.yearFrom));
+  if (state.yearTo !== PROJECTION_THROUGH) params.set('to', String(state.yearTo));
+  return params;
+}
+
+function buildShareUrl() {
+  const params = buildShareParams();
+  const qs = params.toString();
+  return qs ? `${getShareBaseUrl()}?${qs}` : getShareBaseUrl();
+}
+
+async function copyTextToClipboard(text) {
+  if (navigator.clipboard?.writeText) {
+    await navigator.clipboard.writeText(text);
+    return true;
+  }
+  const ta = document.createElement('textarea');
+  ta.value = text;
+  ta.setAttribute('readonly', '');
+  ta.style.cssText = 'position:fixed;left:-9999px;top:0';
+  document.body.appendChild(ta);
+  ta.select();
+  try {
+    const ok = document.execCommand('copy');
+    document.body.removeChild(ta);
+    return ok;
+  } catch {
+    document.body.removeChild(ta);
+    return false;
+  }
+}
+
+async function shareDashboardLink() {
+  const url = buildShareUrl();
+  const title = 'Bitcoin Node Cost Tracker';
+  const mode = state.pruned ? 'pruned' : 'archival';
+  const text = `Bitcoin node cost view — ${state.selectedYear}, ${mode} mode`;
+  if (navigator.share) {
+    try {
+      await navigator.share({ title, text, url });
+      showExportToast('Link shared');
+      return;
+    } catch (err) {
+      if (err?.name === 'AbortError') return;
+    }
+  }
+  const copied = await copyTextToClipboard(url);
+  if (copied) showExportToast('Link copied to clipboard');
+  else window.prompt('Copy this link:', url);
+}
+
+function setPrunedModeUI(pruned) {
+  state.pruned = pruned;
+  document.getElementById('btnArchival').className = pruned
+    ? 'px-3 py-2.5 sm:py-1.5 bg-surface-card hover:bg-btc/10'
+    : 'px-3 py-2.5 sm:py-1.5 bg-btc text-black font-medium';
+  document.getElementById('btnPruned').className = pruned
+    ? 'px-3 py-2.5 sm:py-1.5 bg-btc text-black font-medium'
+    : 'px-3 py-2.5 sm:py-1.5 bg-surface-card hover:bg-btc/10';
+}
+
+function applyUrlParams(params = new URLSearchParams(location.search)) {
+  if (params.has('year')) {
+    const y = Math.min(PROJECTION_THROUGH, Math.max(2009, +params.get('year') || 2026));
+    state.selectedYear = y;
+    const slider = document.getElementById('yearSlider');
+    if (slider) slider.value = y;
+    const display = document.getElementById('yearDisplay');
+    if (display) display.textContent = y;
+  }
+  if (params.has('pruned')) setPrunedModeUI(params.get('pruned') === 'true');
+  if (params.has('prunedStorage') && ['marginal', 'usb'].includes(params.get('prunedStorage'))) {
+    state.prunedStorageCost = params.get('prunedStorage');
+    const sel = document.getElementById('prunedStorageCost');
+    if (sel) sel.value = state.prunedStorageCost;
+  }
+  if (params.has('from')) {
+    const from = Math.min(PROJECTION_THROUGH, Math.max(2009, +params.get('from') || 2009));
+    state.yearFrom = from;
+    const el = document.getElementById('yearFrom');
+    if (el) el.value = from;
+  }
+  if (params.has('to')) {
+    const to = Math.min(PROJECTION_THROUGH, Math.max(2009, +params.get('to') || PROJECTION_THROUGH));
+    state.yearTo = to;
+    const el = document.getElementById('yearTo');
+    if (el) el.value = to;
+  }
+  syncIndexOptionsState(params);
+  if (params.has('scenario') && SCENARIO_TIPS[params.get('scenario')]) {
+    state.projectionScenario = params.get('scenario');
+    const sel = document.getElementById('projScenario');
+    if (sel) sel.value = state.projectionScenario;
+  }
+}
+
 function showExportToast(message, type = 'success') {
   const toast = document.getElementById('exportToast');
   toast.textContent = message;
@@ -2024,17 +2147,13 @@ function bindEvents() {
   document.getElementById('yearTo').addEventListener('change', () => refresh());
 
   document.getElementById('btnArchival').addEventListener('click', () => {
-    state.pruned = false;
-    document.getElementById('btnArchival').className = 'px-3 py-1.5 bg-btc text-black font-medium';
-    document.getElementById('btnPruned').className = 'px-3 py-1.5 bg-surface-card hover:bg-btc/10';
+    setPrunedModeUI(false);
     currentHeroEra = -1;
     currentHeroPruned = null;
     refresh();
   });
   document.getElementById('btnPruned').addEventListener('click', () => {
-    state.pruned = true;
-    document.getElementById('btnPruned').className = 'px-3 py-1.5 bg-btc text-black font-medium';
-    document.getElementById('btnArchival').className = 'px-3 py-1.5 bg-surface-card hover:bg-btc/10';
+    setPrunedModeUI(true);
     currentHeroEra = -1;
     currentHeroPruned = null;
     refresh();
@@ -2133,17 +2252,7 @@ function bindEvents() {
     if (action === 'copy') copyChartImage(key);
     else if (action === 'download') downloadChartImage(key);
   });
-  document.getElementById('btnShare').addEventListener('click', () => {
-    const params = new URLSearchParams({
-      year: state.selectedYear, pruned: state.pruned, prunedStorage: state.prunedStorageCost, electrum: state.electrumMode,
-      scenario: state.projectionScenario,
-      ...(state.coreIndexes.txindex && { txindex: true }),
-      ...(state.coreIndexes.coinstatsindex && { coinstats: true }),
-      ...(state.coreIndexes.blockfilterindex && { blockfilter: true })
-    });
-    const url = location.href.split('?')[0] + '?' + params;
-    navigator.clipboard?.writeText(url).then(() => alert('Share link copied (placeholder params):\n' + url));
-  });
+  document.getElementById('btnShare').addEventListener('click', () => shareDashboardLink());
 
   const sidebar = document.getElementById('sidebar');
   const overlay = document.getElementById('sidebarOverlay');
@@ -2153,20 +2262,7 @@ function bindEvents() {
   overlay.addEventListener('click', closeSidebar);
   yearSlider.addEventListener('change', closeSidebar);
 
-  // URL params + sync sidebar index controls into state before first refresh
-  const params = new URLSearchParams(location.search);
-  if (params.has('year')) { state.selectedYear = +params.get('year'); yearSlider.value = state.selectedYear; document.getElementById('yearDisplay').textContent = state.selectedYear; }
-  if (params.has('pruned') && params.get('pruned') === 'true') document.getElementById('btnPruned').click();
-  if (params.has('prunedStorage') && ['marginal', 'usb'].includes(params.get('prunedStorage'))) {
-    state.prunedStorageCost = params.get('prunedStorage');
-    const sel = document.getElementById('prunedStorageCost');
-    if (sel) sel.value = state.prunedStorageCost;
-  }
-  syncIndexOptionsState(params);
-  if (params.has('scenario') && SCENARIO_TIPS[params.get('scenario')]) {
-    state.projectionScenario = params.get('scenario');
-    document.getElementById('projScenario').value = state.projectionScenario;
-  }
+  applyUrlParams(new URLSearchParams(location.search));
 }
 
 /** URL params override saved form state; otherwise read sidebar controls into state */
