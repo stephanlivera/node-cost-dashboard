@@ -2,7 +2,8 @@
 <html lang="en" class="dark">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#1a1a2e" />
   <title>Bitcoin Node Cost Tracker: 2009–2040</title>
   <link rel="icon" href="assets/favicon.ico?v=2" sizes="any" />
   <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32x32.png?v=2" />
@@ -79,8 +80,9 @@
       display: flex; gap: 6px; pointer-events: auto;
     }
     .hero-dot {
-      width: 8px; height: 8px; border-radius: 50%;
-      background: rgba(148,163,184,0.35); border: none; padding: 0;
+      width: 10px; height: 10px; border-radius: 50%;
+      background: rgba(148,163,184,0.35); border: none;
+      padding: 14px; background-clip: content-box; box-sizing: content-box;
       cursor: pointer; transition: background 0.2s, transform 0.2s;
     }
     .hero-dot:hover { background: rgba(247,147,26,0.6); }
@@ -91,7 +93,7 @@
     .milestone-row td:first-child { font-weight: 700; color: #f7931a; }
     .chart-action-btn {
       display: inline-flex; align-items: center; justify-content: center;
-      width: 28px; height: 28px; border-radius: 6px;
+      width: 36px; height: 36px; border-radius: 6px;
       border: 1px solid rgba(148,163,184,0.25); color: #94a3b8;
       background: transparent; transition: color 0.15s, border-color 0.15s, background 0.15s;
     }
@@ -117,12 +119,26 @@
       background: #16213e;
       box-shadow: 0 1px 0 rgba(148, 163, 184, 0.25);
     }
+    .data-table { min-width: 42rem; }
+    body { overflow-x: hidden; }
+    @media (max-width: 1023px) {
+      input, select, textarea { font-size: 16px; }
+    }
+    @media (hover: none) {
+      .tooltip-wrap .tip { pointer-events: none; }
+      .tooltip-wrap.tip-open .tip { visibility: visible; opacity: 1; }
+    }
+    .tab-btn {
+      min-height: 44px;
+      display: inline-flex;
+      align-items: center;
+    }
   </style>
 </head>
 <body class="bg-surface text-gray-100 font-sans min-h-screen transition-colors duration-300">
 
   <!-- Navbar -->
-  <nav class="sticky top-0 z-40 bg-surface/95 backdrop-blur-md border-b border-btc/20">
+  <nav class="sticky top-0 z-40 bg-surface/95 backdrop-blur-md border-b border-btc/20 pt-[env(safe-area-inset-top,0px)]">
     <div class="max-w-[1600px] mx-auto px-4 py-3">
       <div class="flex flex-wrap items-center justify-between gap-3">
         <div class="flex items-center gap-3 min-w-0">
@@ -134,14 +150,15 @@
             <p class="text-xs sm:text-sm text-gray-400 hidden sm:block max-w-2xl">How affordable was running a Bitcoin node over time? Archival models dedicated hardware + drive; pruned assumes your existing PC ($0 setup — OpEx only). Storage + CPU/RAM + internet + elec.</p>
           </div>
         </div>
-        <div class="flex flex-wrap items-center gap-2 sm:gap-3">
-          <span class="px-3 py-1.5 text-xs sm:text-sm rounded-lg border border-gray-600 bg-surface-card text-gray-300">🇺🇸 USA · Nominal USD</span>
+        <div class="flex flex-wrap items-center gap-2 sm:gap-3 w-full sm:w-auto justify-start sm:justify-end">
+          <span class="hidden sm:inline px-3 py-1.5 text-xs sm:text-sm rounded-lg border border-gray-600 bg-surface-card text-gray-300">🇺🇸 USA · Nominal USD</span>
+          <span class="sm:hidden px-2.5 py-1.5 text-xs rounded-lg border border-gray-600 bg-surface-card text-gray-300">🇺🇸 USA</span>
           <div class="flex rounded-lg overflow-hidden border border-gray-600 text-xs">
-            <button id="btnArchival" class="px-3 py-1.5 bg-btc text-black font-medium">Archival</button>
-            <button id="btnPruned" class="px-3 py-1.5 bg-surface-card hover:bg-btc/10">Pruned</button>
+            <button id="btnArchival" class="px-3 py-2.5 sm:py-1.5 bg-btc text-black font-medium">Archival</button>
+            <button id="btnPruned" class="px-3 py-2.5 sm:py-1.5 bg-surface-card hover:bg-btc/10">Pruned</button>
           </div>
-          <button id="btnProjPanel" class="px-3 py-1.5 text-xs rounded-lg border border-btc/60 bg-btc/10 text-btc hover:bg-btc/20 font-medium">Projections to 2040</button>
-          <button id="btnShare" class="px-3 py-1.5 text-xs rounded-lg border border-gray-600 hover:border-btc" title="Copy share link">Share</button>
+          <button id="btnProjPanel" class="px-3 py-2.5 sm:py-1.5 text-xs rounded-lg border border-btc/60 bg-btc/10 text-btc hover:bg-btc/20 font-medium"><span class="sm:hidden">2040</span><span class="hidden sm:inline">Projections to 2040</span></button>
+          <button id="btnShare" class="px-3 py-2.5 sm:py-1.5 text-xs rounded-lg border border-gray-600 hover:border-btc" title="Copy share link">Share</button>
         </div>
       </div>
     </div>
@@ -377,7 +394,7 @@
           <p class="text-xs text-gray-400">Annual Running Cost</p>
           <p id="kpiOpEx" class="text-xl font-bold font-mono mt-1">—</p>
         </div>
-        <div class="kpi-card bg-surface-card rounded-xl p-4 border border-gray-700/50 col-span-2">
+        <div class="kpi-card bg-surface-card rounded-xl p-4 border border-gray-700/50 col-span-2 lg:col-span-1">
           <p class="text-xs text-gray-400 flex items-center gap-1">Hobbyist Affordability
             <span class="tooltip-wrap"><span class="cursor-help">ⓘ</span><span class="tip">Monthly equivalent: one-time setup amortized over 3 years + annual internet &amp; electricity, divided by 12. Tuned for homelab/hobby budgets, not enterprise hosting.</span></span>
           </p>
@@ -403,14 +420,15 @@
       </section>
 
       <!-- Tabs -->
-      <div class="flex gap-4 border-b border-gray-700 text-sm">
-        <button class="tab-btn pb-2 px-1 text-gray-400 hover:text-btc" data-tab="table">Data Table</button>
-        <button class="tab-btn tab-active pb-2 px-1" data-tab="charts">Charts</button>
-        <button class="tab-btn pb-2 px-1 text-gray-400 hover:text-btc" data-tab="tradeoffs">Trade-offs</button>
+      <div class="flex gap-2 sm:gap-4 border-b border-gray-700 text-sm overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0">
+        <button class="tab-btn pb-2 px-2 shrink-0 text-gray-400 hover:text-btc" data-tab="table">Data Table</button>
+        <button class="tab-btn tab-active pb-2 px-2 shrink-0" data-tab="charts">Charts</button>
+        <button class="tab-btn pb-2 px-2 shrink-0 text-gray-400 hover:text-btc" data-tab="tradeoffs">Trade-offs</button>
       </div>
 
       <!-- Table Tab -->
       <section id="tabTable" class="tab-panel hidden">
+        <p class="text-[11px] text-gray-500 mb-2 sm:hidden">Swipe horizontally for more columns · header stays pinned while scrolling</p>
         <div class="data-table-viewport rounded-xl border border-gray-700">
           <table class="data-table w-full text-xs sm:text-sm">
             <thead class="text-gray-400">
@@ -1972,6 +1990,15 @@ function resetDefaults() {
 // EVENT BINDINGS
 // ═══════════════════════════════════════════════════════════════
 function bindEvents() {
+  document.addEventListener('click', e => {
+    if (window.matchMedia('(hover: hover)').matches) return;
+    const wrap = e.target.closest('.tooltip-wrap');
+    document.querySelectorAll('.tooltip-wrap.tip-open').forEach(w => {
+      if (w !== wrap) w.classList.remove('tip-open');
+    });
+    if (wrap) wrap.classList.toggle('tip-open');
+  });
+
   const yearSlider = document.getElementById('yearSlider');
   yearSlider.addEventListener('input', e => {
     state.selectedYear = +e.target.value;
@@ -2120,9 +2147,11 @@ function bindEvents() {
 
   const sidebar = document.getElementById('sidebar');
   const overlay = document.getElementById('sidebarOverlay');
+  const closeSidebar = () => { sidebar.classList.add('-translate-x-full'); overlay.classList.add('hidden'); };
   document.getElementById('sidebarToggle').addEventListener('click', () => { sidebar.classList.remove('-translate-x-full'); overlay.classList.remove('hidden'); });
-  document.getElementById('sidebarClose').addEventListener('click', () => { sidebar.classList.add('-translate-x-full'); overlay.classList.add('hidden'); });
-  overlay.addEventListener('click', () => { sidebar.classList.add('-translate-x-full'); overlay.classList.add('hidden'); });
+  document.getElementById('sidebarClose').addEventListener('click', closeSidebar);
+  overlay.addEventListener('click', closeSidebar);
+  yearSlider.addEventListener('change', closeSidebar);
 
   // URL params + sync sidebar index controls into state before first refresh
   const params = new URLSearchParams(location.search);
