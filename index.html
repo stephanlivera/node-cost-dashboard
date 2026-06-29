@@ -394,7 +394,7 @@
       <div class="flex gap-4 border-b border-gray-700 text-sm">
         <button class="tab-btn pb-2 px-1 text-gray-400 hover:text-btc" data-tab="table">Data Table</button>
         <button class="tab-btn tab-active pb-2 px-1" data-tab="charts">Charts</button>
-        <button class="tab-btn pb-2 px-1 text-gray-400 hover:text-btc" data-tab="insights">Insights</button>
+        <button class="tab-btn pb-2 px-1 text-gray-400 hover:text-btc" data-tab="tradeoffs">Trade-offs</button>
       </div>
 
       <!-- Table Tab -->
@@ -478,23 +478,34 @@
             <div class="chart-container"><canvas id="chartPie"></canvas></div>
           </div>
         </div>
-      </section>
-
-      <!-- Insights Tab -->
-      <section id="tabInsights" class="tab-panel hidden space-y-4">
-        <div class="bg-surface-card rounded-xl p-5 border border-btc/20">
-          <h3 class="text-lg font-semibold text-btc mb-3">Auto-Generated Insights</h3>
-          <div id="insightsText" class="text-sm text-gray-300 space-y-3 leading-relaxed"></div>
-        </div>
-        <div class="flex flex-wrap gap-3">
+        <div class="flex flex-wrap gap-3 mt-4 pt-4 border-t border-gray-700/50">
           <button id="btnExportCSV" class="px-4 py-2 rounded-lg border border-btc text-btc text-sm hover:bg-btc/10">Export CSV</button>
           <button id="btnExportPNG" class="px-4 py-2 rounded-lg border border-gray-600 text-sm hover:border-btc">Download Hardware Chart</button>
           <button id="btnCopyPNG" class="px-4 py-2 rounded-lg border border-gray-600 text-sm hover:border-btc">Copy Hardware Chart</button>
         </div>
-        <div class="bg-surface-card rounded-xl p-4 border border-gray-700 text-sm text-gray-400">
-          <h4 class="font-semibold text-btc mb-2">Compare to VPS</h4>
-          <p>Cloud VPS nodes (e.g. $40–80/mo for 500 GB+) often cost <strong class="text-gray-200">2–5× more annually</strong> than a home archival setup by 2024. Self-hosting wins on long-term hodler timelines. Trade-off: you manage uptime, security patches, and power outages.</p>
+      </section>
+
+      <!-- Trade-offs Tab -->
+      <section id="tabTradeoffs" class="tab-panel hidden space-y-4">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <div class="bg-surface-card rounded-xl p-5 border border-btc/30">
+            <h3 class="text-lg font-semibold text-btc mb-3">Archival Node</h3>
+            <ul class="text-sm text-gray-300 space-y-3 leading-relaxed list-none">
+              <li>Runs the full 750+ GB blockchain plus indexes.</li>
+              <li>Requires 2 TB storage — today that means spending roughly <strong class="text-gray-200">$450–$550</strong> on an N100 mini PC plus 2 TB SSD. Longer term, as drive prices normalize, this cost should come down.</li>
+              <li>Best if you want to run an Electrum server or scan many different wallets quickly. Fast and convenient, but more expensive.</li>
+            </ul>
+          </div>
+          <div class="bg-surface-card rounded-xl p-5 border border-gray-700">
+            <h3 class="text-lg font-semibold text-btc mb-3">Pruned Node</h3>
+            <ul class="text-sm text-gray-300 space-y-3 leading-relaxed list-none">
+              <li>Only keeps recent blocks — total size around <strong class="text-gray-200">15–20 GB</strong>.</li>
+              <li>Can usually run on your existing laptop or desktop at almost no extra cost.</li>
+              <li>Wallet scanning is slower, and switching to a new wallet often requires a full reindex, which is time-consuming.</li>
+            </ul>
+          </div>
         </div>
+        <p class="text-sm text-gray-400 leading-relaxed px-1"><strong class="text-gray-200">Simple trade-off:</strong> pay more for convenience and flexibility, or keep it cheap and simple if you're only using one or two wallets regularly.</p>
 
         <!-- FAQ -->
         <details class="bg-surface-card rounded-xl border border-gray-700 group">
@@ -1236,80 +1247,7 @@ function getHwRecommendation(year) {
   };
 }
 
-function insightSetupCost(d) {
-  const withIndex = (d.optionalIndexGB ?? 0) > 0;
-  return withIndex ? d.totalSetup : d.baseTotalSetup;
-}
 
-function getIndexSnapshot(sel) {
-  const parts = [];
-  if (sel.coreIndexGB > 0) parts.push(`${fmtGB(sel.coreIndexGB)} Core`);
-  if (state.electrumMode !== 'none') {
-    const opt = ELECTRUM_OPTIONS[state.electrumMode];
-    if (isElectrumActive(state.selectedYear) && sel.electrumIndexGB > 0) {
-      parts.push(`${fmtGB(sel.electrumIndexGB)} ${opt.short}`);
-    } else if (!isElectrumActive(state.selectedYear)) {
-      return ` (${opt.short} debuts ${opt.availableFrom})`;
-    }
-  }
-  return parts.length ? ` (incl. ${parts.join(' + ')})` : '';
-}
-
-function generateInsights(data) {
-  const hist = data.filter(d => d.year >= 2015 && d.year <= 2026);
-  if (hist.length < 2) return '<p>Adjust year range for insights.</p>';
-  const first = hist[0], last = hist[hist.length - 1];
-  const sizeMult = last.blocksGB / first.blocksGB;
-  const firstSetup = insightSetupCost(first);
-  const lastSetup = insightSetupCost(last);
-  const setupDrop = (1 - lastSetup / firstSetup) * 100;
-  const costDrop = (1 - last.annualizedTotal / first.annualizedTotal) * 100;
-  const storageShareFirst = first.storageCost / firstSetup * 100;
-  const storageShareLast = last.storageCost / lastSetup * 100;
-  const peak = data.filter(d => !d.isProjected).reduce((best, d) => {
-    const setup = insightSetupCost(d);
-    return setup > best.setup ? { year: d.year, setup } : best;
-  }, { year: 0, setup: 0 });
-  const sel = getSelected();
-  const withIndex = (sel.optionalIndexGB ?? 0) > 0;
-  const score = affordabilityScore(
-    withIndex ? sel.annualizedTotal : sel.baseAnnualizedTotal,
-    sel.annualOpEx
-  );
-  const indexSnap = getIndexSnapshot(sel);
-  const storageShareVerb = storageShareLast >= storageShareFirst ? 'rose' : 'fell';
-  const kitLarger = last.basePC > last.storageCost;
-  const elecSharePct = sel.annualOpEx > 0 ? (sel.elecAnnual / sel.annualOpEx) * 100 : 0;
-  const elecShareNote = elecSharePct < 10
-    ? 'under 10% of total OpEx'
-    : `~${elecSharePct.toFixed(0)}% of total OpEx`;
-
-  const setupIntro = state.pruned
-    ? `<p>🛒 <strong>Pruned setup (2015 → 2026):</strong> $0 one-time on existing laptop/desktop — uses free disk space, no new hardware purchase. Disk footprint grew (${fmtGB(getPrunedStorageGB(2015))} → ${fmtGB(getPrunedStorageGB(2026))}) but marginal storage cost stays $0.</p>
-    <p>💰 <strong>Where pruned cost actually lives:</strong> Annual OpEx — ~${fmtMoney(sel.annualOpEx)}/yr in ${state.selectedYear} (elec + internet attribution). One-time setup: ${fmtMoney(sel.baseTotalSetup)}${state.prunedStorageCost === 'usb' ? ' (USB reference mode)' : ''}.</p>`
-    : `<p>🛒 <strong>One-time hardware (2015 → 2026):</strong> Block chain grew <strong class="text-btc">${sizeMult.toFixed(1)}×</strong> (${fmtGB(first.blocksGB)} → ${fmtGB(last.blocksGB)} blocks + ${fmtGB(last.utxoGB)} UTXO), yet buying storage + CPU/RAM to start a node <strong class="text-green-400">${setupDrop > 0 ? 'fell' : 'rose'} ${Math.abs(setupDrop).toFixed(0)}%</strong> (${fmtMoney(firstSetup)} → ${fmtMoney(lastSetup)}) — see the hero chart on the Charts tab.</p>
-    <p>💾 <strong>Storage vs CPU/RAM shift:</strong> Setup was ${fmtMoney(firstSetup)} in ${first.year} (storage ${fmtMoney(first.storageCost)}, kit ${fmtMoney(first.basePC)}) vs ${fmtMoney(lastSetup)} in ${last.year} (storage ${fmtMoney(last.storageCost)}, kit ${fmtMoney(last.basePC)}). Storage share ${storageShareVerb} from ~${storageShareFirst.toFixed(0)}% to ~${storageShareLast.toFixed(0)}% of setup${kitLarger ? ' — CPU/RAM kit is still the larger line item' : ' — storage is now the larger line item'}.</p>`;
-
-  return `
-    ${setupIntro}
-    ${state.pruned && state.prunedStorageCost === 'marginal'
-      ? `<p>📊 <strong>One-time setup:</strong> $0 every year — pruned on existing PC uses free disk. Compare the <strong class="text-btc">Annual Running Cost</strong> chart for the real pruned price tag.</p>`
-      : `<p>📊 <strong>Peak setup cost:</strong> The most expensive year to buy in was <strong class="text-btc">${peak.year}</strong> at <strong class="text-btc">${fmtMoney(peak.setup)}</strong> one-time${state.pruned ? ' (USB reference)' : ' (storage + CPU/RAM kit)'}.</p>`}
-    <p>📈 <strong>Annualized cost (2015 → 2026):</strong> Including 3-yr amortized setup + OpEx, running cost <strong class="text-green-400">${costDrop > 0 ? 'fell' : 'rose'} ${Math.abs(costDrop).toFixed(0)}%</strong> over the same period.</p>
-    <p>⚡ <strong>Power efficiency:</strong> At ${state.nodeWatts}W, electricity costs ~${fmtMoney(sel.elecAnnual)}/yr in the USA — ${elecShareNote}.</p>
-    <p>🎯 <strong>${state.selectedYear} snapshot:</strong> ${state.pruned ? `Pruned node ${formatPrunedStorageSub(state.selectedYear)}` : `Archival node needs ${fmtGB(sel.minStorage)} storage`}${indexSnap}. Base setup ${fmtMoney(sel.baseTotalSetup)}${sel.indexCost > 0 ? `, +${fmtMoney(sel.indexCost)} indexes → ${fmtMoney(sel.totalSetup)} total` : ''}. Annual OpEx ${fmtMoney(sel.annualOpEx)}. Score: <strong class="${score.color}">${score.label}</strong>.</p>
-    ${state.pruned ? `<p>✂️ <strong>Pruned disk footprint:</strong> &lt;1 GB (2010–12) → ~${fmtGB(getPrunedStorageGB(2015))} (2015) → ~${fmtGB(getPrunedStorageGB(2018))} (2018) → ~${fmtGB(getPrunedStorageGB(2022))} (2022) → ~${fmtGB(getPrunedStorageGB(2026))} (2026) on your existing drive. USB reference if disk full: ~${fmtMoney(sel.referenceMediaCost ?? 0)}. IBD bandwidth (~${fmtGB(getBlocksGB(state.selectedYear))} blocks) unchanged.</p>` : ''}
-    ${state.projectionEnabled ? (() => {
-      const y30 = getYearData(2030), y40 = getYearData(2040);
-      const ref = getYearData(2026);
-      const refSetup = insightSetupCost(ref);
-      const y40Setup = insightSetupCost(y40);
-      const savePct = (1 - y40Setup / refSetup) * 100;
-      const opexVerb = y40.annualOpEx < ref.annualOpEx - 5 ? 'falls to' : y40.annualOpEx > ref.annualOpEx + 5 ? 'rises to' : 'stays ~';
-      return `<p>🔮 <strong>2040 projection (${state.projectionScenario}):</strong> Chain ~${fmtGB(y40.sizeGB)}, one-time setup ${fmtMoney(y40Setup)} vs ${fmtMoney(refSetup)} in 2026 (<strong class="text-green-400">${savePct > 0 ? savePct.toFixed(0) + '% cheaper' : 'higher'}</strong>). 2030: ${fmtMoney(insightSetupCost(y30))}. OpEx ${opexVerb} ${fmtMoney(y40.annualOpEx)}/yr (from ${fmtMoney(ref.annualOpEx)} in 2026).</p>`;
-    })() : `<p>🔮 <strong>Projection to 2030:</strong> At ${state.growthRate} GB/yr growth, chain hits ~${fmtGB(getSizeGB(2030))} by 2030.</p>`}
-  `;
-}
 
 function syncProjectionUI() {
   const maxY = getMaxYear();
@@ -1778,10 +1716,6 @@ function updateCharts() {
   });
 }
 
-function updateInsights() {
-  document.getElementById('insightsText').innerHTML = generateInsights(computeAll());
-}
-
 function refresh() {
   syncStorageTypeHint();
   syncBasePCHint();
@@ -1791,7 +1725,6 @@ function refresh() {
   syncProjSliderLabels();
   updateKPIs();
   updateTable();
-  updateInsights();
   updateCharts();
 }
 
