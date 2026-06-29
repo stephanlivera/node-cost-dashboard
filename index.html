@@ -133,6 +133,27 @@
       display: inline-flex;
       align-items: center;
     }
+    .onboarding-strip {
+      background: linear-gradient(90deg, rgba(247, 147, 26, 0.1) 0%, rgba(22, 33, 62, 0.6) 55%, transparent 100%);
+      border-bottom: 1px solid rgba(247, 147, 26, 0.22);
+    }
+    .onboarding-step {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.35rem 0.65rem;
+      border-radius: 9999px;
+      background: rgba(15, 23, 42, 0.45);
+      border: 1px solid rgba(148, 163, 184, 0.15);
+      color: #e2e8f0;
+      font-size: 0.8125rem;
+    }
+    .onboarding-step-num {
+      color: #f7931a;
+      font-weight: 700;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.75rem;
+    }
   </style>
 </head>
 <body class="bg-surface text-gray-100 font-sans min-h-screen transition-colors duration-300">
@@ -163,6 +184,25 @@
       </div>
     </div>
   </nav>
+
+  <div id="onboardingStrip" class="onboarding-strip hidden" role="region" aria-label="Getting started">
+    <div class="max-w-[1600px] mx-auto px-4 py-2.5 sm:py-3 flex flex-wrap items-center gap-3 justify-between">
+      <div class="flex flex-wrap items-center gap-2 sm:gap-3 min-w-0">
+        <span class="text-xs font-semibold text-btc shrink-0">Get started</span>
+        <span class="onboarding-step">
+          <span class="onboarding-step-num">1</span>
+          <span class="lg:hidden">Open <button type="button" id="onboardingOpenSidebar" class="text-btc font-medium hover:underline">menu</button> &amp; pick a year</span>
+          <span class="hidden lg:inline">Pick a year <span class="text-gray-500 font-normal">(sidebar slider)</span></span>
+        </span>
+        <span class="text-gray-600 text-sm hidden sm:inline" aria-hidden="true">→</span>
+        <span class="onboarding-step">
+          <span class="onboarding-step-num">2</span>
+          Toggle <span class="text-btc font-medium">Archival</span> or <span class="text-gray-200 font-medium">Pruned</span>
+        </span>
+      </div>
+      <button type="button" id="onboardingDismiss" class="shrink-0 px-3 py-1.5 text-xs rounded-lg border border-gray-600 text-gray-300 hover:border-btc hover:text-btc transition-colors">Got it</button>
+    </div>
+  </div>
 
   <!-- 2040 Projection Panel (top-right) -->
   <div id="projPanel" class="hidden fixed right-2 sm:right-4 top-[60px] z-50 w-[min(100vw-1rem,420px)] bg-surface-card border border-btc/30 rounded-xl shadow-2xl overflow-y-auto proj-panel">
@@ -816,6 +856,7 @@ const HISTORICAL_THROUGH = 2026;
 const PROJECTION_THROUGH = 2040;
 /** Canonical share URL (GitHub Pages project site) */
 const SHARE_BASE_URL = 'https://stephanlivera.github.io/node-cost-dashboard/';
+const ONBOARDING_DISMISSED_KEY = 'node-cost-dashboard-onboarding-dismissed';
 /** Pruned steady-state on disk — calibrated to chainstate growth + headroom (field estimates, not block files) */
 const PRUNED_SIZE_ANCHORS = {
   years: [2009, 2010, 2012, 2015, 2017, 2018, 2020, 2021, 2022, 2025, 2026],
@@ -2112,7 +2153,33 @@ function resetDefaults() {
 // ═══════════════════════════════════════════════════════════════
 // EVENT BINDINGS
 // ═══════════════════════════════════════════════════════════════
+function initOnboarding() {
+  const strip = document.getElementById('onboardingStrip');
+  if (!strip) return;
+  try {
+    if (localStorage.getItem(ONBOARDING_DISMISSED_KEY) || location.search.length > 1) return;
+  } catch (_) {
+    if (location.search.length > 1) return;
+  }
+  strip.classList.remove('hidden');
+}
+
+function dismissOnboarding() {
+  try { localStorage.setItem(ONBOARDING_DISMISSED_KEY, '1'); } catch (_) {}
+  document.getElementById('onboardingStrip')?.classList.add('hidden');
+}
+
 function bindEvents() {
+  initOnboarding();
+  document.getElementById('onboardingDismiss')?.addEventListener('click', dismissOnboarding);
+  document.getElementById('onboardingOpenSidebar')?.addEventListener('click', () => {
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('sidebarOverlay');
+    if (sidebar) sidebar.classList.remove('-translate-x-full');
+    if (overlay) overlay.classList.remove('hidden');
+    document.getElementById('yearSlider')?.focus();
+  });
+
   document.addEventListener('click', e => {
     if (window.matchMedia('(hover: hover)').matches) return;
     const wrap = e.target.closest('.tooltip-wrap');
