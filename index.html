@@ -162,7 +162,7 @@
         <div><label class="text-gray-400">Hardware/CPU deflation: <span id="projHwDeflVal" class="text-btc font-mono">-6%</span>/yr</label><input type="range" id="projHwDefl" min="-12" max="-1" value="-6" class="w-full" /></div>
         <div><label class="text-gray-400">Internet real trend: <span id="projInternetVal" class="text-btc font-mono">-2%</span>/yr</label><input type="range" id="projInternet" min="-5" max="0" value="-2" class="w-full" /></div>
         <div><label class="text-gray-400">SSD premium: <span id="projSsdPremVal" class="text-btc font-mono">0%</span></label><input type="range" id="projSsdPrem" min="0" max="50" value="0" class="w-full" /></div>
-        <div><label class="text-gray-400">Electricity deflation: <span id="projElecDeflVal" class="text-btc font-mono">-1%</span>/yr</label><input type="range" id="projElecDefl" min="-5" max="2" value="-1" class="w-full" /></div>
+        <div><label class="text-gray-400">Electricity price trend: <span id="projElecDeflVal" class="text-btc font-mono">+1.5%</span>/yr</label><input type="range" id="projElecDefl" min="-5" max="5" step="0.5" value="1.5" class="w-full" /></div>
         <div><label class="text-gray-400">Electrum index multiplier: <span id="projElectrumMultVal" class="text-btc font-mono">1.0×</span></label><input type="range" id="projElectrumMult" min="0.5" max="2" step="0.1" value="1" class="w-full" /></div>
       </div>
       <button id="btnProjReset" class="w-full py-2 rounded-lg border border-btc/40 text-btc hover:bg-btc/10">Reset Projection Sliders</button>
@@ -170,7 +170,7 @@
         <summary class="p-3 cursor-pointer font-semibold text-btc text-xs">Why projections are reliable</summary>
         <div class="px-3 pb-3 text-[11px] text-gray-400 space-y-2 leading-relaxed">
           <p>Storage $/GB fell for decades, but consumer NVMe spiked ~2× in 2025–2026 (AI datacenter demand, NAND shortage — TrendForce, Tom's Hardware). The model anchors 2026 at ~$130/TB (~$260/2 TB) and assumes a gradual recovery, then long-run deflation resumes.</p>
-          <p>Mini-PCs, ARM boards, and efficient SoCs compound cheaper + lower watts. Internet is flat-to-down in real terms while speeds rise.</p>
+          <p>Mini-PCs, ARM boards, and efficient SoCs compound cheaper + lower watts. Residential electricity rose ~55% nominally 2009–2026 (EIA); baseline projects modest continued increases. Internet is flat-to-down in real terms per USTelecom BPI while nominal plan costs track typical household broadband.</p>
           <p><strong class="text-gray-200">Even conservative (pessimistic) assumptions show the node stays trivially affordable forever</strong> — chain growth is linear, tech deflation is exponential.</p>
         </div>
       </details>
@@ -294,7 +294,9 @@
             </div>
           </div>
           <div>
-            <label class="text-gray-400">Electricity $/kWh</label>
+            <label class="text-gray-400 flex items-center gap-1">Electricity $/kWh
+              <span class="tooltip-wrap"><span class="cursor-help">ⓘ</span><span class="tip">Override the year-varying U.S. residential average (EIA Table 5.3). Leave at default to follow historical 11.5¢ (2009) → ~17.8¢ (2026).</span></span>
+            </label>
             <input type="number" id="elecPrice" step="0.01" class="w-full mt-1 bg-surface border border-gray-600 rounded px-2 py-1.5" />
           </div>
           <div>
@@ -502,6 +504,7 @@
             <div><strong class="text-gray-200">Storage price history:</strong> Bulk HDD $/TB fell from ~$110 (2009) to ~$10 (2026). Consumer NVMe was ~$50–70/TB through 2024–2025, then spiked to ~$130/TB in 2026 — the era shown for new archival builds (auto mode uses SSD from 2018+).</div>
             <div><strong class="text-gray-200">Efficient hardware:</strong> Raspberry Pi 4/5 runs Bitcoin Core with 4–8 GB RAM, replacing $500+ desktops from 2009–2012.</div>
             <div><strong class="text-gray-200">Bandwidth abundance:</strong> Unlimited home internet became standard; node traffic is a tiny fraction of monthly caps after initial sync.</div>
+            <div><strong class="text-gray-200">OpEx assumptions (USA):</strong> Internet plan cost follows USTelecom Broadband Pricing Index anchors — ~$38/mo entry broadband (2009), ~$66 (2015 popular tier), ~$52 (2020), ~$73 (2024 BPI-Speed 100–940 Mbps). Default attributes 15% of the plan to the node. Electricity uses EIA residential averages: 11.5¢/kWh (2009) → 17.8¢/kWh (2026), with ~15 W default draw (Pi/mini-PC; raise for a desktop).</div>
             <div><strong class="text-gray-200">Software optimization:</strong> Compact blocks, assumevalid, and better I/O let Core run on modest hardware while still validating the full chain.</div>
             <div><strong class="text-gray-200">The 2026 NAND spike:</strong> Consumer 2 TB NVMe jumped from ~$120–150 (2025 lows) to ~$250–300+ in 2026 as AI datacenters absorbed NAND supply. A 2 TB archival build today is mostly the drive, not the mini-PC.</div>
             <div><strong class="text-gray-200">The catch:</strong> Absolute chain size still grows ~50–65 GB/year. Archival nodes always need more disk — historically $/TB fell faster than the chain grew; the 2026 spike is a temporary reversal.</div>
@@ -518,8 +521,8 @@
   <div id="exportToast" class="export-toast" role="status" aria-live="polite"></div>
 
   <footer class="border-t border-gray-700 mt-8 py-6 px-4 text-center text-xs text-gray-500 max-w-[1600px] mx-auto">
-    <p class="mb-2"><strong class="text-btc">Sources & Notes:</strong> Data synthesized from Blockchain.com, YCharts, Backblaze, Bitcoin.org, historical HDD/SSD pricing; 2026 NVMe calibrated to ~$250–300/2 TB retail (Tom's Hardware, TrendForce NAND reports, Jun 2026). Approximations for illustration — edit JS arrays to tweak.</p>
-    <p>All costs in nominal USD for the selected year. Regional electricity/internet rates are estimates. Not financial advice. Built for Bitcoin educators & hodlers.</p>
+    <p class="mb-2"><strong class="text-btc">Sources & Notes:</strong> Data synthesized from Blockchain.com, YCharts, Backblaze, Bitcoin.org, historical HDD/SSD pricing; 2026 NVMe calibrated to ~$250–300/2 TB retail (Tom's Hardware, TrendForce NAND reports, Jun 2026). OpEx: EIA residential electricity (Table 5.3 / Electric Power Annual); USTelecom Broadband Pricing Index (2015–2024). Approximations for illustration — edit JS arrays to tweak.</p>
+    <p>All costs in nominal USD for the selected year. Electricity and internet follow U.S. national averages; your local rates may differ. Not financial advice. Built for Bitcoin educators & hodlers.</p>
   </footer>
 
 <script>
@@ -543,7 +546,11 @@ const RAW = {
   basePCCost: [50, 50, 50, 200, 280, 250, 200, 180, 165, 130, 115, 120, 175, 155, 145, 175, 170, 165, 155, 150, 145, 140],
   // USB enclosure or powered USB hub for external drives
   enclosureCost: [5, 8, 10, 12, 14, 15, 16, 18, 18, 20, 20, 22, 22, 24, 24, 25, 25, 26, 26, 28, 28, 30],
-  internetMonthly: [25, 30, 35, 40, 45, 50, 55, 58, 60, 65, 68, 70, 72, 75, 78, 80, 82, 85, 87, 90, 92, 95],
+  // Typical U.S. residential fixed-broadband plan ($/mo, nominal). Anchors: USTelecom BPI Consumer Choice 2015 $66 / 2020 $52;
+  // BPI-Speed (100–940 Mbps) 2023 $75 / 2024 $73; ~$38 entry broadband circa 2009 (NYT/BITS survey).
+  internetMonthly: [38, 40, 42, 45, 48, 52, 66, 64, 61, 59, 56, 52, 58, 64, 75, 73, 74, 75, 74, 73, 72, 71],
+  // EIA residential avg ¢/kWh (Table 5.3 annual + 2026 YTD); values in $/kWh
+  elecPerKwh: [0.1151, 0.1154, 0.1180, 0.1188, 0.1213, 0.1252, 0.1265, 0.1255, 0.1289, 0.1287, 0.1301, 0.1315, 0.1366, 0.1504, 0.1600, 0.1648, 0.1730, 0.1775, 0.180, 0.183, 0.186, 0.189],
   cpuDesc: [
     'Any spare PC (Satoshi era)', 'Any spare PC', 'Any spare PC', 'Old laptop + HDD',
     'Budget desktop', 'Used desktop', 'Mini PC / old laptop', 'NUC / mini PC',
@@ -554,7 +561,7 @@ const RAW = {
   ]
 };
 
-const US_RATES = { elec: 0.16, internetMult: 1.0, label: 'USA' };
+const US_RATES = { elec: 0.1775, internetMult: 1.0, label: 'USA' };
 
 const DRIVE_SKUS_TB = [0.5, 1, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20];
 
@@ -678,13 +685,13 @@ const state = {
   projHardwareDeflation: -6,
   projInternetTrend: -2,
   projSsdPremiumPct: 0,
-  projElecDeflation: -1,
+  projElecDeflation: 1.5,
   projElectrumMult: 1
 };
 
 const PROJ_DEFAULTS = {
   projGrowthRate: 65, projStorageDeflation: -12, projHardwareDeflation: -6,
-  projInternetTrend: -2, projSsdPremiumPct: 0, projElecDeflation: -1, projElectrumMult: 1
+  projInternetTrend: -2, projSsdPremiumPct: 0, projElecDeflation: 1.5, projElectrumMult: 1
 };
 
 const SCENARIO_TIPS = {
@@ -735,6 +742,11 @@ function fmtGB(gb) {
 }
 
 function getRegion() { return US_RATES; }
+
+function getElecPricePerKwh(year) {
+  if (state.elecPrice != null) return state.elecPrice;
+  return lerp(RAW.elecPerKwh, RAW.years, year);
+}
 
 function getStorageTypeForYear(year) {
   if (state.storageType === 'auto') return year >= 2018 ? 'ssd' : 'hdd';
@@ -1067,7 +1079,7 @@ function calcYearHistorical(year) {
   } else {
     internetPortion = state.internetValue * cpi;
   }
-  const elecPrice = (state.elecPrice ?? region.elec) * cpi;
+  const elecPrice = getElecPricePerKwh(year) * cpi;
   const elecAnnual = (state.nodeWatts / 1000) * 24 * 365 * elecPrice;
   const annualOpEx = internetPortion * 12 + elecAnnual;
   const baseAnnualizedTotal = baseTotalSetup / 3 + annualOpEx;
@@ -1320,7 +1332,7 @@ function syncProjectionUI() {
   if (tip) tip.textContent = SCENARIO_TIPS[state.projectionScenario] || '';
   const aTip = document.getElementById('projAssumptionTip');
   if (aTip) aTip.textContent =
-    `Chain +${state.projGrowthRate} GB/yr · Storage ${state.projStorageDeflation}%/yr (AI +25% 2026–28 baseline) · HW ${state.projHardwareDeflation}%/yr · Internet ${state.projInternetTrend}% real/yr.`;
+    `Chain +${state.projGrowthRate} GB/yr · Storage ${state.projStorageDeflation}%/yr (AI +25% 2026–28 baseline) · HW ${state.projHardwareDeflation}%/yr · Internet ${state.projInternetTrend}% real/yr · Elec ${state.projElecDeflation > 0 ? '+' : ''}${state.projElecDeflation}%/yr.`;
   const ext = ' (2009–2040)';
   const cst = document.getElementById('chartSizeTitle');
   if (cst) cst.textContent = 'Block Chain Size Growth (GB)' + ext;
@@ -1335,7 +1347,7 @@ function syncProjSliderLabels() {
   set('projHwDeflVal', state.projHardwareDeflation + '%');
   set('projInternetVal', state.projInternetTrend + '%');
   set('projSsdPremVal', state.projSsdPremiumPct + '%');
-  set('projElecDeflVal', state.projElecDeflation + '%');
+  set('projElecDeflVal', (state.projElecDeflation > 0 ? '+' : '') + state.projElecDeflation + '%');
   set('projElectrumMultVal', state.projElectrumMult.toFixed(1) + '×');
 }
 
