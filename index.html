@@ -320,7 +320,7 @@
     <main class="flex-1 p-4 lg:p-6 space-y-6 min-w-0">
 
       <!-- Hero: hardware evolution (syncs with year slider) -->
-      <section id="heroBanner" class="hero-banner rounded-xl overflow-hidden border border-btc/20 glow-btc" aria-label="Node hardware evolution over time">
+      <section id="heroBanner" class="hero-banner rounded-xl overflow-hidden border border-btc/20 glow-btc" aria-label="Node hardware over time">
         <div class="hero-slides">
           <img class="hero-slide" data-era="0" src="assets/hero/era-2009.jpg" alt="2009 era desktop PC running a Bitcoin node" loading="eager" decoding="async" />
           <img class="hero-slide" data-era="1" src="assets/hero/era-2013.jpg" alt="2013 era laptop with external hard drive" loading="lazy" decoding="async" />
@@ -375,8 +375,8 @@
       </section>
 
       <!-- Hardware Recommendation -->
-      <section class="bg-surface-card rounded-xl p-5 border border-btc/20 glow-btc">
-        <h2 class="text-lg font-semibold text-btc mb-3">Hardware Recommendation</h2>
+      <section id="hwRecommendationSection" class="bg-surface-card rounded-xl p-5 border border-btc/20 glow-btc">
+        <h2 id="hwSectionTitle" class="text-lg font-semibold text-btc mb-3">Hardware Recommendation</h2>
         <div class="flex flex-col md:flex-row gap-4">
           <div id="hwImage" class="hardware-img w-full md:w-48 h-36 rounded-lg overflow-hidden shrink-0">
             <img id="hwImageImg" class="w-full h-full object-cover" src="assets/hero/era-2026.jpg" alt="" loading="lazy" decoding="async" />
@@ -629,31 +629,101 @@ const HERO_ERAS = [
   { until: 9999, image: 'assets/hero/era-2035.jpg', label: '2031–2040', subtitle: '4–8 TB NVMe · projected', jumpYear: 2035 }
 ];
 
-let currentHeroEra = -1;
+/** Pruned: same laptop/desktop throughout — only disk footprint changes */
+const PRUNED_HERO_ERAS = [
+  { until: 2014, image: 'assets/hero/era-2009.jpg', label: '2009–2014', subtitle: 'Your existing desktop or laptop', jumpYear: 2010 },
+  { until: 2022, image: 'assets/hero/era-2013.jpg', label: '2015–2022', subtitle: 'Same PC — pruned disk ~2–10 GB', jumpYear: 2018 },
+  { until: 9999, image: 'assets/hero/era-2013.jpg', label: '2023–2040', subtitle: 'Same PC — pruned disk ~15–20 GB', jumpYear: 2026 }
+];
 
-function getHeroEraIndex(year) {
-  const idx = HERO_ERAS.findIndex(e => year <= e.until);
-  return idx >= 0 ? idx : HERO_ERAS.length - 1;
+let currentHeroEra = -1;
+let currentHeroPruned = null;
+
+function getHeroEras() {
+  return state.pruned ? PRUNED_HERO_ERAS : HERO_ERAS;
+}
+
+function getHeroEraIndex(year, eras) {
+  const idx = eras.findIndex(e => year <= e.until);
+  return idx >= 0 ? idx : eras.length - 1;
 }
 
 function updateHeroBanner(year) {
-  const idx = getHeroEraIndex(year);
-  if (idx === currentHeroEra) return;
+  const eras = getHeroEras();
+  const idx = getHeroEraIndex(year, eras);
+  if (idx === currentHeroEra && currentHeroPruned === state.pruned) return;
   currentHeroEra = idx;
-  const era = HERO_ERAS[idx];
-  document.querySelectorAll('.hero-slide').forEach((img, i) => img.classList.toggle('active', i === idx));
-  document.querySelectorAll('.hero-dot').forEach((dot, i) => {
-    dot.classList.toggle('active', i === idx);
-    dot.setAttribute('aria-selected', i === idx ? 'true' : 'false');
+  currentHeroPruned = state.pruned;
+  const era = eras[idx];
+  const banner = document.getElementById('heroBanner');
+  if (banner) {
+    banner.setAttribute('aria-label', state.pruned
+      ? 'Pruned node on your existing laptop or desktop'
+      : 'Node hardware evolution over time');
+  }
+  const slides = document.querySelectorAll('.hero-slide');
+  slides.forEach((img, i) => {
+    if (i < eras.length) {
+      img.src = eras[i].image;
+      img.alt = state.pruned
+        ? `Pruned Bitcoin node on existing PC — ${eras[i].label}`
+        : `Bitcoin node hardware ${eras[i].label}`;
+      img.style.display = '';
+      img.classList.toggle('active', i === idx);
+    } else {
+      img.classList.remove('active');
+      img.style.display = 'none';
+    }
   });
+  const dotsContainer = document.getElementById('heroDots');
+  if (dotsContainer) {
+    dotsContainer.innerHTML = eras.map((e, i) =>
+      `<button type="button" class="hero-dot${i === idx ? ' active' : ''}" data-era="${i}" data-year="${e.jumpYear}" aria-label="${e.label}" title="${e.label}" aria-selected="${i === idx ? 'true' : 'false'}"></button>`
+    ).join('');
+  }
   const label = document.getElementById('heroEraLabel');
   if (label) label.textContent = `${era.label} · ${era.subtitle}`;
   const hwImg = document.getElementById('hwImageImg');
   if (hwImg) {
     hwImg.src = era.image;
-    hwImg.alt = `Bitcoin node hardware ${era.label}`;
+    hwImg.alt = state.pruned
+      ? `Pruned node on your existing PC — ${era.label}`
+      : `Bitcoin node hardware ${era.label}`;
   }
 }
+
+const PRUNED_HW_RECOMMENDATIONS = [
+  {
+    until: 2012, emoji: '💻',
+    title: '2009–2012: Your existing desktop or laptop',
+    desc: 'Bitcoin launched on the reference client — you ran it on whatever PC you already had. Pruned mode needs well under 1 GB of free disk. No Raspberry Pi, NUC, or new hardware purchase.',
+    cost: '$0 setup — OpEx only'
+  },
+  {
+    until: 2017, emoji: '💻',
+    title: '2013–2017: Same PC you already own',
+    desc: 'The chain grew but pruned disk stays in the low GB range (~1–3 GB). Use free space on your laptop or desktop internal drive. Real cost is electricity and internet, not dedicated node hardware.',
+    cost: '$0 setup — OpEx only'
+  },
+  {
+    until: 2022, emoji: '💻',
+    title: '2018–2022: Same laptop or desktop',
+    desc: 'Pruned footprint reaches ~8–10 GB as the UTXO set grows — still trivial on any modern PC with spare disk. No Pi kit, external NAS drive, or mini PC required for pruned mode.',
+    cost: '$0 setup — OpEx only'
+  },
+  {
+    until: 2026, emoji: '💻',
+    title: '2023–2026: Same laptop or desktop',
+    desc: 'Pruned steady-state is ~15–20 GB today (chainstate + recent blocks). Run Core in the background on the computer you already use daily. A small USB stick is optional only if internal disk is full.',
+    cost: '$0 setup — OpEx only'
+  },
+  {
+    until: 2040, projected: true, emoji: '💻',
+    title: '2027–2040: Same PC (projected)',
+    desc: 'Pruned disk creeps up slowly with chainstate growth — still fits easily on any laptop or desktop you already own. No shift to dedicated SBCs or mini PCs.',
+    cost: '$0 setup — OpEx only'
+  }
+];
 
 const HW_RECOMMENDATIONS = [
   { until: 2011, emoji: '🖥️', title: '2009–2011: Any Spare PC', desc: 'Bitcoin launched with a tiny chain. You ran the reference client on hardware you already had — no new PC purchase. We model ~$50 marginal kit cost (cables, wear) plus minimal storage; the chain was MB-scale.', cost: '~$50–80 total' },
@@ -1223,21 +1293,20 @@ function affordabilityScore(annualized, annualOpEx) {
 }
 
 function getHwRecommendation(year) {
-  const rec = HW_RECOMMENDATIONS.find(h => year <= h.until) || HW_RECOMMENDATIONS[HW_RECOMMENDATIONS.length - 1];
   if (state.pruned) {
+    const rec = PRUNED_HW_RECOMMENDATIONS.find(h => year <= h.until) || PRUNED_HW_RECOMMENDATIONS[PRUNED_HW_RECOMMENDATIONS.length - 1];
     const pruned = getPrunedStorageGB(year);
-    const prunedRec = {
-      ...rec,
-      title: year <= 2012 ? '2009–2012: Existing PC + minimal storage' : year <= HISTORICAL_THROUGH ? 'Pruned: your laptop/desktop' : 'Pruned: existing PC (projected)',
-      emoji: '💻'
-    };
     const refUsb = getPrunedReferenceMediaCost(year, pruned, 1);
-    prunedRec.desc = `Run Bitcoin Core pruned on a laptop or desktop you already own. Default model: $0 one-time setup — uses ~${fmtGB(pruned)} of existing free disk (${formatPrunedStorageSub(year).replace(/^~/, '')}). Real cost is annual OpEx (elec + internet). If your disk is full, a USB/SD reference is ~${fmtMoney(refUsb)}. No txindex or Electrum. IBD still downloads the full chain once.`;
-    prunedRec.cost = state.prunedStorageCost === 'usb'
-      ? `USB reference ~${fmtMoney(refUsb)}`
-      : '$0 setup — OpEx only';
-    return prunedRec;
+    const diskNote = formatPrunedStorageSub(year);
+    return {
+      ...rec,
+      desc: `${rec.desc} Modeled footprint: ${diskNote}. No txindex or Electrum in pruned mode. Initial sync still downloads the full chain once; ongoing cost is OpEx (elec + internet).${state.prunedStorageCost === 'usb' ? ` USB/SD reference if disk full: ~${fmtMoney(refUsb)}.` : ''}`,
+      cost: state.prunedStorageCost === 'usb'
+        ? `USB reference ~${fmtMoney(refUsb)}`
+        : '$0 setup — OpEx only'
+    };
   }
+  const rec = HW_RECOMMENDATIONS.find(h => year <= h.until) || HW_RECOMMENDATIONS[HW_RECOMMENDATIONS.length - 1];
   if (!rec.projected || year <= HISTORICAL_THROUGH) return rec;
   const blocks = getBlocksGB(year);
   const utxo = getUtxoGB(year);
@@ -1413,6 +1482,9 @@ function updateKPIs() {
   document.getElementById('kpiScore').textContent = score.label;
   document.getElementById('kpiScore').className = 'text-lg font-bold mt-1 ' + score.color;
   document.getElementById('kpiScoreSub').textContent = score.sub;
+
+  const hwTitle = document.getElementById('hwSectionTitle');
+  if (hwTitle) hwTitle.textContent = state.pruned ? 'Your Existing PC' : 'Hardware Recommendation';
 
   updateHeroBanner(state.selectedYear);
   const hw = getHwRecommendation(state.selectedYear);
@@ -1916,12 +1988,16 @@ function bindEvents() {
     state.pruned = false;
     document.getElementById('btnArchival').className = 'px-3 py-1.5 bg-btc text-black font-medium';
     document.getElementById('btnPruned').className = 'px-3 py-1.5 bg-surface-card hover:bg-btc/10';
+    currentHeroEra = -1;
+    currentHeroPruned = null;
     refresh();
   });
   document.getElementById('btnPruned').addEventListener('click', () => {
     state.pruned = true;
     document.getElementById('btnPruned').className = 'px-3 py-1.5 bg-btc text-black font-medium';
     document.getElementById('btnArchival').className = 'px-3 py-1.5 bg-surface-card hover:bg-btc/10';
+    currentHeroEra = -1;
+    currentHeroPruned = null;
     refresh();
   });
 
