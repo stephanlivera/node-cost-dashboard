@@ -105,6 +105,18 @@
     }
     .export-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
     .export-toast.error { border-color: rgba(248,113,113,0.5); color: #fecaca; }
+    .data-table-viewport {
+      max-height: min(calc(100vh - 5.5rem), 42rem);
+      overflow: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+    .data-table thead th {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      background: #16213e;
+      box-shadow: 0 1px 0 rgba(148, 163, 184, 0.25);
+    }
   </style>
 </head>
 <body class="bg-surface text-gray-100 font-sans min-h-screen transition-colors duration-300">
@@ -399,9 +411,9 @@
 
       <!-- Table Tab -->
       <section id="tabTable" class="tab-panel hidden">
-        <div class="overflow-x-auto rounded-xl border border-gray-700">
-          <table class="w-full text-xs sm:text-sm">
-            <thead class="bg-surface-card text-gray-400">
+        <div class="data-table-viewport rounded-xl border border-gray-700">
+          <table class="data-table w-full text-xs sm:text-sm">
+            <thead class="text-gray-400">
               <tr>
                 <th class="px-3 py-3 text-left">Year</th>
                 <th class="px-3 py-3 text-right">Blocks (GB)</th>
