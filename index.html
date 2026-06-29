@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Bitcoin Archival Node Cost Tracker: 2009–2040</title>
+  <title>Bitcoin Node Cost Tracker: 2009–2040</title>
   <link rel="icon" href="assets/favicon.ico?v=2" sizes="any" />
   <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32x32.png?v=2" />
   <link rel="apple-touch-icon" href="assets/apple-touch-icon.png?v=2" />
@@ -118,12 +118,16 @@
             <svg class="w-6 h-6 text-btc" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
           </button>
           <div class="min-w-0">
-            <h1 id="pageTitle" class="text-lg sm:text-xl font-bold text-btc truncate">Bitcoin Archival Node Cost Tracker: 2009–2040</h1>
-            <p class="text-xs sm:text-sm text-gray-400 hidden sm:block max-w-2xl">How affordable was a full archival Bitcoin node over time? Storage + CPU/RAM + internet + elec.</p>
+            <h1 id="pageTitle" class="text-lg sm:text-xl font-bold text-btc truncate">Bitcoin Node Cost Tracker: 2009–2040</h1>
+            <p class="text-xs sm:text-sm text-gray-400 hidden sm:block max-w-2xl">How affordable was running a Bitcoin node over time? Archival models dedicated hardware + drive; pruned assumes your existing PC ($0 setup — OpEx only). Storage + CPU/RAM + internet + elec.</p>
           </div>
         </div>
         <div class="flex flex-wrap items-center gap-2 sm:gap-3">
           <span class="px-3 py-1.5 text-xs sm:text-sm rounded-lg border border-gray-600 bg-surface-card text-gray-300">🇺🇸 USA · Nominal USD</span>
+          <div class="flex rounded-lg overflow-hidden border border-gray-600 text-xs">
+            <button id="btnArchival" class="px-3 py-1.5 bg-btc text-black font-medium">Archival</button>
+            <button id="btnPruned" class="px-3 py-1.5 bg-surface-card hover:bg-btc/10">Pruned</button>
+          </div>
           <button id="btnProjPanel" class="px-3 py-1.5 text-xs rounded-lg border border-btc/60 bg-btc/10 text-btc hover:bg-btc/20 font-medium">Projections to 2040</button>
           <button id="btnShare" class="px-3 py-1.5 text-xs rounded-lg border border-gray-600 hover:border-btc" title="Copy share link">Share</button>
         </div>
@@ -138,10 +142,6 @@
       <button id="btnProjClose" class="text-gray-400 hover:text-btc text-xl leading-none">&times;</button>
     </div>
     <div class="p-4 space-y-4 text-xs">
-      <label class="flex items-center justify-between gap-2 p-2 rounded-lg bg-btc/10 border border-btc/30 cursor-pointer">
-        <span class="font-medium text-gray-200">Enable 2040 Projection</span>
-        <input type="checkbox" id="projEnabled" checked class="w-4 h-4 accent-[#f7931a]" />
-      </label>
       <div>
         <label class="text-gray-400 flex items-center gap-1 mb-1">Scenario
           <span class="tooltip-wrap"><span class="cursor-help">ⓘ</span><span class="tip" id="projScenarioTip">Baseline: 2026 NAND spike in historical data (~$130/TB); sticky through 2028, then ~12%/yr deflation resumes.</span></span>
@@ -193,7 +193,6 @@
           <label class="text-xs text-gray-400">Selected Year: <span id="yearDisplay" class="text-btc font-mono font-bold">2026</span></label>
           <input type="range" id="yearSlider" min="2009" max="2040" value="2026" class="w-full" />
           <div class="flex justify-between text-xs text-gray-500"><span>2009</span><span id="yearSliderMax">2040</span></div>
-          <p id="yearRangeHint" class="text-[10px] text-amber-400/70 hidden">Projection on — table &amp; charts extend to 2040</p>
           <div class="grid grid-cols-2 gap-2 text-xs">
             <div><label class="text-gray-400">From</label><input type="number" id="yearFrom" min="2009" max="2040" value="2009" class="w-full mt-1 bg-surface border border-gray-600 rounded px-2 py-1"/></div>
             <div><label class="text-gray-400">To</label><input type="number" id="yearTo" min="2009" max="2040" value="2040" class="w-full mt-1 bg-surface border border-gray-600 rounded px-2 py-1"/></div>
@@ -265,9 +264,22 @@
             <label class="text-gray-400">Storage $/TB Multiplier: <span id="storageMultDisplay" class="text-btc">1.0×</span></label>
             <input type="range" id="storageMult" min="0.5" max="3" step="0.1" value="1" class="w-full" />
           </div>
+          <div id="prunedStorageSection" class="hidden">
+            <label class="text-gray-400 flex items-center gap-1">Pruned Storage Cost
+              <span class="tooltip-wrap"><span class="cursor-help">ⓘ</span><span class="tip">Marginal ($0): uses free space on your existing laptop/desktop — no new purchase (Bitcoin.org pruned minimum is Desktop/Laptop, 7 GB). USB reference: what a small stick/SD would cost if your disk were full.</span></span>
+            </label>
+            <select id="prunedStorageCost" class="w-full mt-1 bg-surface border border-gray-600 rounded px-2 py-1.5">
+              <option value="marginal" selected>Existing disk — $0 marginal (default)</option>
+              <option value="usb">USB/SD reference — if disk full</option>
+            </select>
+            <p id="prunedStorageHint" class="text-[10px] text-gray-500 mt-1"></p>
+          </div>
           <div>
-            <label class="text-gray-400">Base PC Cost Override ($)</label>
+            <label class="text-gray-400 flex items-center gap-1">Base PC Cost Override ($)
+              <span class="tooltip-wrap"><span class="cursor-help">ⓘ</span><span class="tip">Archival: full kit cost (Pi/mini-PC). Pruned: defaults to $0 (existing laptop/desktop); override if you want to model a dedicated device anyway.</span></span>
+            </label>
             <input type="number" id="basePCOverride" placeholder="Auto" class="w-full mt-1 bg-surface border border-gray-600 rounded px-2 py-1.5" />
+            <p id="basePCOverrideHint" class="text-[10px] text-gray-500 mt-1"></p>
           </div>
           <div>
             <label class="text-gray-400 flex items-center gap-1">Internet Attribution
@@ -336,15 +348,16 @@
           <p id="kpiSizeSub" class="text-[10px] text-gray-500 mt-0.5"></p>
         </div>
         <div class="kpi-card bg-surface-card rounded-xl p-4 border border-gray-700/50">
-          <p class="text-xs text-gray-400 flex items-center gap-1">Min Storage Needed
-            <span class="tooltip-wrap"><span class="cursor-help">ⓘ</span><span class="tip">(Blocks + UTXO set) ×1.15 headroom, plus any optional index selected in the sidebar.</span></span>
+          <p class="text-xs text-gray-400 flex items-center gap-1"><span id="kpiStorageLabelText">Min Storage Needed</span>
+            <span class="tooltip-wrap"><span class="cursor-help">ⓘ</span><span class="tip" id="kpiStorageTip">Archival: (blocks + UTXO set) ×1.15 headroom, plus optional indexes.</span></span>
           </p>
           <p id="kpiMinStorage" class="text-xl font-bold font-mono mt-1">—</p>
           <p id="kpiMinStorageSub" class="text-[10px] text-gray-500 mt-0.5"></p>
         </div>
         <div class="kpi-card bg-surface-card rounded-xl p-4 border border-gray-700/50">
-          <p class="text-xs text-gray-400">One-Time Hardware</p>
+          <p id="kpiSetupLabel" class="text-xs text-gray-400">One-Time Hardware</p>
           <p id="kpiHardware" class="text-xl font-bold font-mono mt-1">—</p>
+          <p id="kpiHardwareSub" class="text-[10px] text-gray-500 mt-0.5"></p>
         </div>
         <div class="kpi-card bg-surface-card rounded-xl p-4 border border-gray-700/50">
           <p class="text-xs text-gray-400">Annual Running Cost</p>
@@ -408,7 +421,7 @@
       <!-- Charts Tab -->
       <section id="tabCharts" class="tab-panel">
         <p class="text-xs text-gray-500 mb-3">Use the clipboard or download icon on any chart to copy or save it as a PNG screenshot.</p>
-        <div class="bg-surface-card rounded-xl p-5 border border-btc/30 glow-btc mb-4" data-chart-card="setup">
+        <div id="chartSetupCard" class="bg-surface-card rounded-xl p-5 border border-btc/30 glow-btc mb-4" data-chart-card="setup">
           <div class="flex items-start justify-between gap-2 mb-2">
             <div class="min-w-0">
               <h3 id="chartSetupTitle" class="text-base sm:text-lg font-bold text-btc">One-Time Hardware Cost Over Time</h3>
@@ -492,6 +505,8 @@
             <div><strong class="text-gray-200">Software optimization:</strong> Compact blocks, assumevalid, and better I/O let Core run on modest hardware while still validating the full chain.</div>
             <div><strong class="text-gray-200">The 2026 NAND spike:</strong> Consumer 2 TB NVMe jumped from ~$120–150 (2025 lows) to ~$250–300+ in 2026 as AI datacenters absorbed NAND supply. A 2 TB archival build today is mostly the drive, not the mini-PC.</div>
             <div><strong class="text-gray-200">The catch:</strong> Absolute chain size still grows ~50–65 GB/year. Archival nodes always need more disk — historically $/TB fell faster than the chain grew; the 2026 spike is a temporary reversal.</div>
+            <div><strong class="text-gray-200">Pruned vs archival storage:</strong> Pruned nodes validate the full chain but discard old block files. Steady-state disk grew with the chainstate (UTXO set): &lt;1 GB (2010–12), ~2–3 GB (2015), ~5 GB (2017–18), ~8–10 GB (2020–22), ~15–20 GB today (2025–26, ~11 GB chainstate + headroom) — still far below ~870 GB archival. First sync still downloads the full chain (~740 GB bandwidth) either way.</div>
+            <div><strong class="text-gray-200">Pruned cost model:</strong> Pruned mode assumes Core on a laptop/desktop you already own. One-time setup is <strong class="text-gray-200">$0</strong> by default — you use existing free disk space (~18 GB today), not a new Pi or USB drive. The real pruned cost is <strong class="text-gray-200">annual OpEx</strong> (electricity + internet share). Toggle “USB/SD reference” in Assumptions if your disk is full and you’d buy a small stick.</div>
             <div><strong class="text-gray-200">2031–2040 (projected):</strong> Hardware class stays similar (efficient mini PC / ARM, 16 GB RAM) — bigger change is buying 4–8 TB NVMe instead of 2–4 TB. Baseline assumes NAND supply recovers and $/TB resumes deflation.</div>
           </div>
         </details>
@@ -550,7 +565,7 @@ const CORE_INDEX_OPTIONS = {
   txindex: {
     label: 'txindex', short: 'txindex', availableFrom: 2009,
     ratioOfBlocks: 44 / CORE_INDEX_ANCHOR_BLOCKS_GB,
-    debut: 'Maps txid → block location; requires full block files'
+    debut: 'Maps txid → block location; incompatible with pruned mode'
   },
   coinstatsindex: {
     label: 'coinstatsindex', short: 'coinstats', availableFrom: 2022,
@@ -644,6 +659,8 @@ const state = {
   selectedYear: 2026,
   yearFrom: 2009,
   yearTo: 2040,
+  pruned: false,
+  prunedStorageCost: 'marginal',
   storageType: 'auto',
   storageMult: 1,
   basePCOverride: null,
@@ -679,6 +696,13 @@ const SCENARIO_TIPS = {
 
 const HISTORICAL_THROUGH = 2026;
 const PROJECTION_THROUGH = 2040;
+/** Pruned steady-state on disk — calibrated to chainstate growth + headroom (field estimates, not block files) */
+const PRUNED_SIZE_ANCHORS = {
+  years: [2009, 2010, 2012, 2015, 2017, 2018, 2020, 2021, 2022, 2025, 2026],
+  gb: [0.5, 0.8, 1.0, 2.5, 4.5, 5.0, 8.0, 9.0, 10.0, 17.5, 18.0]
+};
+const PRUNED_DRIVE_GB = [32, 64, 128, 256, 512];
+
 let charts = {};
 let computedCache = [];
 let projectionCache = null;
@@ -738,8 +762,86 @@ function syncStorageTypeHint() {
   }
 }
 
+function syncBasePCHint() {
+  const hint = document.getElementById('basePCOverrideHint');
+  if (!hint) return;
+  hint.textContent = state.pruned
+    ? 'Pruned: $0 kit (existing laptop/desktop). Override to model a dedicated device.'
+    : 'Archival: full Pi/mini-PC kit cost.';
+}
+
+function syncPrunedUI() {
+  const section = document.getElementById('prunedStorageSection');
+  if (section) section.classList.toggle('hidden', !state.pruned);
+  const setupCard = document.getElementById('chartSetupCard');
+  if (setupCard) setupCard.classList.toggle('hidden', state.pruned);
+  const select = document.getElementById('prunedStorageCost');
+  if (select) select.value = state.prunedStorageCost;
+  const hint = document.getElementById('prunedStorageHint');
+  if (hint && state.pruned) {
+    const d = getSelected();
+    hint.textContent = state.prunedStorageCost === 'marginal'
+      ? `Marginal storage $0 — uses ~${fmtGB(d.baseMinStorage)} on existing disk. USB reference: ~${fmtMoney(d.referenceMediaCost ?? 0)}.`
+      : `USB/SD reference ~${fmtMoney(d.storageCost)} if internal disk is full.`;
+  }
+  const storageTip = document.getElementById('kpiStorageTip');
+  if (storageTip) {
+    storageTip.textContent = state.pruned
+      ? 'Disk footprint on your existing drive — not a purchase. &lt;1 GB (2010–12) → ~18 GB (2026). Toggle USB reference in Assumptions if disk is full.'
+      : 'Archival: (blocks + UTXO set) ×1.15 headroom, plus optional indexes.';
+  }
+}
+
+/** Pruned on-disk need — piecewise anchors; post-2026 adds UTXO delta on top of 2026 baseline */
+function getPrunedStorageGB(year) {
+  if (year <= HISTORICAL_THROUGH) {
+    return lerp(PRUNED_SIZE_ANCHORS.gb, PRUNED_SIZE_ANCHORS.years, year);
+  }
+  const base2026 = lerp(PRUNED_SIZE_ANCHORS.gb, PRUNED_SIZE_ANCHORS.years, HISTORICAL_THROUGH);
+  return base2026 + (getUtxoGB(year) - UTXO_ANCHOR_2026);
+}
+
+function getPrunedStorageBreakdown(year) {
+  const total = getPrunedStorageGB(year);
+  const utxoGB = getUtxoGB(year);
+  return { total, utxoGB, overheadGB: Math.max(0, total - utxoGB) };
+}
+
+function formatPrunedStorageSub(year) {
+  const b = getPrunedStorageBreakdown(year);
+  if (b.utxoGB < 0.1) return `~${fmtGB(b.total)} on disk (minimal chainstate + OS)`;
+  return `~${fmtGB(b.total)} on disk (${fmtGB(b.utxoGB)} chainstate + ${fmtGB(b.overheadGB)} recent blocks & headroom)`;
+}
+
+function getPrunedDriveGB(storageGB) {
+  const needed = storageGB * 1.1;
+  return PRUNED_DRIVE_GB.find(sku => sku >= needed) ?? PRUNED_DRIVE_GB[PRUNED_DRIVE_GB.length - 1];
+}
+
+function getPrunedReferenceMediaCost(year, storageGB, cpi) {
+  const driveGB = getPrunedDriveGB(storageGB);
+  const enclosure = year < 2015 ? lerp(RAW.enclosureCost, RAW.years, year) * cpi * 0.5 : 0;
+  if (driveGB <= 64) return ((year < 2015 ? 10 : year < 2019 ? 18 : year < 2024 ? 22 : 28) * cpi) + enclosure;
+  if (driveGB <= 128) return ((year < 2015 ? 15 : year < 2019 ? 25 : year < 2024 ? 32 : 40) * cpi) + enclosure;
+  return ((year < 2019 ? 35 : year < 2024 ? 42 : 50) * cpi) + enclosure;
+}
+
+/** Pruned on existing PC: marginal storage cost is $0 (slack disk). USB mode is optional reference only. */
+function calcPrunedChainStorage(year, storageGB, cpi) {
+  const referenceMediaCost = getPrunedReferenceMediaCost(year, storageGB, cpi);
+  const usesExistingDisk = state.prunedStorageCost === 'marginal';
+  return {
+    headroomTB: storageGB / 1000,
+    purchaseTB: usesExistingDisk ? 0 : getPrunedDriveGB(storageGB) / 1000,
+    storageCost: usesExistingDisk ? 0 : referenceMediaCost,
+    referenceMediaCost,
+    usesExistingDisk
+  };
+}
+
 /** Real drives are sold in fixed SKUs — you buy 0.5/1/2/4 TB, not exact chain size; 4 TB only when headroom exceeds 2 TB */
 function getPurchaseTB(year, headroomTB) {
+  if (state.pruned) return state.prunedStorageCost === 'usb' ? getPrunedDriveGB(headroomTB * 1000) / 1000 : 0;
   let eraMin = 0.5;
   if (year >= 2015) eraMin = 1;
   if (year >= 2019) eraMin = 2;
@@ -778,6 +880,7 @@ function getChainSizeGB(year) { return getBlocksGB(year); }
 function getSizeGB(year) { return getBlocksGB(year); }
 
 function getNodeStorageGB(year) {
+  if (state.pruned) return getPrunedStorageGB(year);
   return getCoreChainGB(year) * 1.15;
 }
 
@@ -822,7 +925,14 @@ function getProjectedStoragePricePerTB(year) {
 
 function getBasePC(year) {
   if (state.basePCOverride != null && state.basePCOverride !== '') return +state.basePCOverride;
+  if (state.pruned) return 0; // assume existing laptop/desktop — no dedicated node hardware purchase
   return lerp(RAW.basePCCost, RAW.years, year);
+}
+
+function getCpuDesc(year) {
+  if (state.pruned) return 'Existing laptop/desktop ($0 kit)';
+  const cpuIdx = RAW.years.findIndex(y => y >= year);
+  return RAW.cpuDesc[cpuIdx >= 0 ? cpuIdx : RAW.cpuDesc.length - 1];
 }
 
 function hasAnyCoreIndex() {
@@ -842,7 +952,7 @@ function applyElectrumTxindexDefaults() {
 }
 
 function isCoreIndexActive(key, year) {
-  if (!state.coreIndexes[key]) return false;
+  if (state.pruned || !state.coreIndexes[key]) return false;
   return year >= CORE_INDEX_OPTIONS[key].availableFrom;
 }
 
@@ -857,7 +967,7 @@ function getCoreIndexGB(year, blocksGB) {
 }
 
 function isElectrumActive(year) {
-  if (state.electrumMode === 'none') return false;
+  if (state.electrumMode === 'none' || state.pruned) return false;
   return year >= ELECTRUM_OPTIONS[state.electrumMode].availableFrom;
 }
 
@@ -915,6 +1025,7 @@ function calcIndexStorageCost(year, nodeStorageGB, optionalIndexGB, cpi, pricePe
 function calcChainStorage(year, storageGB, extraIndexGB, cpi) {
   const headroomTB = (storageGB + extraIndexGB) / 1000;
   const purchaseTB = getPurchaseTB(year, headroomTB);
+  if (state.pruned && extraIndexGB === 0) return calcPrunedChainStorage(year, storageGB, cpi);
   const pricePerTB = getStoragePricePerTB(year);
   const enclosure = lerp(RAW.enclosureCost, RAW.years, year) * cpi;
   return {
@@ -961,8 +1072,7 @@ function calcYearHistorical(year) {
   const annualOpEx = internetPortion * 12 + elecAnnual;
   const baseAnnualizedTotal = baseTotalSetup / 3 + annualOpEx;
   const annualizedTotal = totalSetup / 3 + annualOpEx;
-  const cpuIdx = RAW.years.findIndex(y => y >= year);
-  const cpuDesc = RAW.cpuDesc[cpuIdx >= 0 ? cpuIdx : RAW.cpuDesc.length - 1];
+  const cpuDesc = getCpuDesc(year);
 
   const fullStore = calcChainStorage(year, nodeStorageGB, optionalIndexGB, cpi);
   return {
@@ -972,7 +1082,10 @@ function calcYearHistorical(year) {
     internetPortion, elecAnnual, annualOpEx, baseAnnualizedTotal, annualizedTotal,
     cpuDesc, pricePerTB: getStoragePricePerTB(year),
     purchaseTB: fullStore.purchaseTB, basePurchaseTB: baseStore.purchaseTB,
-    storageOnly: storageCost, isProjected: false
+    storageOnly: storageCost,
+    referenceMediaCost: state.pruned ? baseStore.referenceMediaCost : 0,
+    usesExistingDisk: state.pruned ? baseStore.usesExistingDisk : false,
+    isProjected: false
   };
 }
 
@@ -1009,7 +1122,7 @@ function buildProjectionSeries() {
     const electrumOnlyCost = calcPartialIndexStorageCost(y, nodeStorageGB, electrumIndexGB, cpi, pricePerTB, electrumPremium);
     const indexCost = calcIndexStorageCost(y, nodeStorageGB, optionalIndexGB, cpi, pricePerTB);
 
-    const basePC = anchorHwNominal * Math.pow(1 + mods.hwDefl, yrs) * cpi;
+    const basePC = state.pruned ? 0 : anchorHwNominal * Math.pow(1 + mods.hwDefl, yrs) * cpi;
     const internetBase = anchorInternetPlan * Math.pow(1 + mods.internetTrend, yrs) * cpi;
     const internetPortion = state.internetMode === 'percent'
       ? internetBase * (state.internetValue / 100)
@@ -1028,9 +1141,12 @@ function buildProjectionSeries() {
       internetPortion, elecAnnual, annualOpEx,
       baseAnnualizedTotal: baseTotalSetup / 3 + annualOpEx,
       annualizedTotal: totalSetup / 3 + annualOpEx,
-      cpuDesc: 'Efficient ARM / N100+ (projected)', pricePerTB,
+      cpuDesc: getCpuDesc(y), pricePerTB,
       purchaseTB: fullStore.purchaseTB, basePurchaseTB: baseStore.purchaseTB,
-      storageOnly: storageCost, isProjected: true
+      storageOnly: storageCost,
+      referenceMediaCost: state.pruned ? baseStore.referenceMediaCost : 0,
+      usesExistingDisk: state.pruned ? baseStore.usesExistingDisk : false,
+      isProjected: true
     };
   }
   projectionCache = series;
@@ -1038,6 +1154,7 @@ function buildProjectionSeries() {
 }
 
 function baseStoreCost(year, storageGB, extraIndexGB, cpi, pricePerTB) {
+  if (state.pruned && extraIndexGB === 0) return calcChainStorage(year, storageGB, 0, cpi);
   const headroomTB = (storageGB + extraIndexGB) / 1000;
   const purchaseTB = getPurchaseTB(year, headroomTB);
   const enclosure = lerp(RAW.enclosureCost, RAW.years, Math.min(year, HISTORICAL_THROUGH)) * cpi;
@@ -1084,6 +1201,20 @@ function affordabilityScore(annualized, annualOpEx) {
 
 function getHwRecommendation(year) {
   const rec = HW_RECOMMENDATIONS.find(h => year <= h.until) || HW_RECOMMENDATIONS[HW_RECOMMENDATIONS.length - 1];
+  if (state.pruned) {
+    const pruned = getPrunedStorageGB(year);
+    const prunedRec = {
+      ...rec,
+      title: year <= 2012 ? '2009–2012: Existing PC + minimal storage' : year <= HISTORICAL_THROUGH ? 'Pruned: your laptop/desktop' : 'Pruned: existing PC (projected)',
+      emoji: '💻'
+    };
+    const refUsb = getPrunedReferenceMediaCost(year, pruned, 1);
+    prunedRec.desc = `Run Bitcoin Core pruned on a laptop or desktop you already own. Default model: $0 one-time setup — uses ~${fmtGB(pruned)} of existing free disk (${formatPrunedStorageSub(year).replace(/^~/, '')}). Real cost is annual OpEx (elec + internet). If your disk is full, a USB/SD reference is ~${fmtMoney(refUsb)}. No txindex or Electrum. IBD still downloads the full chain once.`;
+    prunedRec.cost = state.prunedStorageCost === 'usb'
+      ? `USB reference ~${fmtMoney(refUsb)}`
+      : '$0 setup — OpEx only';
+    return prunedRec;
+  }
   if (!rec.projected || year <= HISTORICAL_THROUGH) return rec;
   const blocks = getBlocksGB(year);
   const utxo = getUtxoGB(year);
@@ -1141,13 +1272,21 @@ function generateInsights(data) {
     ? 'under 10% of total OpEx'
     : `~${elecSharePct.toFixed(0)}% of total OpEx`;
 
+  const setupIntro = state.pruned
+    ? `<p>🛒 <strong>Pruned setup (2015 → 2026):</strong> $0 one-time on existing laptop/desktop — uses free disk space, no new hardware purchase. Disk footprint grew (${fmtGB(getPrunedStorageGB(2015))} → ${fmtGB(getPrunedStorageGB(2026))}) but marginal storage cost stays $0.</p>
+    <p>💰 <strong>Where pruned cost actually lives:</strong> Annual OpEx — ~${fmtMoney(sel.annualOpEx)}/yr in ${state.selectedYear} (elec + internet attribution). One-time setup: ${fmtMoney(sel.baseTotalSetup)}${state.prunedStorageCost === 'usb' ? ' (USB reference mode)' : ''}.</p>`
+    : `<p>🛒 <strong>One-time hardware (2015 → 2026):</strong> Block chain grew <strong class="text-btc">${sizeMult.toFixed(1)}×</strong> (${fmtGB(first.blocksGB)} → ${fmtGB(last.blocksGB)} blocks + ${fmtGB(last.utxoGB)} UTXO), yet buying storage + CPU/RAM to start a node <strong class="text-green-400">${setupDrop > 0 ? 'fell' : 'rose'} ${Math.abs(setupDrop).toFixed(0)}%</strong> (${fmtMoney(firstSetup)} → ${fmtMoney(lastSetup)}) — see the hero chart on the Charts tab.</p>
+    <p>💾 <strong>Storage vs CPU/RAM shift:</strong> Setup was ${fmtMoney(firstSetup)} in ${first.year} (storage ${fmtMoney(first.storageCost)}, kit ${fmtMoney(first.basePC)}) vs ${fmtMoney(lastSetup)} in ${last.year} (storage ${fmtMoney(last.storageCost)}, kit ${fmtMoney(last.basePC)}). Storage share ${storageShareVerb} from ~${storageShareFirst.toFixed(0)}% to ~${storageShareLast.toFixed(0)}% of setup${kitLarger ? ' — CPU/RAM kit is still the larger line item' : ' — storage is now the larger line item'}.</p>`;
+
   return `
-    <p>🛒 <strong>One-time hardware (2015 → 2026):</strong> Block chain grew <strong class="text-btc">${sizeMult.toFixed(1)}×</strong> (${fmtGB(first.blocksGB)} → ${fmtGB(last.blocksGB)} blocks + ${fmtGB(last.utxoGB)} UTXO), yet buying storage + CPU/RAM to start a node <strong class="text-green-400">${setupDrop > 0 ? 'fell' : 'rose'} ${Math.abs(setupDrop).toFixed(0)}%</strong> (${fmtMoney(firstSetup)} → ${fmtMoney(lastSetup)}) — see the hero chart on the Charts tab.</p>
-    <p>💾 <strong>Storage vs CPU/RAM shift:</strong> Setup was ${fmtMoney(firstSetup)} in ${first.year} (storage ${fmtMoney(first.storageCost)}, kit ${fmtMoney(first.basePC)}) vs ${fmtMoney(lastSetup)} in ${last.year} (storage ${fmtMoney(last.storageCost)}, kit ${fmtMoney(last.basePC)}). Storage share ${storageShareVerb} from ~${storageShareFirst.toFixed(0)}% to ~${storageShareLast.toFixed(0)}% of setup${kitLarger ? ' — CPU/RAM kit is still the larger line item' : ' — storage is now the larger line item'}.</p>
-    <p>📊 <strong>Peak setup cost:</strong> The most expensive year to buy in was <strong class="text-btc">${peak.year}</strong> at <strong class="text-btc">${fmtMoney(peak.setup)}</strong> one-time (storage + CPU/RAM kit).</p>
+    ${setupIntro}
+    ${state.pruned && state.prunedStorageCost === 'marginal'
+      ? `<p>📊 <strong>One-time setup:</strong> $0 every year — pruned on existing PC uses free disk. Compare the <strong class="text-btc">Annual Running Cost</strong> chart for the real pruned price tag.</p>`
+      : `<p>📊 <strong>Peak setup cost:</strong> The most expensive year to buy in was <strong class="text-btc">${peak.year}</strong> at <strong class="text-btc">${fmtMoney(peak.setup)}</strong> one-time${state.pruned ? ' (USB reference)' : ' (storage + CPU/RAM kit)'}.</p>`}
     <p>📈 <strong>Annualized cost (2015 → 2026):</strong> Including 3-yr amortized setup + OpEx, running cost <strong class="text-green-400">${costDrop > 0 ? 'fell' : 'rose'} ${Math.abs(costDrop).toFixed(0)}%</strong> over the same period.</p>
     <p>⚡ <strong>Power efficiency:</strong> At ${state.nodeWatts}W, electricity costs ~${fmtMoney(sel.elecAnnual)}/yr in the USA — ${elecShareNote}.</p>
-    <p>🎯 <strong>${state.selectedYear} snapshot:</strong> Archival node needs ${fmtGB(sel.minStorage)} storage${indexSnap}. Base setup ${fmtMoney(sel.baseTotalSetup)}${sel.indexCost > 0 ? `, +${fmtMoney(sel.indexCost)} indexes → ${fmtMoney(sel.totalSetup)} total` : ''}. Annual OpEx ${fmtMoney(sel.annualOpEx)}. Score: <strong class="${score.color}">${score.label}</strong>.</p>
+    <p>🎯 <strong>${state.selectedYear} snapshot:</strong> ${state.pruned ? `Pruned node ${formatPrunedStorageSub(state.selectedYear)}` : `Archival node needs ${fmtGB(sel.minStorage)} storage`}${indexSnap}. Base setup ${fmtMoney(sel.baseTotalSetup)}${sel.indexCost > 0 ? `, +${fmtMoney(sel.indexCost)} indexes → ${fmtMoney(sel.totalSetup)} total` : ''}. Annual OpEx ${fmtMoney(sel.annualOpEx)}. Score: <strong class="${score.color}">${score.label}</strong>.</p>
+    ${state.pruned ? `<p>✂️ <strong>Pruned disk footprint:</strong> &lt;1 GB (2010–12) → ~${fmtGB(getPrunedStorageGB(2015))} (2015) → ~${fmtGB(getPrunedStorageGB(2018))} (2018) → ~${fmtGB(getPrunedStorageGB(2022))} (2022) → ~${fmtGB(getPrunedStorageGB(2026))} (2026) on your existing drive. USB reference if disk full: ~${fmtMoney(sel.referenceMediaCost ?? 0)}. IBD bandwidth (~${fmtGB(getBlocksGB(state.selectedYear))} blocks) unchanged.</p>` : ''}
     ${state.projectionEnabled ? (() => {
       const y30 = getYearData(2030), y40 = getYearData(2040);
       const ref = getYearData(2026);
@@ -1172,25 +1311,17 @@ function syncProjectionUI() {
     document.getElementById('yearDisplay').textContent = maxY;
   }
   const yearToInput = document.getElementById('yearTo');
-  if (state.projectionEnabled) {
-    state.yearTo = PROJECTION_THROUGH;
-    yearToInput.value = PROJECTION_THROUGH;
-    yearToInput.min = HISTORICAL_THROUGH;
-  } else {
-    if (state.yearTo > 2030) state.yearTo = 2030;
-    yearToInput.value = state.yearTo;
-    yearToInput.min = 2009;
-  }
+  state.yearTo = PROJECTION_THROUGH;
+  yearToInput.value = PROJECTION_THROUGH;
+  yearToInput.min = HISTORICAL_THROUGH;
   yearToInput.max = maxY;
-  document.getElementById('projEnabled').checked = state.projectionEnabled;
   document.getElementById('projScenario').value = state.projectionScenario;
   const tip = document.getElementById('projScenarioTip');
   if (tip) tip.textContent = SCENARIO_TIPS[state.projectionScenario] || '';
   const aTip = document.getElementById('projAssumptionTip');
   if (aTip) aTip.textContent =
     `Chain +${state.projGrowthRate} GB/yr · Storage ${state.projStorageDeflation}%/yr (AI +25% 2026–28 baseline) · HW ${state.projHardwareDeflation}%/yr · Internet ${state.projInternetTrend}% real/yr.`;
-  document.getElementById('yearRangeHint')?.classList.toggle('hidden', !state.projectionEnabled);
-  const ext = state.projectionEnabled ? ' (2009–2040)' : '';
+  const ext = ' (2009–2040)';
   const cst = document.getElementById('chartSizeTitle');
   if (cst) cst.textContent = 'Block Chain Size Growth (GB)' + ext;
   const setupTitle = document.getElementById('chartSetupTitle');
@@ -1214,6 +1345,11 @@ function syncProjSliderLabels() {
 function syncElectrumUI() {
   const hasServerIndex = state.electrumMode !== 'none';
   const showIndexCols = hasOptionalIndexUI();
+  const indexSection = document.getElementById('indexOptionsSection');
+  if (indexSection) {
+    indexSection.classList.toggle('opacity-50', state.pruned);
+    indexSection.querySelectorAll('input').forEach(inp => { inp.disabled = state.pruned; });
+  }
 
   applyElectrumTxindexDefaults();
   document.querySelectorAll('.core-index-opt').forEach(label => {
@@ -1240,7 +1376,9 @@ function syncElectrumUI() {
   });
   const hint = document.getElementById('indexHint');
   if (hint) {
-    if (!showIndexCols) {
+    if (state.pruned) {
+      hint.textContent = 'Indexes need full block data — unavailable in pruned mode (txindex also incompatible with prune)';
+    } else if (!showIndexCols) {
       hint.textContent = '';
     } else {
       const d = getSelected();
@@ -1287,7 +1425,11 @@ function updateKPIs() {
   );
   document.getElementById('kpiSize').textContent = fmtGB(d.blocksGB);
   const sizeSub = document.getElementById('kpiSizeSub');
-  if (sizeSub) sizeSub.textContent = `+ ${fmtGB(d.utxoGB)} UTXO set`;
+  if (sizeSub) {
+    sizeSub.textContent = state.pruned
+      ? `Pruned — validates all, stores ${fmtGB(d.baseMinStorage)} not ${fmtGB(d.blocksGB)}`
+      : `+ ${fmtGB(d.utxoGB)} UTXO set`;
+  }
   document.getElementById('kpiMinStorage').textContent = fmtGB(d.minStorage);
   const sub = document.getElementById('kpiMinStorageSub');
   if ((d.optionalIndexGB ?? 0) > 0) {
@@ -1297,10 +1439,26 @@ function updateKPIs() {
     sub.textContent = `Base ${fmtGB(d.baseMinStorage)} + ${bits.join(' + ')}`;
   } else if (state.electrumMode !== 'none' && !isElectrumActive(state.selectedYear)) {
     sub.textContent = `${ELECTRUM_OPTIONS[state.electrumMode].short} not available until ${ELECTRUM_OPTIONS[state.electrumMode].availableFrom}`;
+  } else if (state.pruned) {
+    sub.textContent = formatPrunedStorageSub(state.selectedYear);
   } else {
     sub.textContent = 'Archival headroom ×1.15';
   }
+  const setupLabel = document.getElementById('kpiSetupLabel');
+  if (setupLabel) setupLabel.textContent = state.pruned ? 'One-Time Setup' : 'One-Time Hardware';
+  const storageLabelText = document.getElementById('kpiStorageLabelText');
+  if (storageLabelText) storageLabelText.textContent = state.pruned ? 'Disk Footprint' : 'Min Storage Needed';
   document.getElementById('kpiHardware').textContent = fmtMoney(withIndex ? d.totalSetup : d.baseTotalSetup);
+  const hwSub = document.getElementById('kpiHardwareSub');
+  if (hwSub) {
+    if (state.pruned) {
+      hwSub.textContent = state.prunedStorageCost === 'usb'
+        ? `USB reference — marginal would be $0 on existing disk`
+        : '$0 — OpEx only (existing PC + free disk)';
+    } else {
+      hwSub.textContent = '';
+    }
+  }
   document.getElementById('kpiOpEx').textContent = fmtMoney(d.annualOpEx);
   document.getElementById('kpiScore').textContent = score.label;
   document.getElementById('kpiScore').className = 'text-lg font-bold mt-1 ' + score.color;
@@ -1316,7 +1474,9 @@ function updateKPIs() {
   }
   document.getElementById('hwDesc').textContent = hw.desc;
   if (!(hw.projected && state.selectedYear > HISTORICAL_THROUGH)) {
-    hwCostEl.textContent = 'Typical cost: ' + hw.cost;
+    hwCostEl.textContent = state.pruned
+      ? `${hw.cost} — modeled setup ${fmtMoney(d.baseTotalSetup)}${d.referenceMediaCost ? ` (USB ref ~${fmtMoney(d.referenceMediaCost)})` : ''}`
+      : 'Typical cost: ' + hw.cost;
   }
   const hwE = document.getElementById('hwElectrum');
   const note = getElectrumHwNote(d);
@@ -1442,33 +1602,35 @@ function updateCharts() {
     : [];
 
   destroyChart('setup');
-  const setupDatasets = [
-    { label: 'Blocks + UTXO', data: data.map(d => d.storageCost), backgroundColor: barColor('rgba(247,147,26,0.9)', 'rgba(255,179,71,0.55)') },
-    { label: 'CPU/RAM Kit', data: data.map(d => d.basePC), backgroundColor: barColor('rgba(59,130,246,0.85)', 'rgba(96,165,250,0.5)') },
-    ...indexBar
-  ];
-  charts.setup = new Chart(document.getElementById('chartSetup'), {
-    type: 'bar',
-    data: { labels: years, datasets: setupDatasets },
-    options: {
-      responsive: true, maintainAspectRatio: false,
-      plugins: {
-        legend: { labels: { color: c.text, font: { size: 11 } } },
-        tooltip: {
-          callbacks: {
-            footer: items => {
-              const total = items.reduce((s, i) => s + (i.parsed?.y || 0), 0);
-              return 'Total setup: ' + fmtMoney(total);
+  if (!state.pruned) {
+    const setupDatasets = [
+      { label: 'Blocks + UTXO', data: data.map(d => d.storageCost), backgroundColor: barColor('rgba(247,147,26,0.9)', 'rgba(255,179,71,0.55)') },
+      { label: 'CPU/RAM Kit', data: data.map(d => d.basePC), backgroundColor: barColor('rgba(59,130,246,0.85)', 'rgba(96,165,250,0.5)') },
+      ...indexBar
+    ];
+    charts.setup = new Chart(document.getElementById('chartSetup'), {
+      type: 'bar',
+      data: { labels: years, datasets: setupDatasets },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: {
+          legend: { labels: { color: c.text, font: { size: 11 } } },
+          tooltip: {
+            callbacks: {
+              footer: items => {
+                const total = items.reduce((s, i) => s + (i.parsed?.y || 0), 0);
+                return 'Total setup: ' + fmtMoney(total);
+              }
             }
           }
+        },
+        scales: {
+          x: { stacked: true, ticks: { color: c.text, maxRotation: 45 }, grid: { color: c.grid } },
+          y: { stacked: true, ticks: { color: c.text, callback: v => '$' + Math.round(v) }, grid: { color: c.grid } }
         }
-      },
-      scales: {
-        x: { stacked: true, ticks: { color: c.text, maxRotation: 45 }, grid: { color: c.grid } },
-        y: { stacked: true, ticks: { color: c.text, callback: v => '$' + Math.round(v) }, grid: { color: c.grid } }
       }
-    }
-  });
+    });
+  }
 
   destroyChart('size');
   const sizeBase = splitHistProj(data, showIndexCols ? 'baseMinStorage' : 'sizeGB');
@@ -1510,9 +1672,10 @@ function updateCharts() {
 
   destroyChart('breakdown');
   const breakdownDatasets = [
-    { label: 'Blocks + UTXO', data: data.map(d => d.storageCost), backgroundColor: barColor('rgba(247,147,26,0.85)', 'rgba(255,179,71,0.55)') },
+    ...(!state.pruned ? [{ label: 'Blocks + UTXO', data: data.map(d => d.storageCost), backgroundColor: barColor('rgba(247,147,26,0.85)', 'rgba(255,179,71,0.55)') }] : []),
+    ...(state.pruned && state.prunedStorageCost === 'usb' ? [{ label: 'USB/SD (reference)', data: data.map(d => d.storageCost), backgroundColor: barColor('rgba(247,147,26,0.85)', 'rgba(255,179,71,0.55)') }] : []),
     ...indexBar,
-    { label: 'Base HW/CPU', data: data.map(d => d.basePC), backgroundColor: barColor('rgba(59,130,246,0.75)', 'rgba(96,165,250,0.45)') },
+    ...(!state.pruned ? [{ label: 'Base HW/CPU', data: data.map(d => d.basePC), backgroundColor: barColor('rgba(59,130,246,0.75)', 'rgba(96,165,250,0.45)') }] : []),
     { label: 'Internet (yr)', data: data.map(d => d.internetPortion * 12), backgroundColor: barColor('rgba(99,102,241,0.6)', 'rgba(129,140,248,0.4)') },
     { label: 'Electricity (yr)', data: data.map(d => d.elecAnnual), backgroundColor: barColor('rgba(34,197,94,0.7)', 'rgba(74,222,128,0.4)') }
   ];
@@ -1532,7 +1695,7 @@ function updateCharts() {
   destroyChart('annual');
   const annBase = splitHistProj(data, 'baseAnnualizedTotal');
   const annualDatasets = [{
-    label: 'Base Archival (historical)',
+    label: state.pruned ? 'Base Pruned (historical)' : 'Base Archival (historical)',
     data: annBase.hist, borderColor: '#f7931a', backgroundColor: 'rgba(247,147,26,0.15)', fill: true, tension: 0.35, pointRadius: 3
   }];
   if (state.projectionEnabled) {
@@ -1565,13 +1728,26 @@ function updateCharts() {
   });
 
   const sel = getSelected();
-  const pieLabels = ['Blocks + UTXO', 'Base HW', 'Internet/yr', 'Elec/yr'];
-  const pieData = [sel.storageCost, sel.basePC, sel.internetPortion * 12, sel.elecAnnual];
-  const pieColors = ['#f7931a', '#3b82f6', '#6366f1', '#22c55e'];
+  let pieLabels = ['Internet/yr', 'Elec/yr'];
+  let pieData = [sel.internetPortion * 12, sel.elecAnnual];
+  let pieColors = ['#6366f1', '#22c55e'];
+  if (!state.pruned) {
+    pieLabels.unshift('Base HW');
+    pieData.unshift(sel.basePC);
+    pieColors.unshift('#3b82f6');
+    pieLabels.unshift('Blocks + UTXO');
+    pieData.unshift(sel.storageCost);
+    pieColors.unshift('#f7931a');
+  } else if (state.prunedStorageCost === 'usb' && sel.storageCost > 0) {
+    pieLabels.unshift('USB/SD (reference)');
+    pieData.unshift(sel.storageCost);
+    pieColors.unshift('#f7931a');
+  }
   if (showIndexCols && sel.indexCost > 0) {
-    pieLabels.splice(1, 0, 'Optional Indexes');
-    pieData.splice(1, 0, sel.indexCost);
-    pieColors.splice(1, 0, '#a855f7');
+    const insertAt = state.pruned ? 0 : 2;
+    pieLabels.splice(insertAt, 0, 'Optional Indexes');
+    pieData.splice(insertAt, 0, sel.indexCost);
+    pieColors.splice(insertAt, 0, '#a855f7');
   }
   destroyChart('pie');
   charts.pie = new Chart(document.getElementById('chartPie'), {
@@ -1584,7 +1760,7 @@ function updateCharts() {
       responsive: true, maintainAspectRatio: false,
       plugins: {
         legend: { position: 'bottom', labels: { color: c.text } },
-        title: { display: true, text: state.selectedYear + (showIndexCols ? ' + Indexes' : '') + ' Setup + Annual OpEx', color: c.text }
+        title: { display: true, text: state.selectedYear + (showIndexCols ? ' + Indexes' : '') + (state.pruned ? ' Annual OpEx' : ' Setup + Annual OpEx'), color: c.text }
       }
     }
   });
@@ -1596,6 +1772,8 @@ function updateInsights() {
 
 function refresh() {
   syncStorageTypeHint();
+  syncBasePCHint();
+  syncPrunedUI();
   syncElectrumUI();
   syncProjectionUI();
   syncProjSliderLabels();
@@ -1730,6 +1908,12 @@ function resetProjSlidersUI() {
 }
 
 function resetDefaults() {
+  state.pruned = false;
+  state.prunedStorageCost = 'marginal';
+  document.getElementById('btnArchival').className = 'px-3 py-1.5 bg-btc text-black font-medium';
+  document.getElementById('btnPruned').className = 'px-3 py-1.5 bg-surface-card hover:bg-btc/10';
+  const prunedStorageSelect = document.getElementById('prunedStorageCost');
+  if (prunedStorageSelect) prunedStorageSelect.value = 'marginal';
   state.storageType = 'auto';
   state.storageMult = 1;
   state.basePCOverride = null;
@@ -1781,8 +1965,18 @@ function bindEvents() {
     state.yearFrom = +e.target.value;
     refresh();
   });
-  document.getElementById('yearTo').addEventListener('change', e => {
-    if (!state.projectionEnabled) state.yearTo = +e.target.value;
+  document.getElementById('yearTo').addEventListener('change', () => refresh());
+
+  document.getElementById('btnArchival').addEventListener('click', () => {
+    state.pruned = false;
+    document.getElementById('btnArchival').className = 'px-3 py-1.5 bg-btc text-black font-medium';
+    document.getElementById('btnPruned').className = 'px-3 py-1.5 bg-surface-card hover:bg-btc/10';
+    refresh();
+  });
+  document.getElementById('btnPruned').addEventListener('click', () => {
+    state.pruned = true;
+    document.getElementById('btnPruned').className = 'px-3 py-1.5 bg-btc text-black font-medium';
+    document.getElementById('btnArchival').className = 'px-3 py-1.5 bg-surface-card hover:bg-btc/10';
     refresh();
   });
 
@@ -1814,10 +2008,6 @@ function bindEvents() {
   document.getElementById('btnProjClose').addEventListener('click', closeProj);
   projOverlay.addEventListener('click', closeProj);
 
-  document.getElementById('projEnabled').addEventListener('change', e => {
-    state.projectionEnabled = e.target.checked;
-    refresh();
-  });
   document.getElementById('projScenario').addEventListener('change', e => { state.projectionScenario = e.target.value; refresh(); });
   document.getElementById('btnProjReset').addEventListener('click', resetProjSlidersUI);
 
@@ -1832,6 +2022,10 @@ function bindEvents() {
   projBind('projElecDefl', 'projElecDeflation');
   projBind('projElectrumMult', 'projElectrumMult', v => +v);
 
+  document.getElementById('prunedStorageCost')?.addEventListener('change', e => {
+    state.prunedStorageCost = e.target.value;
+    refresh();
+  });
   document.getElementById('storageType').addEventListener('change', e => { state.storageType = e.target.value; refresh(); });
   document.getElementById('storageMult').addEventListener('input', e => {
     state.storageMult = +e.target.value;
@@ -1881,8 +2075,8 @@ function bindEvents() {
   });
   document.getElementById('btnShare').addEventListener('click', () => {
     const params = new URLSearchParams({
-      year: state.selectedYear, electrum: state.electrumMode,
-      proj: state.projectionEnabled, scenario: state.projectionScenario,
+      year: state.selectedYear, pruned: state.pruned, prunedStorage: state.prunedStorageCost, electrum: state.electrumMode,
+      scenario: state.projectionScenario,
       ...(state.coreIndexes.txindex && { txindex: true }),
       ...(state.coreIndexes.coinstatsindex && { coinstats: true }),
       ...(state.coreIndexes.blockfilterindex && { blockfilter: true })
@@ -1900,8 +2094,13 @@ function bindEvents() {
   // URL params + sync sidebar index controls into state before first refresh
   const params = new URLSearchParams(location.search);
   if (params.has('year')) { state.selectedYear = +params.get('year'); yearSlider.value = state.selectedYear; document.getElementById('yearDisplay').textContent = state.selectedYear; }
+  if (params.has('pruned') && params.get('pruned') === 'true') document.getElementById('btnPruned').click();
+  if (params.has('prunedStorage') && ['marginal', 'usb'].includes(params.get('prunedStorage'))) {
+    state.prunedStorageCost = params.get('prunedStorage');
+    const sel = document.getElementById('prunedStorageCost');
+    if (sel) sel.value = state.prunedStorageCost;
+  }
   syncIndexOptionsState(params);
-  if (params.has('proj')) state.projectionEnabled = params.get('proj') !== 'false';
   if (params.has('scenario') && SCENARIO_TIPS[params.get('scenario')]) {
     state.projectionScenario = params.get('scenario');
     document.getElementById('projScenario').value = state.projectionScenario;
