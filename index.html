@@ -488,6 +488,9 @@
             <tbody id="dataTable" class="divide-y divide-gray-700/50"></tbody>
           </table>
         </div>
+        <div class="flex flex-wrap gap-3 mt-4 pt-4 border-t border-gray-700/50">
+          <button id="btnExportCSV" class="px-4 py-2 rounded-lg border border-btc text-btc text-sm hover:bg-btc/10">Export CSV</button>
+        </div>
       </section>
 
       <!-- Charts Tab -->
@@ -547,11 +550,6 @@
             </div>
             <div class="chart-container"><canvas id="chartPie"></canvas></div>
           </div>
-        </div>
-        <div class="flex flex-wrap gap-3 mt-4 pt-4 border-t border-gray-700/50">
-          <button id="btnExportCSV" class="px-4 py-2 rounded-lg border border-btc text-btc text-sm hover:bg-btc/10">Export CSV</button>
-          <button id="btnExportPNG" class="px-4 py-2 rounded-lg border border-gray-600 text-sm hover:border-btc">Download Hardware Chart</button>
-          <button id="btnCopyPNG" class="px-4 py-2 rounded-lg border border-gray-600 text-sm hover:border-btc">Copy Hardware Chart</button>
         </div>
       </section>
 
@@ -2101,10 +2099,6 @@ function exportCSV() {
   a.click();
 }
 
-function exportPNG() {
-  downloadChartImage('setup');
-}
-
 function resetProjSlidersUI() {
   Object.assign(state, PROJ_DEFAULTS);
   document.getElementById('projGrowth').value = state.projGrowthRate;
@@ -2309,8 +2303,6 @@ function bindEvents() {
   });
 
   document.getElementById('btnExportCSV').addEventListener('click', exportCSV);
-  document.getElementById('btnExportPNG').addEventListener('click', exportPNG);
-  document.getElementById('btnCopyPNG').addEventListener('click', () => copyChartImage('setup'));
 
   document.getElementById('tabCharts').addEventListener('click', (e) => {
     const btn = e.target.closest('[data-chart-action]');
