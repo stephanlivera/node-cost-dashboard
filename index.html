@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en" class="dark blueprint-theme">
+<html lang="en" class="forum-theme">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <meta name="theme-color" content="#0c1929" />
+  <meta name="theme-color" content="#e8e8e8" />
   <title>Bitcoin Node Cost Tracker: 2009–2040</title>
   <link rel="icon" href="assets/favicon.ico?v=2" sizes="any" />
   <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32x32.png?v=2" />
@@ -16,202 +16,190 @@
       theme: {
         extend: {
           colors: {
-            btc: { DEFAULT: '#4dd0e1', dark: '#2a9aad', light: '#7ee8f7' },
-            surface: { DEFAULT: '#0c1929', light: '#e8f4f8', card: '#0f2340', 'card-light': '#f0f8fc' },
-            phosphor: { DEFAULT: '#4dd0e1', dim: '#2a5f8f', bright: '#7ee8f7', amber: '#e8b84a', cyan: '#5ec8e8' }
+            btc: { DEFAULT: '#0000ee', dark: '#0000cc', light: '#3333ff' },
+            surface: { DEFAULT: '#e8e8e8', light: '#ffffff', card: '#ffffff', 'card-light': '#ffffff' },
+            phosphor: { DEFAULT: '#0000ee', dim: '#aca899', bright: '#3333ff', amber: '#996600', cyan: '#0066cc' }
           },
           fontFamily: {
-            sans: ['"IBM Plex Sans"', 'system-ui', 'sans-serif'],
-            mono: ['"IBM Plex Mono"', 'monospace'],
-            display: ['"IBM Plex Sans"', 'system-ui', 'sans-serif']
+            sans: ['Verdana', 'Geneva', 'Tahoma', 'sans-serif'],
+            mono: ['"Courier New"', 'Courier', 'monospace'],
+            display: ['Verdana', 'Geneva', 'Tahoma', 'sans-serif']
           }
         }
       }
     }
   </script>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <style>
     :root {
-      --btc: #4dd0e1;
-      --btc-dim: #2a5f8f;
-      --btc-glow: rgba(77, 208, 225, 0.25);
-      --bp-bg: #0c1929;
-      --bp-panel: #0f2340;
-      --bp-text: #c5e4ef;
-      --bp-muted: #6a9bb8;
-      --bp-line: rgba(77, 208, 225, 0.22);
-      --bp-grid: rgba(77, 208, 225, 0.06);
+      --btc: #0000ee;
+      --forum-bg: #e8e8e8;
+      --forum-panel: #ffffff;
+      --forum-post-alt: #f5f5f5;
+      --forum-text: #222222;
+      --forum-muted: #666666;
+      --forum-border: #aca899;
+      --forum-border-light: #cccccc;
+      --forum-highlight: #ffffcc;
+      --forum-header: #d4d0c8;
     }
-    * { scrollbar-width: thin; scrollbar-color: var(--btc-dim) transparent; }
-    ::-webkit-scrollbar { width: 6px; height: 6px; }
-    ::-webkit-scrollbar-thumb { background: var(--btc-dim); border-radius: 2px; }
-    .btc-gradient { background: linear-gradient(135deg, #4dd0e1 0%, #2a7a9e 100%); }
-    .glow-btc { box-shadow: 0 0 0 1px var(--bp-line), 0 4px 24px rgba(12, 25, 41, 0.6); }
-    .blueprint-grid-bg {
-      background-image:
-        linear-gradient(var(--bp-grid) 1px, transparent 1px),
-        linear-gradient(90deg, var(--bp-grid) 1px, transparent 1px);
-      background-size: 20px 20px;
-    }
+    * { scrollbar-width: thin; scrollbar-color: #999 transparent; }
+    ::-webkit-scrollbar { width: 8px; height: 8px; }
+    ::-webkit-scrollbar-thumb { background: #bbb; border-radius: 0; }
+    .btc-gradient { background: #d4d0c8; }
+    .glow-btc { box-shadow: none; border: 1px solid var(--forum-border); }
     .chart-container {
       position: relative; height: 280px;
-      background-image:
-        linear-gradient(rgba(77, 208, 225, 0.07) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(77, 208, 225, 0.07) 1px, transparent 1px);
-      background-size: 16px 16px;
-      border: 1px dashed var(--bp-line);
-      border-radius: 4px;
+      background: #fff;
+      border: 1px solid var(--forum-border-light);
     }
     @media (min-width: 768px) { .chart-container { height: 320px; } }
     .chart-container-hero {
       position: relative; height: 320px;
-      background-image:
-        linear-gradient(rgba(77, 208, 225, 0.07) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(77, 208, 225, 0.07) 1px, transparent 1px);
-      background-size: 16px 16px;
-      border: 1px dashed var(--bp-line);
-      border-radius: 4px;
+      background: #fff;
+      border: 1px solid var(--forum-border-light);
     }
     @media (min-width: 768px) { .chart-container-hero { height: 400px; } }
     .tooltip-wrap { position: relative; display: inline-flex; align-items: center; }
     .tooltip-wrap .tip {
       visibility: hidden; opacity: 0; position: absolute; bottom: calc(100% + 8px); left: 50%;
-      transform: translateX(-50%); background: var(--bp-panel); color: var(--bp-text); padding: 8px 12px;
-      border-radius: 4px; font-size: 11px; line-height: 1.45; width: max-content; max-width: 260px;
-      z-index: 50; border: 1px solid var(--bp-line); transition: opacity 0.2s; pointer-events: none;
+      transform: translateX(-50%); background: #ffffe1; color: #222; padding: 8px 10px;
+      border-radius: 0; font-size: 11px; line-height: 1.45; width: max-content; max-width: 260px;
+      z-index: 50; border: 1px solid var(--forum-border); transition: opacity 0.2s; pointer-events: none;
     }
     .tooltip-wrap:hover .tip { visibility: visible; opacity: 1; }
-    .row-active { background: rgba(77, 208, 225, 0.1) !important; border-left: 3px solid var(--btc); }
+    .row-active { background: var(--forum-highlight) !important; border-left: 3px solid var(--btc); }
     .sidebar-transition { transition: transform 0.3s ease, width 0.3s ease; }
     input[type="range"] { accent-color: var(--btc); }
-    .kpi-card { transition: transform 0.2s, box-shadow 0.2s; }
-    .kpi-card:hover { transform: translateY(-2px); box-shadow: 0 4px 20px rgba(77, 208, 225, 0.12); }
-    .tab-active { border-bottom: 2px solid var(--btc); color: var(--btc); font-weight: 600; }
+    .kpi-card { transition: border-color 0.15s; }
+    .kpi-card:hover { border-color: #888; }
+    .tab-active { border-bottom: 2px solid var(--btc); color: var(--btc); font-weight: 700; }
     .hardware-img {
-      background: var(--bp-bg);
-      border: 1px dashed var(--bp-line);
-      border-radius: 4px;
+      background: #fff;
+      border: 1px solid var(--forum-border-light);
     }
-    .hardware-img img {
-      filter: grayscale(0.85) sepia(0.15) hue-rotate(165deg) saturate(2.2) brightness(0.65) contrast(1.15);
-    }
+    .hardware-img img { filter: saturate(0.85) contrast(1.05); }
     .hero-banner {
       position: relative;
       height: clamp(168px, 30vw, 300px);
-      background: var(--bp-panel);
-      border-radius: 4px;
+      background: #fff;
+      border: 1px solid var(--forum-border-light);
     }
     .hero-slides { position: absolute; inset: 0; }
     .hero-slide {
       position: absolute; inset: 0; width: 100%; height: 100%;
       object-fit: cover; object-position: center;
       opacity: 0; transition: opacity 0.7s ease;
-      filter: grayscale(0.85) sepia(0.15) hue-rotate(165deg) saturate(2.2) brightness(0.65) contrast(1.15);
+      filter: saturate(0.9) contrast(1.02);
     }
     .hero-slide.active { opacity: 1; }
     .hero-overlay {
       position: absolute; inset: 0;
-      background: linear-gradient(to top, rgba(12, 25, 41, 0.94) 0%, rgba(12, 25, 41, 0.4) 50%, transparent 78%);
+      background: linear-gradient(to top, rgba(255,255,255,0.92) 0%, rgba(255,255,255,0.35) 45%, transparent 78%);
       display: flex; flex-direction: column; justify-content: flex-end;
       padding: 1rem 1.25rem; pointer-events: none;
     }
     .hero-era-label {
-      font-family: 'IBM Plex Mono', monospace;
-      font-size: clamp(0.95rem, 2.2vw, 1.15rem);
-      font-weight: 600;
+      font-size: clamp(0.875rem, 2vw, 1rem);
+      font-weight: 700;
       color: var(--btc);
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
     }
     .hero-dots {
       position: absolute; bottom: 0.85rem; right: 1rem;
       display: flex; gap: 6px; pointer-events: auto;
     }
     .hero-dot {
-      width: 8px; height: 8px; border-radius: 50%;
-      background: var(--btc-dim); border: 1px solid var(--bp-line);
+      width: 8px; height: 8px; border-radius: 0;
+      background: #ccc; border: 1px solid #999;
       padding: 14px; background-clip: content-box; box-sizing: content-box;
-      cursor: pointer; transition: background 0.2s, border-color 0.2s, transform 0.2s;
+      cursor: pointer; transition: background 0.15s;
     }
-    .hero-dot:hover { background: rgba(77, 208, 225, 0.45); border-color: var(--btc); }
-    .hero-dot.active { background: var(--btc); border-color: var(--btc); transform: scale(1.2); }
+    .hero-dot:hover { background: #aaa; }
+    .hero-dot.active { background: var(--btc); border-color: var(--btc); }
     #projPanel { max-height: min(85vh, 720px); }
     .proj-open #projPanel { display: block; }
-    .milestone-row { background: rgba(77, 208, 225, 0.06); }
+    .milestone-row { background: #f0f4ff; }
     .milestone-row td:first-child { font-weight: 700; color: var(--btc); }
     .chart-action-btn {
       display: inline-flex; align-items: center; justify-content: center;
-      width: 36px; height: 36px; border-radius: 4px;
-      border: 1px dashed var(--bp-line); color: var(--bp-muted);
-      background: transparent; transition: color 0.15s, border-color 0.15s, background 0.15s;
+      width: 36px; height: 36px;
+      border: 1px solid var(--forum-border-light); color: var(--forum-muted);
+      background: #f5f5f5; transition: color 0.15s, background 0.15s;
     }
-    .chart-action-btn:hover { color: var(--btc); border-color: var(--btc); border-style: solid; background: rgba(77, 208, 225, 0.08); }
+    .chart-action-btn:hover { color: var(--btc); background: #eee; }
     .chart-action-btn svg { width: 14px; height: 14px; }
     .export-toast {
       position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(8px);
-      padding: 10px 18px; border-radius: 4px; font-size: 13px;
-      background: var(--bp-panel); color: var(--bp-text); border: 1px solid var(--bp-line);
+      padding: 10px 18px; font-size: 13px;
+      background: #ffffe1; color: #222; border: 1px solid var(--forum-border);
       z-index: 100; opacity: 0; transition: opacity 0.25s, transform 0.25s; pointer-events: none;
     }
     .export-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
-    .export-toast.error { border-color: rgba(232, 93, 93, 0.6); color: #f0a0a0; }
+    .export-toast.error { border-color: #cc0000; color: #990000; }
     .data-table-viewport {
       max-height: min(calc(100vh - 5.5rem), 42rem);
       overflow: auto;
       -webkit-overflow-scrolling: touch;
+      border: 1px solid var(--forum-border-light);
+      background: #fff;
     }
     .data-table thead th {
       position: sticky;
       top: 0;
       z-index: 10;
-      background: var(--bp-panel);
-      box-shadow: 0 1px 0 var(--bp-line);
+      background: var(--forum-header);
+      box-shadow: 0 1px 0 var(--forum-border-light);
+      font-weight: 700;
     }
+    .data-table tbody tr:nth-child(even) { background: var(--forum-post-alt); }
     .data-table { min-width: 42rem; }
     body {
       overflow-x: hidden;
-      background-color: var(--bp-bg);
-      background-image:
-        linear-gradient(var(--bp-grid) 1px, transparent 1px),
-        linear-gradient(90deg, var(--bp-grid) 1px, transparent 1px);
-      background-size: 24px 24px;
-      color: var(--bp-text);
+      background: var(--forum-bg);
+      color: var(--forum-text);
+      font-size: 13px;
     }
-    .blueprint-theme h1, .blueprint-theme h2, .blueprint-theme h3 {
-      font-family: 'IBM Plex Sans', system-ui, sans-serif;
-      letter-spacing: 0.01em;
+    .forum-theme a, .forum-theme .text-btc { color: var(--btc); }
+    .forum-theme a:hover, .forum-theme button.text-btc:hover { text-decoration: underline; }
+    .forum-theme h1, .forum-theme h2, .forum-theme h3 {
+      font-family: Verdana, Geneva, Tahoma, sans-serif;
+      color: #222;
     }
-    .blueprint-theme .text-\[10px\] { font-size: 11px; line-height: 1.5; }
-    .blueprint-theme .text-\[11px\] { font-size: 12px; line-height: 1.5; }
-    .blueprint-theme .leading-relaxed,
-    .blueprint-theme #tabTradeoffs p,
-    .blueprint-theme #hwDesc,
-    .blueprint-theme footer p,
-    .blueprint-theme .text-sm.text-gray-400 { line-height: 1.55; }
-    .blueprint-theme .kpi-card,
-    .blueprint-theme .bg-surface-card.rounded-xl {
-      border-style: dashed;
+    .forum-theme .text-\[10px\] { font-size: 11px; line-height: 1.5; }
+    .forum-theme .text-\[11px\] { font-size: 12px; line-height: 1.5; }
+    .forum-theme .leading-relaxed,
+    .forum-theme #tabTradeoffs p,
+    .forum-theme #hwDesc,
+    .forum-theme footer p,
+    .forum-theme .text-sm.text-gray-400 { line-height: 1.55; }
+    .forum-theme .rounded-xl, .forum-theme .rounded-lg { border-radius: 0 !important; }
+    .forum-theme select,
+    .forum-theme input[type="number"],
+    .forum-theme input[type="text"] {
+      border-radius: 0;
+      border: 1px solid var(--forum-border-light);
+      background: #fff;
     }
-    .blueprint-theme select,
-    .blueprint-theme input[type="number"],
-    .blueprint-theme input[type="text"] {
-      border-radius: 4px;
-      border-color: var(--bp-line);
+    .forum-theme .border-gray-600,
+    .forum-theme .border-gray-700,
+    .forum-theme .border-gray-700\/50 { border-color: var(--forum-border-light) !important; }
+    .forum-theme .text-gray-100 { color: var(--forum-text); }
+    .forum-theme .text-gray-200 { color: #333; }
+    .forum-theme .text-gray-300 { color: #444; }
+    .forum-theme .text-gray-400 { color: var(--forum-muted); }
+    .forum-theme .text-gray-500 { color: #777; }
+    .forum-theme .text-gray-600 { color: #999; }
+    .forum-theme .divide-gray-700\/50 > :not([hidden]) ~ :not([hidden]) { border-color: #ddd; }
+    .forum-theme #btnArchival.bg-btc,
+    .forum-theme #btnPruned.bg-btc {
+      color: #fff !important;
+      background: var(--btc) !important;
+      font-weight: 700;
     }
-    .blueprint-theme .border-gray-600,
-    .blueprint-theme .border-gray-700 { border-color: var(--bp-line) !important; }
-    .blueprint-theme .border-gray-700\/50 { border-color: rgba(42, 95, 143, 0.4) !important; }
-    .blueprint-theme .text-gray-100 { color: var(--bp-text); }
-    .blueprint-theme .text-gray-200 { color: #dceef5; }
-    .blueprint-theme .text-gray-300 { color: #a8c8d8; }
-    .blueprint-theme .text-gray-400 { color: var(--bp-muted); }
-    .blueprint-theme .text-gray-500 { color: #5a8aa8; }
-    .blueprint-theme .text-gray-600 { color: #3d6580; }
-    .blueprint-theme .divide-gray-700\/50 > :not([hidden]) ~ :not([hidden]) { border-color: rgba(42, 95, 143, 0.35); }
-    .blueprint-theme #btnArchival.bg-btc,
-    .blueprint-theme #btnPruned.bg-btc { color: #0c1929 !important; font-weight: 600; }
+    .forum-theme .bg-surface-card { background: var(--forum-panel) !important; }
+    .forum-theme nav { background: #f5f5f5 !important; border-bottom: 1px solid var(--forum-border) !important; }
+    .forum-theme #sidebar { background: #f0f0f0 !important; border-right: 1px solid var(--forum-border) !important; }
+    .forum-theme #indexOptionsSection { background: #fafafa !important; border-color: var(--forum-border-light) !important; }
+    .forum-theme .shadow-2xl { box-shadow: 2px 2px 6px rgba(0,0,0,0.15) !important; }
     @media (max-width: 1023px) {
       input, select, textarea { font-size: 16px; }
     }
@@ -225,29 +213,28 @@
       align-items: center;
     }
     .onboarding-strip {
-      background: linear-gradient(90deg, rgba(77, 208, 225, 0.08) 0%, rgba(15, 35, 64, 0.85) 55%, transparent 100%);
-      border-bottom: 1px solid var(--bp-line);
+      background: #ffffe1;
+      border-bottom: 1px solid var(--forum-border);
     }
     .onboarding-step {
       display: inline-flex;
       align-items: center;
       gap: 0.35rem;
       padding: 0.35rem 0.65rem;
-      border-radius: 4px;
-      background: rgba(12, 25, 41, 0.7);
-      border: 1px dashed var(--bp-line);
-      color: var(--bp-text);
+      background: #fff;
+      border: 1px solid var(--forum-border-light);
+      color: var(--forum-text);
       font-size: 0.8125rem;
     }
     .onboarding-step-num {
       color: var(--btc);
-      font-weight: 600;
-      font-family: 'IBM Plex Mono', monospace;
+      font-weight: 700;
+      font-family: 'Courier New', Courier, monospace;
       font-size: 0.75rem;
     }
   </style>
 </head>
-<body class="bg-surface text-gray-100 font-sans min-h-screen">
+<body class="bg-surface text-gray-900 font-sans min-h-screen">
 
   <!-- Navbar -->
   <nav class="sticky top-0 z-40 bg-surface/98 border-b border-btc/30 pt-[env(safe-area-inset-top,0px)]">
@@ -258,7 +245,7 @@
             <svg class="w-6 h-6 text-btc" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
           </button>
           <div class="min-w-0">
-            <h1 id="pageTitle" class="text-lg sm:text-xl font-semibold text-btc tracking-wide truncate">Bitcoin Node Cost Tracker: 2009–2040</h1>
+            <h1 id="pageTitle" class="text-base sm:text-lg font-bold text-btc truncate">Bitcoin Node Cost Tracker: 2009–2040</h1>
             <p class="text-xs sm:text-sm text-gray-400 hidden sm:block max-w-2xl">How affordable was running a Bitcoin node over time? Archival models dedicated hardware + drive; pruned assumes your existing PC ($0 setup — OpEx only). Storage + CPU/RAM + internet + elec.</p>
           </div>
         </div>
@@ -266,7 +253,7 @@
           <span class="hidden sm:inline px-3 py-1.5 text-xs sm:text-sm rounded-lg border border-gray-600 bg-surface-card text-gray-300">🇺🇸 USA · Nominal USD</span>
           <span class="sm:hidden px-2.5 py-1.5 text-xs rounded-lg border border-gray-600 bg-surface-card text-gray-300">🇺🇸 USA</span>
           <div class="flex rounded-lg overflow-hidden border border-gray-600 text-xs">
-            <button id="btnArchival" class="px-3 py-2.5 sm:py-1.5 bg-btc text-black font-medium">Archival</button>
+            <button id="btnArchival" class="px-3 py-2.5 sm:py-1.5 bg-btc text-white font-medium">Archival</button>
             <button id="btnPruned" class="px-3 py-2.5 sm:py-1.5 bg-surface-card hover:bg-btc/10">Pruned</button>
           </div>
           <button id="btnProjPanel" class="px-3 py-2.5 sm:py-1.5 text-xs rounded-lg border border-btc/60 bg-btc/10 text-btc hover:bg-btc/20 font-medium"><span class="sm:hidden">2040</span><span class="hidden sm:inline">Projections to 2040</span></button>
@@ -1447,11 +1434,11 @@ function affordabilityScore(annualized, annualOpEx) {
   const monthly = annualized / 12;
   const monthlyRun = annualOpEx / 12;
   const runNote = `~${fmtMoney(monthlyRun)}/mo running · ~${fmtMoney(monthly)}/mo all-in (3-yr setup)`;
-  if (monthly < 10) return { label: 'Very Affordable', sub: runNote + ' — easy homelab hobby', color: 'text-btc' };
-  if (monthly < 25) return { label: 'Affordable', sub: runNote + ' — typical node hobbyist range', color: 'text-btc-light' };
-  if (monthly < 50) return { label: 'Moderate', sub: runNote + ' — dedicated runner, still reasonable', color: 'text-phosphor-amber' };
-  if (monthly < 80) return { label: 'Enthusiast', sub: runNote + ' — index-heavy or peak-era hardware', color: 'text-phosphor-cyan' };
-  return { label: 'Premium', sub: runNote + ' — index-heavy; lower internet % helps', color: 'text-red-400' };
+  if (monthly < 10) return { label: 'Very Affordable', sub: runNote + ' — easy homelab hobby', color: 'text-green-700' };
+  if (monthly < 25) return { label: 'Affordable', sub: runNote + ' — typical node hobbyist range', color: 'text-green-700' };
+  if (monthly < 50) return { label: 'Moderate', sub: runNote + ' — dedicated runner, still reasonable', color: 'text-yellow-700' };
+  if (monthly < 80) return { label: 'Enthusiast', sub: runNote + ' — index-heavy or peak-era hardware', color: 'text-orange-700' };
+  return { label: 'Premium', sub: runNote + ' — index-heavy; lower internet % helps', color: 'text-red-700' };
 }
 
 function getHwRecommendation(year) {
@@ -1702,7 +1689,7 @@ function updateTable() {
 }
 
 function chartColors() {
-  return { text: '#6a9bb8', grid: 'rgba(77,208,225,0.12)', bg: 'transparent' };
+  return { text: '#666666', grid: 'rgba(0,0,0,0.08)', bg: '#ffffff' };
 }
 
 function destroyChart(id) {
@@ -1764,8 +1751,8 @@ function milestoneLabelsPlugin() {
         const val = chart.data.datasets[0]?.data[idx] ?? chart.data.datasets[chart.data.datasets.length - 1]?.data[idx];
         if (val == null) return;
         ctx.save();
-        ctx.fillStyle = '#4dd0e1';
-        ctx.font = '600 11px "IBM Plex Mono", monospace';
+        ctx.fillStyle = '#0000ee';
+        ctx.font = 'bold 11px Verdana, sans-serif';
         ctx.fillText(String(year), x.getPixelForValue(idx) - 12, y.getPixelForValue(val) - 8);
         ctx.restore();
       });
@@ -1778,18 +1765,18 @@ function updateCharts() {
   const years = data.map(d => d.year);
   const c = chartColors();
   const showIndexCols = hasOptionalIndexUI();
-  const scenarioColors = { baseline: '#7ee8f7', ai_shock: '#e85d5d', optimistic: '#4dd0e1', pessimistic: '#5a7a9a' };
-  const projColor = scenarioColors[state.projectionScenario] || '#7ee8f7';
+  const scenarioColors = { baseline: '#0066cc', ai_shock: '#cc0000', optimistic: '#009900', pessimistic: '#888888' };
+  const projColor = scenarioColors[state.projectionScenario] || '#0066cc';
   const barColor = (base, proj) => data.map(d => d.isProjected ? proj : base);
   const indexBar = showIndexCols
-    ? [{ label: 'Optional Indexes', data: data.map(d => (d.optionalIndexGB ?? 0) > 0 ? d.indexCost : 0), backgroundColor: barColor('rgba(232,184,74,0.85)', 'rgba(232,184,74,0.45)') }]
+    ? [{ label: 'Optional Indexes', data: data.map(d => (d.optionalIndexGB ?? 0) > 0 ? d.indexCost : 0), backgroundColor: barColor('rgba(201,162,39,0.85)', 'rgba(201,162,39,0.5)') }]
     : [];
 
   destroyChart('setup');
   if (!state.pruned) {
     const setupDatasets = [
-      { label: 'Blocks + UTXO', data: data.map(d => d.storageCost), backgroundColor: barColor('rgba(77,208,225,0.85)', 'rgba(77,208,225,0.4)') },
-      { label: 'CPU/RAM Kit', data: data.map(d => d.basePC), backgroundColor: barColor('rgba(91,143,185,0.8)', 'rgba(91,143,185,0.4)') },
+      { label: 'Blocks + UTXO', data: data.map(d => d.storageCost), backgroundColor: barColor('rgba(74,144,217,0.85)', 'rgba(74,144,217,0.5)') },
+      { label: 'CPU/RAM Kit', data: data.map(d => d.basePC), backgroundColor: barColor('rgba(122,158,194,0.85)', 'rgba(122,158,194,0.5)') },
       ...indexBar
     ];
     charts.setup = new Chart(document.getElementById('chartSetup'), {
@@ -1821,7 +1808,7 @@ function updateCharts() {
   const sizeDatasets = [
     {
       label: showIndexCols ? 'Blocks + UTXO (historical)' : 'Block chain (historical)',
-      data: sizeBase.hist, borderColor: '#4dd0e1', backgroundColor: 'rgba(77,208,225,0.1)', fill: true, tension: 0.3, pointRadius: 2
+      data: sizeBase.hist, borderColor: '#0066cc', backgroundColor: 'rgba(0,102,204,0.08)', fill: true, tension: 0.3, pointRadius: 2
     }
   ];
   if (state.projectionEnabled) {
@@ -1835,9 +1822,9 @@ function updateCharts() {
       sizeDatasets,
       buildStorageBumpSeries(data, d => (d.optionalIndexGB ?? 0) > 0, d => d.minStorage),
       'With optional indexes',
-      '#e8b84a',
+      '#996600',
       [4, 4],
-      'rgba(232,184,74,0.08)'
+      'rgba(153,102,0,0.06)'
     );
   }
   charts.size = new Chart(document.getElementById('chartSize'), {
@@ -1856,12 +1843,12 @@ function updateCharts() {
 
   destroyChart('breakdown');
   const breakdownDatasets = [
-    ...(!state.pruned ? [{ label: 'Blocks + UTXO', data: data.map(d => d.storageCost), backgroundColor: barColor('rgba(77,208,225,0.8)', 'rgba(77,208,225,0.35)') }] : []),
-    ...(state.pruned && state.prunedStorageCost === 'usb' ? [{ label: 'USB/SD (reference)', data: data.map(d => d.storageCost), backgroundColor: barColor('rgba(77,208,225,0.8)', 'rgba(77,208,225,0.35)') }] : []),
+    ...(!state.pruned ? [{ label: 'Blocks + UTXO', data: data.map(d => d.storageCost), backgroundColor: barColor('rgba(74,144,217,0.8)', 'rgba(74,144,217,0.45)') }] : []),
+    ...(state.pruned && state.prunedStorageCost === 'usb' ? [{ label: 'USB/SD (reference)', data: data.map(d => d.storageCost), backgroundColor: barColor('rgba(74,144,217,0.8)', 'rgba(74,144,217,0.45)') }] : []),
     ...indexBar,
-    ...(!state.pruned ? [{ label: 'Base HW/CPU', data: data.map(d => d.basePC), backgroundColor: barColor('rgba(91,143,185,0.7)', 'rgba(91,143,185,0.35)') }] : []),
-    { label: 'Internet (yr)', data: data.map(d => d.internetPortion * 12), backgroundColor: barColor('rgba(61,122,184,0.7)', 'rgba(61,122,184,0.4)') },
-    { label: 'Electricity (yr)', data: data.map(d => d.elecAnnual), backgroundColor: barColor('rgba(126,200,227,0.6)', 'rgba(126,200,227,0.3)') }
+    ...(!state.pruned ? [{ label: 'Base HW/CPU', data: data.map(d => d.basePC), backgroundColor: barColor('rgba(122,158,194,0.75)', 'rgba(122,158,194,0.45)') }] : []),
+    { label: 'Internet (yr)', data: data.map(d => d.internetPortion * 12), backgroundColor: barColor('rgba(107,140,174,0.7)', 'rgba(107,140,174,0.45)') },
+    { label: 'Electricity (yr)', data: data.map(d => d.elecAnnual), backgroundColor: barColor('rgba(92,184,92,0.7)', 'rgba(92,184,92,0.45)') }
   ];
   charts.breakdown = new Chart(document.getElementById('chartBreakdown'), {
     type: 'bar',
@@ -1880,7 +1867,7 @@ function updateCharts() {
   const annBase = splitHistProj(data, 'baseAnnualizedTotal');
   const annualDatasets = [{
     label: state.pruned ? 'Base Pruned (historical)' : 'Base Archival (historical)',
-    data: annBase.hist, borderColor: '#4dd0e1', backgroundColor: 'rgba(77,208,225,0.12)', fill: true, tension: 0.35, pointRadius: 3
+    data: annBase.hist, borderColor: '#0066cc', backgroundColor: 'rgba(0,102,204,0.1)', fill: true, tension: 0.35, pointRadius: 3
   }];
   if (state.projectionEnabled) {
     annualDatasets.push({
@@ -1893,7 +1880,7 @@ function updateCharts() {
       annualDatasets,
       buildStorageBumpSeries(data, d => (d.optionalIndexGB ?? 0) > 0, d => d.annualizedTotal),
       'With optional indexes',
-      '#e8b84a',
+      '#996600',
       [4, 4]
     );
   }
@@ -1914,24 +1901,24 @@ function updateCharts() {
   const sel = getSelected();
   let pieLabels = ['Internet/yr', 'Elec/yr'];
   let pieData = [sel.internetPortion * 12, sel.elecAnnual];
-  let pieColors = ['#3d7ab8', '#7ec8e3'];
+  let pieColors = ['#6b8cae', '#5cb85c'];
   if (!state.pruned) {
     pieLabels.unshift('Base HW');
     pieData.unshift(sel.basePC);
-    pieColors.unshift('#5b8fb9');
+    pieColors.unshift('#7a9ec2');
     pieLabels.unshift('Blocks + UTXO');
     pieData.unshift(sel.storageCost);
-    pieColors.unshift('#4dd0e1');
+    pieColors.unshift('#4a90d9');
   } else if (state.prunedStorageCost === 'usb' && sel.storageCost > 0) {
     pieLabels.unshift('USB/SD (reference)');
     pieData.unshift(sel.storageCost);
-    pieColors.unshift('#4dd0e1');
+    pieColors.unshift('#4a90d9');
   }
   if (showIndexCols && sel.indexCost > 0) {
     const insertAt = state.pruned ? 0 : 2;
     pieLabels.splice(insertAt, 0, 'Optional Indexes');
     pieData.splice(insertAt, 0, sel.indexCost);
-    pieColors.splice(insertAt, 0, '#e8b84a');
+    pieColors.splice(insertAt, 0, '#c9a227');
   }
   destroyChart('pie');
   charts.pie = new Chart(document.getElementById('chartPie'), {
@@ -2055,9 +2042,9 @@ function setPrunedModeUI(pruned) {
   state.pruned = pruned;
   document.getElementById('btnArchival').className = pruned
     ? 'px-3 py-2.5 sm:py-1.5 bg-surface-card hover:bg-btc/10'
-    : 'px-3 py-2.5 sm:py-1.5 bg-btc text-black font-medium';
+    : 'px-3 py-2.5 sm:py-1.5 bg-btc text-white font-medium';
   document.getElementById('btnPruned').className = pruned
-    ? 'px-3 py-2.5 sm:py-1.5 bg-btc text-black font-medium'
+    ? 'px-3 py-2.5 sm:py-1.5 bg-btc text-white font-medium'
     : 'px-3 py-2.5 sm:py-1.5 bg-surface-card hover:bg-btc/10';
 }
 
@@ -2127,8 +2114,8 @@ function renderChartScreenshot(key) {
   const ratio = src.width / chart.width;
   const pad = Math.round(16 * ratio);
   const titleH = Math.round(24 * ratio);
-  const bg = '#0f2340';
-  const titleColor = '#4dd0e1';
+  const bg = '#ffffff';
+  const titleColor = '#0000ee';
 
   const out = document.createElement('canvas');
   out.width = src.width;
@@ -2137,7 +2124,7 @@ function renderChartScreenshot(key) {
   ctx.fillStyle = bg;
   ctx.fillRect(0, 0, out.width, out.height);
   ctx.fillStyle = titleColor;
-  ctx.font = `600 ${Math.round(13 * ratio)}px "IBM Plex Sans", system-ui, sans-serif`;
+  ctx.font = `bold ${Math.round(13 * ratio)}px Verdana, sans-serif`;
   ctx.fillText(title, pad, pad + Math.round(14 * ratio));
   ctx.drawImage(src, 0, titleH + pad);
   return out;
@@ -2206,7 +2193,7 @@ function resetProjSlidersUI() {
 function resetDefaults() {
   state.pruned = false;
   state.prunedStorageCost = 'marginal';
-  document.getElementById('btnArchival').className = 'px-3 py-1.5 bg-btc text-black font-medium';
+  document.getElementById('btnArchival').className = 'px-3 py-1.5 bg-btc text-white font-medium';
   document.getElementById('btnPruned').className = 'px-3 py-1.5 bg-surface-card hover:bg-btc/10';
   const prunedStorageSelect = document.getElementById('prunedStorageCost');
   if (prunedStorageSelect) prunedStorageSelect.value = 'marginal';
