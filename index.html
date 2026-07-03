@@ -211,6 +211,11 @@
     .blueprint-theme .divide-gray-700\/50 > :not([hidden]) ~ :not([hidden]) { border-color: rgba(42, 95, 143, 0.35); }
     .blueprint-theme #btnArchival.bg-btc,
     .blueprint-theme #btnPruned.bg-btc { color: #0c1929 !important; font-weight: 600; }
+    .blueprint-theme nav.sticky {
+      background-color: var(--bp-panel) !important;
+      border-bottom: 1px solid var(--bp-line);
+      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.35);
+    }
     @media (max-width: 1023px) {
       input, select, textarea { font-size: 16px; }
     }
@@ -249,7 +254,7 @@
 <body class="bg-surface text-gray-100 font-sans min-h-screen">
 
   <!-- Navbar -->
-  <nav class="sticky top-0 z-40 bg-surface/98 border-b border-btc/30 pt-[env(safe-area-inset-top,0px)]">
+  <nav class="sticky top-0 z-40 bg-surface-card border-b border-btc/30 pt-[env(safe-area-inset-top,0px)]">
     <div class="max-w-[1600px] mx-auto px-4 py-3">
       <div class="flex flex-wrap items-center justify-between gap-3">
         <div class="flex items-center gap-3 min-w-0">
