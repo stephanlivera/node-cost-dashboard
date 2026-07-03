@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en" class="dark">
+<html lang="en" class="dark crt-theme">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <meta name="theme-color" content="#1a1a2e" />
+  <meta name="theme-color" content="#050805" />
   <title>Bitcoin Node Cost Tracker: 2009–2040</title>
   <link rel="icon" href="assets/favicon.ico?v=2" sizes="any" />
   <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32x32.png?v=2" />
@@ -16,24 +16,39 @@
       theme: {
         extend: {
           colors: {
-            btc: { DEFAULT: '#f7931a', dark: '#e07b00', light: '#ffb347' },
-            surface: { DEFAULT: '#1a1a2e', light: '#f8f9fc', card: '#16213e', 'card-light': '#ffffff' }
+            btc: { DEFAULT: '#33ff33', dark: '#22cc22', light: '#66ff66' },
+            surface: { DEFAULT: '#050805', light: '#e8ffe8', card: '#0a100a', 'card-light': '#f0fff0' },
+            phosphor: { DEFAULT: '#33ff33', dim: '#1a6b1a', bright: '#66ff66', amber: '#ffb000', cyan: '#00e5e5' }
           },
-          fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'], mono: ['JetBrains Mono', 'monospace'] }
+          fontFamily: {
+            sans: ['"Share Tech Mono"', 'monospace'],
+            mono: ['"Share Tech Mono"', 'monospace'],
+            display: ['VT323', 'monospace']
+          }
         }
       }
     }
   </script>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=VT323&display=swap" rel="stylesheet" />
   <style>
-    :root { --btc: #f7931a; --btc-glow: rgba(247,147,26,0.25); }
-    * { scrollbar-width: thin; scrollbar-color: var(--btc) transparent; }
+    :root {
+      --btc: #33ff33;
+      --btc-dim: #1a6b1a;
+      --btc-glow: rgba(51, 255, 51, 0.35);
+      --phosphor-amber: #ffb000;
+      --crt-bg: #050805;
+      --crt-panel: #0a100a;
+      --crt-text: #b8ffb8;
+      --crt-muted: #4a7a4a;
+    }
+    * { scrollbar-width: thin; scrollbar-color: var(--btc-dim) transparent; }
     ::-webkit-scrollbar { width: 6px; height: 6px; }
-    ::-webkit-scrollbar-thumb { background: var(--btc); border-radius: 3px; }
-    .btc-gradient { background: linear-gradient(135deg, #f7931a 0%, #e07b00 100%); }
-    .glow-btc { box-shadow: 0 0 20px var(--btc-glow); }
+    ::-webkit-scrollbar-thumb { background: var(--btc-dim); border-radius: 0; }
+    .btc-gradient { background: linear-gradient(135deg, #33ff33 0%, #22aa22 100%); }
+    .glow-btc { box-shadow: 0 0 12px var(--btc-glow), inset 0 0 20px rgba(51, 255, 51, 0.03); }
+    .phosphor-glow { text-shadow: 0 0 8px var(--btc-glow), 0 0 20px rgba(51, 255, 51, 0.15); }
     .chart-container { position: relative; height: 280px; }
     @media (min-width: 768px) { .chart-container { height: 320px; } }
     .chart-container-hero { position: relative; height: 320px; }
@@ -41,72 +56,85 @@
     .tooltip-wrap { position: relative; display: inline-flex; align-items: center; }
     .tooltip-wrap .tip {
       visibility: hidden; opacity: 0; position: absolute; bottom: calc(100% + 8px); left: 50%;
-      transform: translateX(-50%); background: #0f0f1a; color: #e2e8f0; padding: 8px 12px;
-      border-radius: 8px; font-size: 11px; line-height: 1.4; width: max-content; max-width: 260px;
-      z-index: 50; border: 1px solid rgba(247,147,26,0.3); transition: opacity 0.2s; pointer-events: none;
+      transform: translateX(-50%); background: #050805; color: var(--crt-text); padding: 8px 12px;
+      border-radius: 0; font-size: 11px; line-height: 1.4; width: max-content; max-width: 260px;
+      z-index: 50; border: 1px solid var(--btc-dim); transition: opacity 0.2s; pointer-events: none;
+      box-shadow: 0 0 10px rgba(51, 255, 51, 0.12);
     }
     .tooltip-wrap:hover .tip { visibility: visible; opacity: 1; }
-    .row-active { background: rgba(247,147,26,0.12) !important; border-left: 3px solid var(--btc); }
+    .row-active { background: rgba(51, 255, 51, 0.08) !important; border-left: 3px solid var(--btc); }
     .sidebar-transition { transition: transform 0.3s ease, width 0.3s ease; }
     input[type="range"] { accent-color: var(--btc); }
     .kpi-card { transition: transform 0.2s, box-shadow 0.2s; }
-    .kpi-card:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(247,147,26,0.15); }
-    .tab-active { border-bottom: 2px solid var(--btc); color: var(--btc); }
+    .kpi-card:hover { transform: translateY(-2px); box-shadow: 0 0 18px rgba(51, 255, 51, 0.2); }
+    .tab-active { border-bottom: 2px solid var(--btc); color: var(--btc); text-shadow: 0 0 6px var(--btc-glow); }
     .hardware-img {
-      background: #0f172a;
-      border: 1px solid rgba(247,147,26,0.25);
+      background: #050805;
+      border: 1px solid var(--btc-dim);
+    }
+    .hardware-img img {
+      filter: sepia(0.4) hue-rotate(55deg) saturate(1.2) brightness(0.55) contrast(1.1);
     }
     .hero-banner {
       position: relative;
       height: clamp(168px, 30vw, 300px);
-      background: #16213e;
+      background: #0a100a;
     }
     .hero-slides { position: absolute; inset: 0; }
     .hero-slide {
       position: absolute; inset: 0; width: 100%; height: 100%;
       object-fit: cover; object-position: center;
       opacity: 0; transition: opacity 0.7s ease;
+      filter: sepia(0.4) hue-rotate(55deg) saturate(1.2) brightness(0.55) contrast(1.1);
     }
     .hero-slide.active { opacity: 1; }
     .hero-overlay {
       position: absolute; inset: 0;
-      background: linear-gradient(to top, rgba(22,33,62,0.94) 0%, rgba(22,33,62,0.4) 50%, transparent 78%);
+      background: linear-gradient(to top, rgba(5, 8, 5, 0.96) 0%, rgba(5, 8, 5, 0.45) 50%, transparent 78%);
       display: flex; flex-direction: column; justify-content: flex-end;
       padding: 1rem 1.25rem; pointer-events: none;
     }
-    .hero-era-label { font-size: clamp(1rem, 2.5vw, 1.25rem); font-weight: 700; color: #f7931a; }
+    .hero-era-label {
+      font-family: 'VT323', monospace;
+      font-size: clamp(1.25rem, 3vw, 1.75rem);
+      font-weight: 400;
+      color: var(--btc);
+      text-shadow: 0 0 10px var(--btc-glow);
+      letter-spacing: 0.05em;
+    }
     .hero-dots {
       position: absolute; bottom: 0.85rem; right: 1rem;
       display: flex; gap: 6px; pointer-events: auto;
     }
     .hero-dot {
-      width: 10px; height: 10px; border-radius: 50%;
-      background: rgba(148,163,184,0.35); border: none;
+      width: 10px; height: 10px; border-radius: 0;
+      background: var(--btc-dim); border: none;
       padding: 14px; background-clip: content-box; box-sizing: content-box;
       cursor: pointer; transition: background 0.2s, transform 0.2s;
     }
-    .hero-dot:hover { background: rgba(247,147,26,0.6); }
-    .hero-dot.active { background: #f7931a; transform: scale(1.25); }
+    .hero-dot:hover { background: rgba(51, 255, 51, 0.5); }
+    .hero-dot.active { background: var(--btc); transform: scale(1.25); box-shadow: 0 0 8px var(--btc-glow); }
     #projPanel { max-height: min(85vh, 720px); }
     .proj-open #projPanel { display: block; }
-    .milestone-row { background: rgba(247,147,26,0.06); }
-    .milestone-row td:first-child { font-weight: 700; color: #f7931a; }
+    .milestone-row { background: rgba(51, 255, 51, 0.05); }
+    .milestone-row td:first-child { font-weight: 700; color: var(--btc); text-shadow: 0 0 6px var(--btc-glow); }
     .chart-action-btn {
       display: inline-flex; align-items: center; justify-content: center;
-      width: 36px; height: 36px; border-radius: 6px;
-      border: 1px solid rgba(148,163,184,0.25); color: #94a3b8;
+      width: 36px; height: 36px; border-radius: 0;
+      border: 1px solid var(--btc-dim); color: var(--crt-muted);
       background: transparent; transition: color 0.15s, border-color 0.15s, background 0.15s;
     }
-    .chart-action-btn:hover { color: var(--btc); border-color: rgba(247,147,26,0.5); background: rgba(247,147,26,0.08); }
+    .chart-action-btn:hover { color: var(--btc); border-color: var(--btc); background: rgba(51, 255, 51, 0.08); }
     .chart-action-btn svg { width: 14px; height: 14px; }
     .export-toast {
       position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(8px);
-      padding: 10px 18px; border-radius: 8px; font-size: 13px;
-      background: #16213e; color: #e2e8f0; border: 1px solid rgba(247,147,26,0.4);
+      padding: 10px 18px; border-radius: 0; font-size: 13px;
+      background: var(--crt-panel); color: var(--crt-text); border: 1px solid var(--btc-dim);
       z-index: 100; opacity: 0; transition: opacity 0.25s, transform 0.25s; pointer-events: none;
+      box-shadow: 0 0 14px rgba(51, 255, 51, 0.15);
     }
     .export-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
-    .export-toast.error { border-color: rgba(248,113,113,0.5); color: #fecaca; }
+    .export-toast.error { border-color: rgba(255, 68, 68, 0.6); color: #ff8888; }
     .data-table-viewport {
       max-height: min(calc(100vh - 5.5rem), 42rem);
       overflow: auto;
@@ -116,11 +144,60 @@
       position: sticky;
       top: 0;
       z-index: 10;
-      background: #16213e;
-      box-shadow: 0 1px 0 rgba(148, 163, 184, 0.25);
+      background: var(--crt-panel);
+      box-shadow: 0 1px 0 var(--btc-dim);
     }
     .data-table { min-width: 42rem; }
-    body { overflow-x: hidden; }
+    body { overflow-x: hidden; background: var(--crt-bg); color: var(--crt-text); }
+    /* CRT scanlines + vignette */
+    body.crt-theme::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background: repeating-linear-gradient(
+        0deg,
+        rgba(0, 0, 0, 0.18) 0px,
+        rgba(0, 0, 0, 0.18) 1px,
+        transparent 1px,
+        transparent 3px
+      );
+      pointer-events: none;
+      z-index: 9998;
+    }
+    body.crt-theme::after {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background: radial-gradient(ellipse at center, transparent 55%, rgba(0, 0, 0, 0.55) 100%);
+      pointer-events: none;
+      z-index: 9997;
+    }
+    @keyframes crt-flicker {
+      0%, 100% { opacity: 1; }
+      92% { opacity: 1; }
+      93% { opacity: 0.92; }
+      94% { opacity: 1; }
+      97% { opacity: 0.96; }
+    }
+    @media (prefers-reduced-motion: no-preference) {
+      body.crt-theme { animation: crt-flicker 8s infinite; }
+    }
+    .crt-theme h1, .crt-theme h2, .crt-theme h3 { font-family: 'VT323', monospace; letter-spacing: 0.04em; }
+    .crt-theme .rounded-xl, .crt-theme .rounded-lg { border-radius: 2px !important; }
+    .crt-theme select, .crt-theme input[type="number"], .crt-theme input[type="text"] {
+      border-radius: 0;
+      border-color: var(--btc-dim);
+    }
+    .crt-theme .border-gray-600, .crt-theme .border-gray-700 { border-color: var(--btc-dim) !important; }
+    .crt-theme .border-gray-700\/50 { border-color: rgba(26, 107, 26, 0.35) !important; }
+    .crt-theme .text-gray-100 { color: var(--crt-text); }
+    .crt-theme .text-gray-200 { color: #d0ffd0; }
+    .crt-theme .text-gray-300 { color: #a0e0a0; }
+    .crt-theme .text-gray-400 { color: var(--crt-muted); }
+    .crt-theme .text-gray-500 { color: #3d6b3d; }
+    .crt-theme .text-gray-600 { color: #2d502d; }
+    .crt-theme .divide-gray-700\/50 > :not([hidden]) ~ :not([hidden]) { border-color: rgba(26, 107, 26, 0.3); }
+    .crt-theme #btnArchival.bg-btc, .crt-theme #btnPruned.bg-btc { color: #050805 !important; text-shadow: none; }
     @media (max-width: 1023px) {
       input, select, textarea { font-size: 16px; }
     }
@@ -134,32 +211,33 @@
       align-items: center;
     }
     .onboarding-strip {
-      background: linear-gradient(90deg, rgba(247, 147, 26, 0.1) 0%, rgba(22, 33, 62, 0.6) 55%, transparent 100%);
-      border-bottom: 1px solid rgba(247, 147, 26, 0.22);
+      background: linear-gradient(90deg, rgba(51, 255, 51, 0.06) 0%, rgba(10, 16, 10, 0.8) 55%, transparent 100%);
+      border-bottom: 1px solid var(--btc-dim);
     }
     .onboarding-step {
       display: inline-flex;
       align-items: center;
       gap: 0.35rem;
       padding: 0.35rem 0.65rem;
-      border-radius: 9999px;
-      background: rgba(15, 23, 42, 0.45);
-      border: 1px solid rgba(148, 163, 184, 0.15);
-      color: #e2e8f0;
+      border-radius: 0;
+      background: rgba(5, 8, 5, 0.6);
+      border: 1px solid var(--btc-dim);
+      color: var(--crt-text);
       font-size: 0.8125rem;
     }
     .onboarding-step-num {
-      color: #f7931a;
+      color: var(--btc);
       font-weight: 700;
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 0.75rem;
+      font-family: 'VT323', monospace;
+      font-size: 0.9rem;
+      text-shadow: 0 0 6px var(--btc-glow);
     }
   </style>
 </head>
-<body class="bg-surface text-gray-100 font-sans min-h-screen transition-colors duration-300">
+<body class="bg-surface text-gray-100 font-sans min-h-screen">
 
   <!-- Navbar -->
-  <nav class="sticky top-0 z-40 bg-surface/95 backdrop-blur-md border-b border-btc/20 pt-[env(safe-area-inset-top,0px)]">
+  <nav class="sticky top-0 z-40 bg-surface/98 border-b border-btc/30 pt-[env(safe-area-inset-top,0px)]">
     <div class="max-w-[1600px] mx-auto px-4 py-3">
       <div class="flex flex-wrap items-center justify-between gap-3">
         <div class="flex items-center gap-3 min-w-0">
@@ -167,7 +245,7 @@
             <svg class="w-6 h-6 text-btc" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
           </button>
           <div class="min-w-0">
-            <h1 id="pageTitle" class="text-lg sm:text-xl font-bold text-btc truncate">Bitcoin Node Cost Tracker: 2009–2040</h1>
+            <h1 id="pageTitle" class="text-xl sm:text-2xl font-normal text-btc phosphor-glow truncate">Bitcoin Node Cost Tracker: 2009–2040</h1>
             <p class="text-xs sm:text-sm text-gray-400 hidden sm:block max-w-2xl">How affordable was running a Bitcoin node over time? Archival models dedicated hardware + drive; pruned assumes your existing PC ($0 setup — OpEx only). Storage + CPU/RAM + internet + elec.</p>
           </div>
         </div>
@@ -279,34 +357,34 @@
         <p class="text-[10px] font-semibold text-gray-500 uppercase tracking-wide pt-1">Bitcoin Core</p>
         <div id="coreIndexOptions" class="space-y-1.5 text-xs">
           <label class="flex items-start gap-2 p-2 rounded-lg border border-transparent hover:border-btc/30 cursor-pointer core-index-opt">
-            <input type="checkbox" id="idxTxindex" data-core-index="txindex" class="mt-0.5 accent-[#f7931a]" />
+            <input type="checkbox" id="idxTxindex" data-core-index="txindex" class="mt-0.5 accent-btc" />
             <span><span class="font-medium text-gray-200">txindex</span> <span class="text-btc/80 text-[10px]">~8% of blocks (~60 GB today) · txid → block</span></span>
           </label>
           <label class="flex items-start gap-2 p-2 rounded-lg border border-transparent hover:border-btc/30 cursor-pointer core-index-opt">
-            <input type="checkbox" id="idxCoinstats" data-core-index="coinstatsindex" class="mt-0.5 accent-[#f7931a]" />
+            <input type="checkbox" id="idxCoinstats" data-core-index="coinstatsindex" class="mt-0.5 accent-btc" />
             <span><span class="font-medium text-gray-200">coinstatsindex</span> <span class="text-btc/80 text-[10px]">~3 GB · UTXO stats per height (Core 22+)</span></span>
           </label>
           <label class="flex items-start gap-2 p-2 rounded-lg border border-transparent hover:border-btc/30 cursor-pointer core-index-opt">
-            <input type="checkbox" id="idxBlockfilter" data-core-index="blockfilterindex" class="mt-0.5 accent-[#f7931a]" />
+            <input type="checkbox" id="idxBlockfilter" data-core-index="blockfilterindex" class="mt-0.5 accent-btc" />
             <span><span class="font-medium text-gray-200">blockfilterindex</span> <span class="text-btc/80 text-[10px]">~2% of blocks (~13 GB today) · BIP157 filters</span></span>
           </label>
         </div>
         <p class="text-[10px] font-semibold text-gray-500 uppercase tracking-wide">Electrum Server</p>
         <div id="electrumOptions" class="space-y-1.5 text-xs">
           <label class="flex items-start gap-2 p-2 rounded-lg border border-transparent hover:border-btc/30 cursor-pointer electrum-opt">
-            <input type="radio" name="electrum" value="none" checked class="mt-0.5 accent-[#f7931a]" />
+            <input type="radio" name="electrum" value="none" checked class="mt-0.5 accent-btc" />
             <span><span class="font-medium text-gray-200">None</span> <span class="text-gray-500">(default)</span></span>
           </label>
           <label class="flex items-start gap-2 p-2 rounded-lg border border-transparent hover:border-btc/30 cursor-pointer electrum-opt">
-            <input type="radio" name="electrum" value="electrs" class="mt-0.5 accent-[#f7931a]" />
+            <input type="radio" name="electrum" value="electrs" class="mt-0.5 accent-btc" />
             <span><span class="font-medium text-gray-200">electrs Light</span> <span class="text-btc/80 text-[10px]">~10% of blocks · from 2019</span></span>
           </label>
           <label class="flex items-start gap-2 p-2 rounded-lg border border-transparent hover:border-btc/30 cursor-pointer electrum-opt">
-            <input type="radio" name="electrum" value="fulcrum" class="mt-0.5 accent-[#f7931a]" />
+            <input type="radio" name="electrum" value="fulcrum" class="mt-0.5 accent-btc" />
             <span><span class="font-medium text-gray-200">Fulcrum Standard</span> <span class="text-btc/80 text-[10px]">~18% of blocks · requires txindex · from 2020</span></span>
           </label>
           <label class="flex items-start gap-2 p-2 rounded-lg border border-transparent hover:border-btc/30 cursor-pointer electrum-opt">
-            <input type="radio" name="electrum" value="fulcrum_full" class="mt-0.5 accent-[#f7931a]" />
+            <input type="radio" name="electrum" value="fulcrum_full" class="mt-0.5 accent-btc" />
             <span><span class="font-medium text-gray-200">Fulcrum Full / Esplora Heavy</span> <span class="text-btc/80 text-[10px]">~35–70% of blocks · requires txindex · from 2021</span></span>
           </label>
         </div>
@@ -454,7 +532,7 @@
             <p id="hwTitle" class="font-semibold text-lg">—</p>
             <p id="hwDesc" class="text-sm text-gray-400 mt-2 leading-relaxed">—</p>
             <p id="hwCost" class="text-btc font-mono mt-2 text-sm">—</p>
-            <p id="hwElectrum" class="text-sm text-purple-300 mt-2 hidden"></p>
+            <p id="hwElectrum" class="text-sm text-phosphor-amber mt-2 hidden"></p>
           </div>
         </div>
       </section>
@@ -1356,10 +1434,10 @@ function affordabilityScore(annualized, annualOpEx) {
   const monthly = annualized / 12;
   const monthlyRun = annualOpEx / 12;
   const runNote = `~${fmtMoney(monthlyRun)}/mo running · ~${fmtMoney(monthly)}/mo all-in (3-yr setup)`;
-  if (monthly < 10) return { label: 'Very Affordable', sub: runNote + ' — easy homelab hobby', color: 'text-green-400' };
-  if (monthly < 25) return { label: 'Affordable', sub: runNote + ' — typical node hobbyist range', color: 'text-green-400' };
-  if (monthly < 50) return { label: 'Moderate', sub: runNote + ' — dedicated runner, still reasonable', color: 'text-yellow-400' };
-  if (monthly < 80) return { label: 'Enthusiast', sub: runNote + ' — index-heavy or peak-era hardware', color: 'text-orange-400' };
+  if (monthly < 10) return { label: 'Very Affordable', sub: runNote + ' — easy homelab hobby', color: 'text-btc phosphor-glow' };
+  if (monthly < 25) return { label: 'Affordable', sub: runNote + ' — typical node hobbyist range', color: 'text-btc-light' };
+  if (monthly < 50) return { label: 'Moderate', sub: runNote + ' — dedicated runner, still reasonable', color: 'text-phosphor-amber' };
+  if (monthly < 80) return { label: 'Enthusiast', sub: runNote + ' — index-heavy or peak-era hardware', color: 'text-phosphor-cyan' };
   return { label: 'Premium', sub: runNote + ' — index-heavy; lower internet % helps', color: 'text-red-400' };
 }
 
@@ -1587,11 +1665,11 @@ function updateTable() {
   const tbody = document.getElementById('dataTable');
   tbody.innerHTML = data.map(d => `
     <tr class="hover:bg-btc/5 cursor-pointer transition-colors ${d.year === state.selectedYear ? 'row-active' : ''} ${[2030, 2040].includes(d.year) ? 'milestone-row' : ''} ${d.isProjected ? 'opacity-90' : ''}" data-year="${d.year}">
-      <td class="px-3 py-2.5 font-mono font-medium">${d.year}${d.isProjected ? '<span class="ml-1 text-[9px] text-amber-400/80 font-sans">proj</span>' : ''}</td>
+      <td class="px-3 py-2.5 font-mono font-medium">${d.year}${d.isProjected ? '<span class="ml-1 text-[9px] text-phosphor-amber/80">proj</span>' : ''}</td>
       <td class="px-3 py-2.5 text-right font-mono">${fmtGB(d.blocksGB)}</td>
       <td class="px-3 py-2.5 text-right font-mono text-gray-400">${fmtGB(d.utxoGB)}</td>
       <td class="px-3 py-2.5 text-right font-mono">${fmtMoney(d.storageCost, true)}</td>
-      ${showIndexCols ? `<td class="px-3 py-2.5 text-right font-mono text-purple-400 electrum-col">${(d.optionalIndexGB ?? 0) > 0 ? fmtMoney(d.indexCost, true) : '<span class="text-gray-600">—</span>'}</td>` : ''}
+      ${showIndexCols ? `<td class="px-3 py-2.5 text-right font-mono text-phosphor-amber electrum-col">${(d.optionalIndexGB ?? 0) > 0 ? fmtMoney(d.indexCost, true) : '<span class="text-gray-600">—</span>'}</td>` : ''}
       <td class="px-3 py-2.5 text-left"><span class="text-gray-400">${d.cpuDesc}</span> <span class="text-btc font-mono">${fmtMoney(d.basePC, true)}</span></td>
       <td class="px-3 py-2.5 text-right font-mono">${fmtMoney(d.internetPortion)}</td>
       <td class="px-3 py-2.5 text-right font-mono ${showIndexCols ? '' : 'text-btc'}">${fmtMoney(showIndexCols ? d.baseTotalSetup : d.totalSetup, true)}</td>
@@ -1611,7 +1689,7 @@ function updateTable() {
 }
 
 function chartColors() {
-  return { text: '#94a3b8', grid: 'rgba(148,163,184,0.1)', bg: 'transparent' };
+  return { text: '#4a7a4a', grid: 'rgba(51,255,51,0.08)', bg: 'transparent' };
 }
 
 function destroyChart(id) {
@@ -1673,8 +1751,8 @@ function milestoneLabelsPlugin() {
         const val = chart.data.datasets[0]?.data[idx] ?? chart.data.datasets[chart.data.datasets.length - 1]?.data[idx];
         if (val == null) return;
         ctx.save();
-        ctx.fillStyle = '#f7931a';
-        ctx.font = 'bold 10px Inter';
+        ctx.fillStyle = '#33ff33';
+        ctx.font = 'bold 12px VT323';
         ctx.fillText(String(year), x.getPixelForValue(idx) - 12, y.getPixelForValue(val) - 8);
         ctx.restore();
       });
@@ -1687,18 +1765,18 @@ function updateCharts() {
   const years = data.map(d => d.year);
   const c = chartColors();
   const showIndexCols = hasOptionalIndexUI();
-  const scenarioColors = { baseline: '#ffb347', ai_shock: '#f87171', optimistic: '#4ade80', pessimistic: '#94a3b8' };
-  const projColor = scenarioColors[state.projectionScenario] || '#ffb347';
+  const scenarioColors = { baseline: '#66ff66', ai_shock: '#ff4444', optimistic: '#00e5e5', pessimistic: '#4a6a4a' };
+  const projColor = scenarioColors[state.projectionScenario] || '#66ff66';
   const barColor = (base, proj) => data.map(d => d.isProjected ? proj : base);
   const indexBar = showIndexCols
-    ? [{ label: 'Optional Indexes', data: data.map(d => (d.optionalIndexGB ?? 0) > 0 ? d.indexCost : 0), backgroundColor: barColor('rgba(168,85,247,0.85)', 'rgba(192,132,252,0.5)') }]
+    ? [{ label: 'Optional Indexes', data: data.map(d => (d.optionalIndexGB ?? 0) > 0 ? d.indexCost : 0), backgroundColor: barColor('rgba(255,176,0,0.85)', 'rgba(255,176,0,0.45)') }]
     : [];
 
   destroyChart('setup');
   if (!state.pruned) {
     const setupDatasets = [
-      { label: 'Blocks + UTXO', data: data.map(d => d.storageCost), backgroundColor: barColor('rgba(247,147,26,0.9)', 'rgba(255,179,71,0.55)') },
-      { label: 'CPU/RAM Kit', data: data.map(d => d.basePC), backgroundColor: barColor('rgba(59,130,246,0.85)', 'rgba(96,165,250,0.5)') },
+      { label: 'Blocks + UTXO', data: data.map(d => d.storageCost), backgroundColor: barColor('rgba(51,255,51,0.85)', 'rgba(51,255,51,0.4)') },
+      { label: 'CPU/RAM Kit', data: data.map(d => d.basePC), backgroundColor: barColor('rgba(0,229,229,0.75)', 'rgba(0,229,229,0.35)') },
       ...indexBar
     ];
     charts.setup = new Chart(document.getElementById('chartSetup'), {
@@ -1730,7 +1808,7 @@ function updateCharts() {
   const sizeDatasets = [
     {
       label: showIndexCols ? 'Blocks + UTXO (historical)' : 'Block chain (historical)',
-      data: sizeBase.hist, borderColor: '#f7931a', backgroundColor: 'rgba(247,147,26,0.1)', fill: true, tension: 0.3, pointRadius: 2
+      data: sizeBase.hist, borderColor: '#33ff33', backgroundColor: 'rgba(51,255,51,0.08)', fill: true, tension: 0.3, pointRadius: 2
     }
   ];
   if (state.projectionEnabled) {
@@ -1744,9 +1822,9 @@ function updateCharts() {
       sizeDatasets,
       buildStorageBumpSeries(data, d => (d.optionalIndexGB ?? 0) > 0, d => d.minStorage),
       'With optional indexes',
-      '#a855f7',
+      '#ffb000',
       [4, 4],
-      'rgba(168,85,247,0.06)'
+      'rgba(255,176,0,0.06)'
     );
   }
   charts.size = new Chart(document.getElementById('chartSize'), {
@@ -1765,12 +1843,12 @@ function updateCharts() {
 
   destroyChart('breakdown');
   const breakdownDatasets = [
-    ...(!state.pruned ? [{ label: 'Blocks + UTXO', data: data.map(d => d.storageCost), backgroundColor: barColor('rgba(247,147,26,0.85)', 'rgba(255,179,71,0.55)') }] : []),
-    ...(state.pruned && state.prunedStorageCost === 'usb' ? [{ label: 'USB/SD (reference)', data: data.map(d => d.storageCost), backgroundColor: barColor('rgba(247,147,26,0.85)', 'rgba(255,179,71,0.55)') }] : []),
+    ...(!state.pruned ? [{ label: 'Blocks + UTXO', data: data.map(d => d.storageCost), backgroundColor: barColor('rgba(51,255,51,0.8)', 'rgba(51,255,51,0.35)') }] : []),
+    ...(state.pruned && state.prunedStorageCost === 'usb' ? [{ label: 'USB/SD (reference)', data: data.map(d => d.storageCost), backgroundColor: barColor('rgba(51,255,51,0.8)', 'rgba(51,255,51,0.35)') }] : []),
     ...indexBar,
-    ...(!state.pruned ? [{ label: 'Base HW/CPU', data: data.map(d => d.basePC), backgroundColor: barColor('rgba(59,130,246,0.75)', 'rgba(96,165,250,0.45)') }] : []),
-    { label: 'Internet (yr)', data: data.map(d => d.internetPortion * 12), backgroundColor: barColor('rgba(99,102,241,0.6)', 'rgba(129,140,248,0.4)') },
-    { label: 'Electricity (yr)', data: data.map(d => d.elecAnnual), backgroundColor: barColor('rgba(34,197,94,0.7)', 'rgba(74,222,128,0.4)') }
+    ...(!state.pruned ? [{ label: 'Base HW/CPU', data: data.map(d => d.basePC), backgroundColor: barColor('rgba(0,229,229,0.65)', 'rgba(0,229,229,0.3)') }] : []),
+    { label: 'Internet (yr)', data: data.map(d => d.internetPortion * 12), backgroundColor: barColor('rgba(26,107,26,0.7)', 'rgba(26,107,26,0.4)') },
+    { label: 'Electricity (yr)', data: data.map(d => d.elecAnnual), backgroundColor: barColor('rgba(102,255,102,0.55)', 'rgba(102,255,102,0.25)') }
   ];
   charts.breakdown = new Chart(document.getElementById('chartBreakdown'), {
     type: 'bar',
@@ -1789,7 +1867,7 @@ function updateCharts() {
   const annBase = splitHistProj(data, 'baseAnnualizedTotal');
   const annualDatasets = [{
     label: state.pruned ? 'Base Pruned (historical)' : 'Base Archival (historical)',
-    data: annBase.hist, borderColor: '#f7931a', backgroundColor: 'rgba(247,147,26,0.15)', fill: true, tension: 0.35, pointRadius: 3
+    data: annBase.hist, borderColor: '#33ff33', backgroundColor: 'rgba(51,255,51,0.1)', fill: true, tension: 0.35, pointRadius: 3
   }];
   if (state.projectionEnabled) {
     annualDatasets.push({
@@ -1802,7 +1880,7 @@ function updateCharts() {
       annualDatasets,
       buildStorageBumpSeries(data, d => (d.optionalIndexGB ?? 0) > 0, d => d.annualizedTotal),
       'With optional indexes',
-      '#a855f7',
+      '#ffb000',
       [4, 4]
     );
   }
@@ -1823,24 +1901,24 @@ function updateCharts() {
   const sel = getSelected();
   let pieLabels = ['Internet/yr', 'Elec/yr'];
   let pieData = [sel.internetPortion * 12, sel.elecAnnual];
-  let pieColors = ['#6366f1', '#22c55e'];
+  let pieColors = ['#1a6b1a', '#66ff66'];
   if (!state.pruned) {
     pieLabels.unshift('Base HW');
     pieData.unshift(sel.basePC);
-    pieColors.unshift('#3b82f6');
+    pieColors.unshift('#00e5e5');
     pieLabels.unshift('Blocks + UTXO');
     pieData.unshift(sel.storageCost);
-    pieColors.unshift('#f7931a');
+    pieColors.unshift('#33ff33');
   } else if (state.prunedStorageCost === 'usb' && sel.storageCost > 0) {
     pieLabels.unshift('USB/SD (reference)');
     pieData.unshift(sel.storageCost);
-    pieColors.unshift('#f7931a');
+    pieColors.unshift('#33ff33');
   }
   if (showIndexCols && sel.indexCost > 0) {
     const insertAt = state.pruned ? 0 : 2;
     pieLabels.splice(insertAt, 0, 'Optional Indexes');
     pieData.splice(insertAt, 0, sel.indexCost);
-    pieColors.splice(insertAt, 0, '#a855f7');
+    pieColors.splice(insertAt, 0, '#ffb000');
   }
   destroyChart('pie');
   charts.pie = new Chart(document.getElementById('chartPie'), {
@@ -2036,8 +2114,8 @@ function renderChartScreenshot(key) {
   const ratio = src.width / chart.width;
   const pad = Math.round(16 * ratio);
   const titleH = Math.round(24 * ratio);
-  const bg = '#16213e';
-  const titleColor = '#f7931a';
+  const bg = '#0a100a';
+  const titleColor = '#33ff33';
 
   const out = document.createElement('canvas');
   out.width = src.width;
@@ -2046,7 +2124,7 @@ function renderChartScreenshot(key) {
   ctx.fillStyle = bg;
   ctx.fillRect(0, 0, out.width, out.height);
   ctx.fillStyle = titleColor;
-  ctx.font = `bold ${Math.round(14 * ratio)}px Inter, system-ui, sans-serif`;
+  ctx.font = `bold ${Math.round(16 * ratio)}px VT323, monospace`;
   ctx.fillText(title, pad, pad + Math.round(14 * ratio));
   ctx.drawImage(src, 0, titleH + pad);
   return out;
