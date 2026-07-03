@@ -82,7 +82,12 @@
       z-index: 50; border: 1px solid var(--bp-line); transition: opacity 0.2s; pointer-events: none;
     }
     .tooltip-wrap:hover .tip { visibility: visible; opacity: 1; }
-    .row-active { background: rgba(77, 208, 225, 0.1) !important; border-left: 3px solid var(--btc); }
+    .data-table tr.row-active td { background: rgba(77, 208, 225, 0.1) !important; }
+    .data-table td.row-active-marker {
+      box-shadow: inset 3px 0 0 var(--btc);
+      position: relative;
+      isolation: isolate;
+    }
     .sidebar-transition { transition: transform 0.3s ease, width 0.3s ease; }
     input[type="range"] { accent-color: var(--btc); }
     .kpi-card { transition: transform 0.2s, box-shadow 0.2s; }
@@ -241,8 +246,7 @@
       0% { background-position: 0 0, 0 100%, 0 0, 100% 0; }
       100% { background-position: 14px 0, -14px 100%, 0 -14px, 100% 14px; }
     }
-    tr.row-active.bp-march { position: relative; }
-    tr.row-active.bp-march::before { inset: 0; border-radius: 0; }
+    .data-table td.row-active-marker.bp-march::before { inset: 0; border-radius: 0; }
     @media (prefers-reduced-motion: no-preference) {
       .living-blueprint .kpi-card {
         animation: bp-kpi-in 0.55s ease-out backwards;
@@ -1910,9 +1914,11 @@ function updateTable() {
   const data = computeAll();
   const showIndexCols = hasOptionalIndexUI();
   const tbody = document.getElementById('dataTable');
-  tbody.innerHTML = data.map(d => `
-    <tr class="hover:bg-btc/5 cursor-pointer transition-colors ${d.year === state.selectedYear ? 'row-active bp-march' : ''} ${[2030, 2040].includes(d.year) ? 'milestone-row' : ''} ${d.isProjected ? 'row-projected' : ''}" data-year="${d.year}">
-      <td class="px-3 py-2.5 font-mono font-medium">${d.year}${d.isProjected ? '<span class="ml-1 text-[9px] text-phosphor-amber/80">proj</span>' : ''}</td>
+  tbody.innerHTML = data.map(d => {
+    const isActive = d.year === state.selectedYear;
+    return `
+    <tr class="hover:bg-btc/5 cursor-pointer transition-colors ${isActive ? 'row-active' : ''} ${[2030, 2040].includes(d.year) ? 'milestone-row' : ''} ${d.isProjected ? 'row-projected' : ''}" data-year="${d.year}">
+      <td class="px-3 py-2.5 font-mono font-medium ${isActive ? 'row-active-marker bp-march' : ''}">${d.year}${d.isProjected ? '<span class="ml-1 text-[9px] text-phosphor-amber/80">proj</span>' : ''}</td>
       <td class="px-3 py-2.5 text-right font-mono">${fmtGB(d.blocksGB)}</td>
       <td class="px-3 py-2.5 text-right font-mono text-gray-400">${fmtGB(d.utxoGB)}</td>
       <td class="px-3 py-2.5 text-right font-mono">${fmtMoney(d.storageCost, true)}</td>
@@ -1923,7 +1929,8 @@ function updateTable() {
       ${showIndexCols ? `<td class="px-3 py-2.5 text-right font-mono electrum-col ${(d.optionalIndexGB ?? 0) > 0 ? 'text-btc' : 'text-gray-500'}">${(d.optionalIndexGB ?? 0) > 0 ? fmtMoney(d.totalSetup, true) : fmtMoney(d.baseTotalSetup, true)}</td>` : ''}
       <td class="px-3 py-2.5 text-right font-mono">${fmtMoney(d.annualOpEx, true)}</td>
     </tr>
-  `).join('');
+  `;
+  }).join('');
 
   tbody.querySelectorAll('tr').forEach(tr => {
     tr.addEventListener('click', () => {
@@ -2041,7 +2048,7 @@ function selectedYearCursorPlugin() {
       if (idx < 0) return;
       const { ctx, chartArea, scales: { x } } = chart;
       if (!x || !chartArea) return;
-      const xPos = x.getPixelForValue(idx);
+      const xPos = x.getPixelForValue(labels[idx] ?? state.selectedYear);
       if (xPos < chartArea.left || xPos > chartArea.right) return;
       ctx.save();
       ctx.strokeStyle = 'rgba(77, 208, 225, 0.5)';
