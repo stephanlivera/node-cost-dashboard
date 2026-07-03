@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" class="dark blueprint-theme">
+<html lang="en" class="dark blueprint-theme living-blueprint">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
@@ -106,10 +106,11 @@
     .hero-slide {
       position: absolute; inset: 0; width: 100%; height: 100%;
       object-fit: cover; object-position: center;
-      opacity: 0; transition: opacity 0.7s ease;
+      opacity: 0; transform: scale(1.04);
+      transition: opacity 0.85s ease, transform 1.1s ease;
       filter: grayscale(0.85) sepia(0.15) hue-rotate(165deg) saturate(2.2) brightness(0.65) contrast(1.15);
     }
-    .hero-slide.active { opacity: 1; }
+    .hero-slide.active { opacity: 1; transform: scale(1); }
     .hero-overlay {
       position: absolute; inset: 0;
       background: linear-gradient(to top, rgba(12, 25, 41, 0.94) 0%, rgba(12, 25, 41, 0.4) 50%, transparent 78%);
@@ -177,6 +178,91 @@
         linear-gradient(90deg, var(--bp-grid) 1px, transparent 1px);
       background-size: 24px 24px;
       color: var(--bp-text);
+    }
+    @media (prefers-reduced-motion: no-preference) {
+      .living-blueprint body {
+        animation: bp-grid-drift 100s linear infinite;
+      }
+    }
+    @keyframes bp-grid-drift {
+      0% { background-position: 0 0, 0 0; }
+      100% { background-position: 24px 24px, 24px 24px; }
+    }
+    .bp-scan-overlay {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 35;
+      overflow: hidden;
+    }
+    .bp-scan-line {
+      position: absolute;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, transparent 0%, rgba(77, 208, 225, 0.15) 20%, rgba(77, 208, 225, 0.75) 50%, rgba(77, 208, 225, 0.15) 80%, transparent 100%);
+      box-shadow: 0 0 24px rgba(77, 208, 225, 0.45), 0 0 48px rgba(77, 208, 225, 0.15);
+      top: -8%;
+      opacity: 0;
+    }
+    .bp-scan-line.active {
+      animation: bp-scan-sweep 1.35s ease-out forwards;
+    }
+    @keyframes bp-scan-sweep {
+      0% { top: -6%; opacity: 0; }
+      8% { opacity: 1; }
+      92% { opacity: 0.5; }
+      100% { top: 106%; opacity: 0; }
+    }
+    .bp-march {
+      position: relative;
+      isolation: isolate;
+    }
+    .bp-march::before {
+      content: '';
+      position: absolute;
+      inset: -1px;
+      border-radius: inherit;
+      padding: 1px;
+      background:
+        linear-gradient(90deg, var(--btc) 0, var(--btc) 50%, transparent 50%, transparent 100%) 0 0 / 14px 2px repeat-x,
+        linear-gradient(90deg, var(--btc) 0, var(--btc) 50%, transparent 50%, transparent 100%) 0 100% / 14px 2px repeat-x,
+        linear-gradient(0deg, var(--btc) 0, var(--btc) 50%, transparent 50%, transparent 100%) 0 0 / 2px 14px repeat-y,
+        linear-gradient(0deg, var(--btc) 0, var(--btc) 50%, transparent 50%, transparent 100%) 100% 0 / 2px 14px repeat-y;
+      -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+      mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+      -webkit-mask-composite: xor;
+      mask-composite: exclude;
+      animation: bp-march 0.75s linear infinite;
+      pointer-events: none;
+      z-index: 2;
+    }
+    @keyframes bp-march {
+      0% { background-position: 0 0, 0 100%, 0 0, 100% 0; }
+      100% { background-position: 14px 0, -14px 100%, 0 -14px, 100% 14px; }
+    }
+    tr.row-active.bp-march { position: relative; }
+    tr.row-active.bp-march::before { inset: 0; border-radius: 0; }
+    @media (prefers-reduced-motion: no-preference) {
+      .living-blueprint .kpi-card {
+        animation: bp-kpi-in 0.55s ease-out backwards;
+      }
+      .living-blueprint .kpi-card:nth-child(1) { animation-delay: 0.04s; }
+      .living-blueprint .kpi-card:nth-child(2) { animation-delay: 0.08s; }
+      .living-blueprint .kpi-card:nth-child(3) { animation-delay: 0.12s; }
+      .living-blueprint .kpi-card:nth-child(4) { animation-delay: 0.16s; }
+      .living-blueprint .kpi-card:nth-child(5) { animation-delay: 0.2s; }
+    }
+    @keyframes bp-kpi-in {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .living-blueprint body { animation: none !important; }
+      .living-blueprint .kpi-card { animation: none !important; }
+      .bp-march::before { display: none; }
+      .bp-scan-line.active { animation: none !important; opacity: 0 !important; }
+      .hero-slide { transition: opacity 0.2s ease !important; transform: none !important; }
     }
     .blueprint-theme h1, .blueprint-theme h2, .blueprint-theme h3 {
       font-family: 'IBM Plex Sans', system-ui, sans-serif;
@@ -252,6 +338,10 @@
   </style>
 </head>
 <body class="bg-surface text-gray-100 font-sans min-h-screen">
+
+  <div id="bpScanOverlay" class="bp-scan-overlay" aria-hidden="true">
+    <div id="bpScanLine" class="bp-scan-line"></div>
+  </div>
 
   <!-- Navbar -->
   <nav class="sticky top-0 z-40 bg-surface-card border-b border-btc/30 pt-[env(safe-area-inset-top,0px)]">
@@ -529,7 +619,7 @@
           <p class="text-xs text-gray-400">Annual Running Cost</p>
           <p id="kpiOpEx" class="text-xl font-bold font-mono mt-1">—</p>
         </div>
-        <div class="kpi-card bg-surface-card rounded-xl p-4 border border-gray-700/50 col-span-2 lg:col-span-1">
+        <div id="kpiScoreCard" class="kpi-card kpi-spotlight bp-march bg-surface-card rounded-xl p-4 border border-gray-700/50 col-span-2 lg:col-span-1">
           <p class="text-xs text-gray-400 flex items-center gap-1">Hobbyist Affordability
             <span class="tooltip-wrap"><span class="cursor-help">ⓘ</span><span class="tip">Monthly equivalent: one-time setup amortized over 3 years + annual internet &amp; electricity, divided by 12. Tuned for homelab/hobby budgets, not enterprise hosting.</span></span>
           </p>
@@ -1681,7 +1771,7 @@ function updateTable() {
   const showIndexCols = hasOptionalIndexUI();
   const tbody = document.getElementById('dataTable');
   tbody.innerHTML = data.map(d => `
-    <tr class="hover:bg-btc/5 cursor-pointer transition-colors ${d.year === state.selectedYear ? 'row-active' : ''} ${[2030, 2040].includes(d.year) ? 'milestone-row' : ''} ${d.isProjected ? 'opacity-90' : ''}" data-year="${d.year}">
+    <tr class="hover:bg-btc/5 cursor-pointer transition-colors ${d.year === state.selectedYear ? 'row-active bp-march' : ''} ${[2030, 2040].includes(d.year) ? 'milestone-row' : ''} ${d.isProjected ? 'opacity-90' : ''}" data-year="${d.year}">
       <td class="px-3 py-2.5 font-mono font-medium">${d.year}${d.isProjected ? '<span class="ml-1 text-[9px] text-phosphor-amber/80">proj</span>' : ''}</td>
       <td class="px-3 py-2.5 text-right font-mono">${fmtGB(d.blocksGB)}</td>
       <td class="px-3 py-2.5 text-right font-mono text-gray-400">${fmtGB(d.utxoGB)}</td>
@@ -1700,6 +1790,7 @@ function updateTable() {
       state.selectedYear = +tr.dataset.year;
       document.getElementById('yearSlider').value = state.selectedYear;
       document.getElementById('yearDisplay').textContent = state.selectedYear;
+      triggerBlueprintScan();
       refresh();
     });
   });
@@ -1715,6 +1806,41 @@ function chartAxis(c, extra = {}) {
     ticks: { color: c.text, ...(extra.ticks || {}) },
     grid: { display: false },
     border: { color: c.border, display: true }
+  };
+}
+
+let chartDrawInPending = true;
+
+function prefersReducedMotion() {
+  return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+}
+
+function triggerBlueprintScan() {
+  if (prefersReducedMotion()) return;
+  const line = document.getElementById('bpScanLine');
+  if (!line) return;
+  line.classList.remove('active');
+  void line.offsetWidth;
+  line.classList.add('active');
+}
+
+function chartAnimOptions() {
+  if (prefersReducedMotion() || !chartDrawInPending) return { duration: 0 };
+  return {
+    duration: 1400,
+    easing: 'easeOutQuart',
+    delay: (ctx) => {
+      if (ctx.type !== 'data') return 0;
+      return ctx.dataIndex * 16 + (ctx.datasetIndex || 0) * 50;
+    }
+  };
+}
+
+function chartCommonOpts() {
+  return {
+    responsive: true,
+    maintainAspectRatio: false,
+    animation: chartAnimOptions()
   };
 }
 
@@ -1809,7 +1935,7 @@ function updateCharts() {
       type: 'bar',
       data: { labels: years, datasets: setupDatasets },
       options: {
-        responsive: true, maintainAspectRatio: false,
+        ...chartCommonOpts(),
         plugins: {
           legend: { labels: { color: c.text, font: { size: 11 } } },
           tooltip: {
@@ -1857,7 +1983,7 @@ function updateCharts() {
     type: 'line',
     data: { labels: years, datasets: sizeDatasets },
     options: {
-      responsive: true, maintainAspectRatio: false,
+      ...chartCommonOpts(),
       plugins: { legend: { labels: { color: c.text, boxWidth: 12, font: { size: 10 } } } },
       scales: {
         x: chartAxis(c, { ticks: { maxRotation: 45 } }),
@@ -1880,7 +2006,7 @@ function updateCharts() {
     type: 'bar',
     data: { labels: years, datasets: breakdownDatasets },
     options: {
-      responsive: true, maintainAspectRatio: false,
+      ...chartCommonOpts(),
       plugins: { legend: { labels: { color: c.text } } },
       scales: {
         x: chartAxis(c, { stacked: true }),
@@ -1914,7 +2040,7 @@ function updateCharts() {
     type: 'line',
     data: { labels: years, datasets: annualDatasets },
     options: {
-      responsive: true, maintainAspectRatio: false,
+      ...chartCommonOpts(),
       plugins: { legend: { labels: { color: c.text, boxWidth: 12, font: { size: 10 } } } },
       scales: {
         x: chartAxis(c, { ticks: { maxRotation: 45 } }),
@@ -1954,13 +2080,15 @@ function updateCharts() {
       datasets: [{ data: pieData, backgroundColor: pieColors }]
     },
     options: {
-      responsive: true, maintainAspectRatio: false,
+      ...chartCommonOpts(),
       plugins: {
         legend: { position: 'bottom', labels: { color: c.text } },
         title: { display: true, text: state.selectedYear + (showIndexCols ? ' + Indexes' : '') + (state.pruned ? ' Annual OpEx' : ' Setup + Annual OpEx'), color: c.text }
       }
     }
   });
+
+  chartDrawInPending = false;
 }
 
 function refresh() {
@@ -2291,6 +2419,7 @@ function bindEvents() {
   yearSlider.addEventListener('input', e => {
     state.selectedYear = +e.target.value;
     document.getElementById('yearDisplay').textContent = state.selectedYear;
+    triggerBlueprintScan();
     refresh();
   });
 
@@ -2302,6 +2431,7 @@ function bindEvents() {
     yearSlider.value = year;
     document.getElementById('yearDisplay').textContent = year;
     currentHeroEra = -1;
+    triggerBlueprintScan();
     refresh();
   });
 
