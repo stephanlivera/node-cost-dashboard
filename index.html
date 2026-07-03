@@ -257,12 +257,77 @@
       from { opacity: 0; transform: translateY(10px); }
       to { opacity: 1; transform: translateY(0); }
     }
+    .bp-regmarks { position: relative; }
+    .bp-regmark-corners {
+      position: absolute;
+      inset: 5px;
+      pointer-events: none;
+      z-index: 4;
+      background:
+        linear-gradient(to right, rgba(77, 208, 225, 0.5), rgba(77, 208, 225, 0.5)) 0 0 / 12px 1px no-repeat,
+        linear-gradient(to bottom, rgba(77, 208, 225, 0.5), rgba(77, 208, 225, 0.5)) 0 0 / 1px 12px no-repeat,
+        linear-gradient(to right, rgba(77, 208, 225, 0.5), rgba(77, 208, 225, 0.5)) 100% 0 / 12px 1px no-repeat,
+        linear-gradient(to bottom, rgba(77, 208, 225, 0.5), rgba(77, 208, 225, 0.5)) 100% 0 / 1px 12px no-repeat,
+        linear-gradient(to right, rgba(77, 208, 225, 0.5), rgba(77, 208, 225, 0.5)) 0 100% / 12px 1px no-repeat,
+        linear-gradient(to bottom, rgba(77, 208, 225, 0.5), rgba(77, 208, 225, 0.5)) 0 100% / 1px 12px no-repeat,
+        linear-gradient(to right, rgba(77, 208, 225, 0.5), rgba(77, 208, 225, 0.5)) 100% 100% / 12px 1px no-repeat,
+        linear-gradient(to bottom, rgba(77, 208, 225, 0.5), rgba(77, 208, 225, 0.5)) 100% 100% / 1px 12px no-repeat;
+    }
+    .year-ruler { position: relative; padding-top: 14px; }
+    .year-ruler-ticks {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 11px;
+      pointer-events: none;
+    }
+    .year-ruler-tick {
+      position: absolute;
+      bottom: 0;
+      width: 1px;
+      height: 4px;
+      background: rgba(77, 208, 225, 0.25);
+      transform: translateX(-50%);
+    }
+    .year-ruler-tick-major {
+      height: 9px;
+      background: rgba(77, 208, 225, 0.55);
+      box-shadow: 0 0 6px rgba(77, 208, 225, 0.2);
+    }
+    .year-ruler-playhead {
+      position: absolute;
+      top: 0;
+      width: 2px;
+      height: 13px;
+      background: var(--btc);
+      box-shadow: 0 0 10px var(--btc-glow);
+      transform: translateX(-50%);
+      pointer-events: none;
+      z-index: 2;
+      transition: left 0.1s ease-out;
+    }
+    .year-ruler-slider {
+      position: relative;
+      z-index: 1;
+      margin: 0;
+    }
+    tr.row-projected {
+      background-image: repeating-linear-gradient(
+        -45deg,
+        transparent,
+        transparent 5px,
+        rgba(77, 208, 225, 0.045) 5px,
+        rgba(77, 208, 225, 0.045) 10px
+      ) !important;
+    }
     @media (prefers-reduced-motion: reduce) {
       .living-blueprint body { animation: none !important; }
       .living-blueprint .kpi-card { animation: none !important; }
       .bp-march::before { display: none; }
       .bp-scan-line.active { animation: none !important; opacity: 0 !important; }
       .hero-slide { transition: opacity 0.2s ease !important; transform: none !important; }
+      .year-ruler-playhead { transition: none !important; }
     }
     .blueprint-theme h1, .blueprint-theme h2, .blueprint-theme h3 {
       font-family: 'IBM Plex Sans', system-ui, sans-serif;
@@ -445,8 +510,12 @@
         </h3>
         <div class="space-y-2">
           <label class="text-xs text-gray-400">Selected Year: <span id="yearDisplay" class="text-btc font-mono font-bold">2026</span></label>
-          <input type="range" id="yearSlider" min="2009" max="2040" value="2026" class="w-full" />
-          <div class="flex justify-between text-xs text-gray-500"><span>2009</span><span id="yearSliderMax">2040</span></div>
+          <div class="year-ruler">
+            <div class="year-ruler-ticks" id="yearRulerTicks" aria-hidden="true"></div>
+            <div class="year-ruler-playhead" id="yearPlayhead" aria-hidden="true"></div>
+            <input type="range" id="yearSlider" min="2009" max="2040" value="2026" class="year-ruler-slider w-full" />
+          </div>
+          <div class="flex justify-between text-xs text-gray-500 font-mono"><span>2009</span><span id="yearSliderMax">2040</span></div>
           <div class="grid grid-cols-2 gap-2 text-xs">
             <div><label class="text-gray-400">From</label><input type="number" id="yearFrom" min="2009" max="2040" value="2009" class="w-full mt-1 bg-surface border border-gray-600 rounded px-2 py-1"/></div>
             <div><label class="text-gray-400">To</label><input type="number" id="yearTo" min="2009" max="2040" value="2040" class="w-full mt-1 bg-surface border border-gray-600 rounded px-2 py-1"/></div>
@@ -574,7 +643,7 @@
     <main class="flex-1 p-4 lg:p-6 space-y-6 min-w-0">
 
       <!-- Hero: hardware evolution (syncs with year slider) -->
-      <section id="heroBanner" class="hero-banner rounded-xl overflow-hidden border border-btc/20 glow-btc" aria-label="Node hardware over time">
+      <section id="heroBanner" class="hero-banner bp-regmarks rounded-xl overflow-hidden border border-btc/20 glow-btc" aria-label="Node hardware over time">
         <div class="hero-slides">
           <img class="hero-slide" data-era="0" src="assets/hero/era-2009.jpg" alt="2009 era desktop PC running a Bitcoin node" loading="eager" decoding="async" />
           <img class="hero-slide" data-era="1" src="assets/hero/era-2013.jpg" alt="2013 era laptop with external hard drive" loading="lazy" decoding="async" />
@@ -596,30 +665,30 @@
 
       <!-- KPI Cards -->
       <section class="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3">
-        <div class="kpi-card bg-surface-card rounded-xl p-4 border border-gray-700/50">
+        <div class="kpi-card bp-regmarks bg-surface-card rounded-xl p-4 border border-gray-700/50">
           <p class="text-xs text-gray-400 flex items-center gap-1">Block Chain Size
             <span class="tooltip-wrap"><span class="cursor-help">ⓘ</span><span class="tip">Raw block files on disk (~750 GB in Jun 2026). UTXO/chainstate (~10–15 GB) and optional Electrum-style indexes are tracked separately below.</span></span>
           </p>
           <p id="kpiSize" class="text-xl font-bold text-btc font-mono mt-1">—</p>
           <p id="kpiSizeSub" class="text-[10px] text-gray-500 mt-0.5"></p>
         </div>
-        <div class="kpi-card bg-surface-card rounded-xl p-4 border border-gray-700/50">
+        <div class="kpi-card bp-regmarks bg-surface-card rounded-xl p-4 border border-gray-700/50">
           <p class="text-xs text-gray-400 flex items-center gap-1"><span id="kpiStorageLabelText">Min Storage Needed</span>
             <span class="tooltip-wrap"><span class="cursor-help">ⓘ</span><span class="tip" id="kpiStorageTip">Archival: (blocks + UTXO set) ×1.15 headroom, plus optional indexes.</span></span>
           </p>
           <p id="kpiMinStorage" class="text-xl font-bold font-mono mt-1">—</p>
           <p id="kpiMinStorageSub" class="text-[10px] text-gray-500 mt-0.5"></p>
         </div>
-        <div class="kpi-card bg-surface-card rounded-xl p-4 border border-gray-700/50">
+        <div class="kpi-card bp-regmarks bg-surface-card rounded-xl p-4 border border-gray-700/50">
           <p id="kpiSetupLabel" class="text-xs text-gray-400">One-Time Hardware</p>
           <p id="kpiHardware" class="text-xl font-bold font-mono mt-1">—</p>
           <p id="kpiHardwareSub" class="text-[10px] text-gray-500 mt-0.5"></p>
         </div>
-        <div class="kpi-card bg-surface-card rounded-xl p-4 border border-gray-700/50">
+        <div class="kpi-card bp-regmarks bg-surface-card rounded-xl p-4 border border-gray-700/50">
           <p class="text-xs text-gray-400">Annual Running Cost</p>
           <p id="kpiOpEx" class="text-xl font-bold font-mono mt-1">—</p>
         </div>
-        <div id="kpiScoreCard" class="kpi-card kpi-spotlight bp-march bg-surface-card rounded-xl p-4 border border-gray-700/50 col-span-2 lg:col-span-1">
+        <div id="kpiScoreCard" class="kpi-card kpi-spotlight bp-march bp-regmarks bg-surface-card rounded-xl p-4 border border-gray-700/50 col-span-2 lg:col-span-1">
           <p class="text-xs text-gray-400 flex items-center gap-1">Hobbyist Affordability
             <span class="tooltip-wrap"><span class="cursor-help">ⓘ</span><span class="tip">Monthly equivalent: one-time setup amortized over 3 years + annual internet &amp; electricity, divided by 12. Tuned for homelab/hobby budgets, not enterprise hosting.</span></span>
           </p>
@@ -629,7 +698,7 @@
       </section>
 
       <!-- Hardware Recommendation -->
-      <section id="hwRecommendationSection" class="bg-surface-card rounded-xl p-5 border border-btc/20 glow-btc">
+      <section id="hwRecommendationSection" class="bp-regmarks bg-surface-card rounded-xl p-5 border border-btc/20 glow-btc">
         <h2 id="hwSectionTitle" class="text-lg font-semibold text-btc mb-3">Hardware Recommendation</h2>
         <div class="flex flex-col md:flex-row gap-4">
           <div id="hwImage" class="hardware-img w-full md:w-48 h-36 rounded-lg overflow-hidden shrink-0">
@@ -681,7 +750,7 @@
       <!-- Charts Tab -->
       <section id="tabCharts" class="tab-panel">
         <p class="text-xs text-gray-500 mb-3">Use the clipboard or download icon on any chart to copy or save it as a PNG screenshot.</p>
-        <div id="chartSetupCard" class="bg-surface-card rounded-xl p-5 border border-btc/30 glow-btc mb-4" data-chart-card="setup">
+        <div id="chartSetupCard" class="bp-regmarks bg-surface-card rounded-xl p-5 border border-btc/30 glow-btc mb-4" data-chart-card="setup">
           <div class="flex items-start justify-between gap-2 mb-2">
             <div class="min-w-0">
               <h3 id="chartSetupTitle" class="text-base sm:text-lg font-bold text-btc">One-Time Hardware Cost Over Time</h3>
@@ -695,7 +764,7 @@
           <div class="chart-container-hero"><canvas id="chartSetup"></canvas></div>
         </div>
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          <div class="bg-surface-card rounded-xl p-4 border border-gray-700" data-chart-card="size">
+          <div class="bp-regmarks bg-surface-card rounded-xl p-4 border border-gray-700" data-chart-card="size">
             <div class="flex items-start justify-between gap-2 mb-2">
               <h3 id="chartSizeTitle" class="text-sm font-semibold text-btc">Block Chain Size Growth (GB)</h3>
               <div class="chart-actions flex shrink-0 gap-1">
@@ -705,7 +774,7 @@
             </div>
             <div class="chart-container"><canvas id="chartSize"></canvas></div>
           </div>
-          <div class="bg-surface-card rounded-xl p-4 border border-gray-700" data-chart-card="breakdown">
+          <div class="bp-regmarks bg-surface-card rounded-xl p-4 border border-gray-700" data-chart-card="breakdown">
             <div class="flex items-start justify-between gap-2 mb-2">
               <h3 class="text-sm font-semibold text-btc">Cost Breakdown Over Time</h3>
               <div class="chart-actions flex shrink-0 gap-1">
@@ -715,7 +784,7 @@
             </div>
             <div class="chart-container"><canvas id="chartBreakdown"></canvas></div>
           </div>
-          <div class="bg-surface-card rounded-xl p-4 border border-gray-700" data-chart-card="annual">
+          <div class="bp-regmarks bg-surface-card rounded-xl p-4 border border-gray-700" data-chart-card="annual">
             <div class="flex items-start justify-between gap-2 mb-2">
               <h3 class="text-sm font-semibold text-btc">Total Annualized Cost (3-yr amortized setup + OpEx)</h3>
               <div class="chart-actions flex shrink-0 gap-1">
@@ -725,7 +794,7 @@
             </div>
             <div class="chart-container"><canvas id="chartAnnual"></canvas></div>
           </div>
-          <div class="bg-surface-card rounded-xl p-4 border border-gray-700" data-chart-card="pie">
+          <div class="bp-regmarks bg-surface-card rounded-xl p-4 border border-gray-700" data-chart-card="pie">
             <div class="flex items-start justify-between gap-2 mb-2">
               <h3 class="text-sm font-semibold text-btc">Current Year Breakdown</h3>
               <div class="chart-actions flex shrink-0 gap-1">
@@ -1574,6 +1643,66 @@ function getHwRecommendation(year) {
 
 
 
+const YEAR_RULER_MILESTONES = [2013, 2018, 2026, 2030, 2040];
+
+function yearSliderRange() {
+  const slider = document.getElementById('yearSlider');
+  return { min: +slider.min, max: +slider.max };
+}
+
+function yearToSliderPct(year) {
+  const { min, max } = yearSliderRange();
+  if (max <= min) return 0;
+  return ((year - min) / (max - min)) * 100;
+}
+
+function initBlueprintRegmarks() {
+  document.querySelectorAll('.bp-regmarks').forEach(el => {
+    if (el.querySelector('.bp-regmark-corners')) return;
+    const corners = document.createElement('span');
+    corners.className = 'bp-regmark-corners';
+    corners.setAttribute('aria-hidden', 'true');
+    el.appendChild(corners);
+  });
+}
+
+function buildYearRuler() {
+  const container = document.getElementById('yearRulerTicks');
+  const slider = document.getElementById('yearSlider');
+  if (!container || !slider) return;
+  const { min, max } = yearSliderRange();
+  container.innerHTML = YEAR_RULER_MILESTONES
+    .filter(y => y >= min && y <= max)
+    .map(y => `<span class="year-ruler-tick year-ruler-tick-major" style="left:${yearToSliderPct(y)}%" title="${y}"></span>`)
+    .join('');
+  updateYearPlayhead();
+}
+
+function updateYearPlayhead() {
+  const playhead = document.getElementById('yearPlayhead');
+  if (!playhead) return;
+  playhead.style.left = yearToSliderPct(state.selectedYear) + '%';
+}
+
+let kpiPrev = { blocksGB: null, minStorage: null, hardware: null, annualOpEx: null };
+
+function animateKpiValue(el, from, to, duration, formatter) {
+  if (!el) return;
+  if (prefersReducedMotion() || from == null || from === to) {
+    el.textContent = formatter(to);
+    return;
+  }
+  const start = performance.now();
+  const step = now => {
+    const t = Math.min(1, (now - start) / duration);
+    const eased = 1 - Math.pow(1 - t, 3);
+    el.textContent = formatter(from + (to - from) * eased);
+    if (t < 1) requestAnimationFrame(step);
+    else el.textContent = formatter(to);
+  };
+  requestAnimationFrame(step);
+}
+
 function syncProjectionUI() {
   const maxY = getMaxYear();
   document.getElementById('yearSlider').max = maxY;
@@ -1585,6 +1714,7 @@ function syncProjectionUI() {
     document.getElementById('yearSlider').value = maxY;
     document.getElementById('yearDisplay').textContent = maxY;
   }
+  buildYearRuler();
   const yearToInput = document.getElementById('yearTo');
   state.yearTo = PROJECTION_THROUGH;
   yearToInput.value = PROJECTION_THROUGH;
@@ -1691,21 +1821,31 @@ function getElectrumHwNote(d) {
   return `${state.selectedYear} full setup with ${indexLabel} → recommend ${driveTB} TB ${getStorageTypeForYear(state.selectedYear).toUpperCase()}, ~$${lo}–$${hi} extra one-time for index storage.`;
 }
 
-function updateKPIs() {
+function updateKPIs(animate = false) {
   const d = getSelected();
   const withIndex = (d.optionalIndexGB ?? 0) > 0;
   const score = affordabilityScore(
     withIndex ? d.annualizedTotal : d.baseAnnualizedTotal,
     d.annualOpEx
   );
-  document.getElementById('kpiSize').textContent = fmtGB(d.blocksGB);
+  const hardwareVal = withIndex ? d.totalSetup : d.baseTotalSetup;
+  const setKpi = (elId, key, value, formatter) => {
+    const el = document.getElementById(elId);
+    if (animate && kpiPrev[key] != null && kpiPrev[key] !== value) {
+      animateKpiValue(el, kpiPrev[key], value, 420, formatter);
+    } else if (el) {
+      el.textContent = formatter(value);
+    }
+    kpiPrev[key] = value;
+  };
+  setKpi('kpiSize', 'blocksGB', d.blocksGB, fmtGB);
   const sizeSub = document.getElementById('kpiSizeSub');
   if (sizeSub) {
     sizeSub.textContent = state.pruned
       ? `Pruned — validates all, stores ${fmtGB(d.baseMinStorage)} not ${fmtGB(d.blocksGB)}`
       : `+ ${fmtGB(d.utxoGB)} UTXO set`;
   }
-  document.getElementById('kpiMinStorage').textContent = fmtGB(d.minStorage);
+  setKpi('kpiMinStorage', 'minStorage', d.minStorage, fmtGB);
   const sub = document.getElementById('kpiMinStorageSub');
   if ((d.optionalIndexGB ?? 0) > 0) {
     const bits = [];
@@ -1723,7 +1863,7 @@ function updateKPIs() {
   if (setupLabel) setupLabel.textContent = state.pruned ? 'One-Time Setup' : 'One-Time Hardware';
   const storageLabelText = document.getElementById('kpiStorageLabelText');
   if (storageLabelText) storageLabelText.textContent = state.pruned ? 'Disk Footprint' : 'Min Storage Needed';
-  document.getElementById('kpiHardware').textContent = fmtMoney(withIndex ? d.totalSetup : d.baseTotalSetup);
+  setKpi('kpiHardware', 'hardware', hardwareVal, v => fmtMoney(v));
   const hwSub = document.getElementById('kpiHardwareSub');
   if (hwSub) {
     if (state.pruned) {
@@ -1734,7 +1874,7 @@ function updateKPIs() {
       hwSub.textContent = '';
     }
   }
-  document.getElementById('kpiOpEx').textContent = fmtMoney(d.annualOpEx);
+  setKpi('kpiOpEx', 'annualOpEx', d.annualOpEx, v => fmtMoney(v));
   document.getElementById('kpiScore').textContent = score.label;
   document.getElementById('kpiScore').className = 'text-lg font-bold mt-1 ' + score.color;
   document.getElementById('kpiScoreSub').textContent = score.sub;
@@ -1771,7 +1911,7 @@ function updateTable() {
   const showIndexCols = hasOptionalIndexUI();
   const tbody = document.getElementById('dataTable');
   tbody.innerHTML = data.map(d => `
-    <tr class="hover:bg-btc/5 cursor-pointer transition-colors ${d.year === state.selectedYear ? 'row-active bp-march' : ''} ${[2030, 2040].includes(d.year) ? 'milestone-row' : ''} ${d.isProjected ? 'opacity-90' : ''}" data-year="${d.year}">
+    <tr class="hover:bg-btc/5 cursor-pointer transition-colors ${d.year === state.selectedYear ? 'row-active bp-march' : ''} ${[2030, 2040].includes(d.year) ? 'milestone-row' : ''} ${d.isProjected ? 'row-projected' : ''}" data-year="${d.year}">
       <td class="px-3 py-2.5 font-mono font-medium">${d.year}${d.isProjected ? '<span class="ml-1 text-[9px] text-phosphor-amber/80">proj</span>' : ''}</td>
       <td class="px-3 py-2.5 text-right font-mono">${fmtGB(d.blocksGB)}</td>
       <td class="px-3 py-2.5 text-right font-mono text-gray-400">${fmtGB(d.utxoGB)}</td>
@@ -1791,7 +1931,7 @@ function updateTable() {
       document.getElementById('yearSlider').value = state.selectedYear;
       document.getElementById('yearDisplay').textContent = state.selectedYear;
       triggerBlueprintScan();
-      refresh();
+      refresh({ animateKpis: true });
     });
   });
 }
@@ -1891,6 +2031,34 @@ function appendStorageBumpLine(datasets, series, label, color, dash, fillColor) 
   }
 }
 
+function selectedYearCursorPlugin() {
+  return {
+    id: 'selectedYearCursor',
+    afterDatasetsDraw(chart) {
+      const labels = chart.data.labels;
+      if (!labels?.length) return;
+      const idx = labels.indexOf(state.selectedYear);
+      if (idx < 0) return;
+      const { ctx, chartArea, scales: { x } } = chart;
+      if (!x || !chartArea) return;
+      const xPos = x.getPixelForValue(idx);
+      if (xPos < chartArea.left || xPos > chartArea.right) return;
+      ctx.save();
+      ctx.strokeStyle = 'rgba(77, 208, 225, 0.5)';
+      ctx.lineWidth = 1;
+      ctx.setLineDash([5, 4]);
+      ctx.beginPath();
+      ctx.moveTo(xPos, chartArea.top);
+      ctx.lineTo(xPos, chartArea.bottom);
+      ctx.stroke();
+      ctx.fillStyle = 'rgba(77, 208, 225, 0.9)';
+      ctx.font = '600 10px "IBM Plex Mono", monospace';
+      ctx.fillText(String(state.selectedYear), xPos + 5, chartArea.top + 13);
+      ctx.restore();
+    }
+  };
+}
+
 function milestoneLabelsPlugin() {
   return {
     id: 'milestoneLabels',
@@ -1951,7 +2119,8 @@ function updateCharts() {
           x: chartAxis(c, { stacked: true, ticks: { maxRotation: 45 } }),
           y: chartAxis(c, { stacked: true, ticks: { callback: v => '$' + Math.round(v) } })
         }
-      }
+      },
+      plugins: [selectedYearCursorPlugin()]
     });
   }
 
@@ -1990,7 +2159,7 @@ function updateCharts() {
         y: chartAxis(c, { ticks: { callback: v => fmtGB(v) } })
       }
     },
-    plugins: [milestoneLabelsPlugin()]
+    plugins: [milestoneLabelsPlugin(), selectedYearCursorPlugin()]
   });
 
   destroyChart('breakdown');
@@ -2012,7 +2181,8 @@ function updateCharts() {
         x: chartAxis(c, { stacked: true }),
         y: chartAxis(c, { stacked: true, ticks: { callback: v => '$' + v } })
       }
-    }
+    },
+    plugins: [selectedYearCursorPlugin()]
   });
 
   destroyChart('annual');
@@ -2047,7 +2217,7 @@ function updateCharts() {
         y: chartAxis(c, { ticks: { callback: v => '$' + Math.round(v) } })
       }
     },
-    plugins: [milestoneLabelsPlugin()]
+    plugins: [milestoneLabelsPlugin(), selectedYearCursorPlugin()]
   });
 
   const sel = getSelected();
@@ -2091,14 +2261,15 @@ function updateCharts() {
   chartDrawInPending = false;
 }
 
-function refresh() {
+function refresh(opts = {}) {
   syncStorageTypeHint();
   syncBasePCHint();
   syncPrunedUI();
   syncElectrumUI();
   syncProjectionUI();
   syncProjSliderLabels();
-  updateKPIs();
+  updateYearPlayhead();
+  updateKPIs(!!opts.animateKpis);
   updateTable();
   updateCharts();
 }
@@ -2396,6 +2567,7 @@ function dismissOnboarding() {
 }
 
 function bindEvents() {
+  initBlueprintRegmarks();
   initOnboarding();
   document.getElementById('onboardingDismiss')?.addEventListener('click', dismissOnboarding);
   document.getElementById('onboardingOpenSidebar')?.addEventListener('click', () => {
@@ -2419,8 +2591,9 @@ function bindEvents() {
   yearSlider.addEventListener('input', e => {
     state.selectedYear = +e.target.value;
     document.getElementById('yearDisplay').textContent = state.selectedYear;
+    updateYearPlayhead();
     triggerBlueprintScan();
-    refresh();
+    refresh({ animateKpis: true });
   });
 
   document.getElementById('heroDots')?.addEventListener('click', (e) => {
@@ -2432,7 +2605,7 @@ function bindEvents() {
     document.getElementById('yearDisplay').textContent = year;
     currentHeroEra = -1;
     triggerBlueprintScan();
-    refresh();
+    refresh({ animateKpis: true });
   });
 
   document.getElementById('yearFrom').addEventListener('change', e => {
