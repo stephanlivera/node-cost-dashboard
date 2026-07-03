@@ -40,8 +40,8 @@
       --phosphor-amber: #ffb000;
       --crt-bg: #050805;
       --crt-panel: #0a100a;
-      --crt-text: #b8ffb8;
-      --crt-muted: #4a7a4a;
+      --crt-text: #d4ffd4;
+      --crt-muted: #6aaa6a;
     }
     * { scrollbar-width: thin; scrollbar-color: var(--btc-dim) transparent; }
     ::-webkit-scrollbar { width: 6px; height: 6px; }
@@ -67,7 +67,7 @@
     input[type="range"] { accent-color: var(--btc); }
     .kpi-card { transition: transform 0.2s, box-shadow 0.2s; }
     .kpi-card:hover { transform: translateY(-2px); box-shadow: 0 0 18px rgba(51, 255, 51, 0.2); }
-    .tab-active { border-bottom: 2px solid var(--btc); color: var(--btc); text-shadow: 0 0 6px var(--btc-glow); }
+    .tab-active { border-bottom: 2px solid var(--btc); color: var(--btc); }
     .hardware-img {
       background: #050805;
       border: 1px solid var(--btc-dim);
@@ -117,7 +117,7 @@
     #projPanel { max-height: min(85vh, 720px); }
     .proj-open #projPanel { display: block; }
     .milestone-row { background: rgba(51, 255, 51, 0.05); }
-    .milestone-row td:first-child { font-weight: 700; color: var(--btc); text-shadow: 0 0 6px var(--btc-glow); }
+    .milestone-row td:first-child { font-weight: 700; color: var(--btc); }
     .chart-action-btn {
       display: inline-flex; align-items: center; justify-content: center;
       width: 36px; height: 36px; border-radius: 0;
@@ -156,8 +156,8 @@
       inset: 0;
       background: repeating-linear-gradient(
         0deg,
-        rgba(0, 0, 0, 0.18) 0px,
-        rgba(0, 0, 0, 0.18) 1px,
+        rgba(0, 0, 0, 0.09) 0px,
+        rgba(0, 0, 0, 0.09) 1px,
         transparent 1px,
         transparent 3px
       );
@@ -168,7 +168,7 @@
       content: '';
       position: fixed;
       inset: 0;
-      background: radial-gradient(ellipse at center, transparent 55%, rgba(0, 0, 0, 0.55) 100%);
+      background: radial-gradient(ellipse at center, transparent 55%, rgba(0, 0, 0, 0.35) 100%);
       pointer-events: none;
       z-index: 9997;
     }
@@ -182,7 +182,15 @@
     @media (prefers-reduced-motion: no-preference) {
       body.crt-theme { animation: crt-flicker 8s infinite; }
     }
-    .crt-theme h1, .crt-theme h2, .crt-theme h3 { font-family: 'VT323', monospace; letter-spacing: 0.04em; }
+    .crt-theme h1, .crt-theme .hero-era-label { font-family: 'VT323', monospace; letter-spacing: 0.04em; }
+    .crt-theme h2, .crt-theme h3 { font-family: 'Share Tech Mono', monospace; letter-spacing: 0.02em; }
+    .crt-theme .text-\[10px\] { font-size: 11px; line-height: 1.5; }
+    .crt-theme .text-\[11px\] { font-size: 12px; line-height: 1.5; }
+    .crt-theme .leading-relaxed,
+    .crt-theme #tabTradeoffs p,
+    .crt-theme #hwDesc,
+    .crt-theme footer p,
+    .crt-theme .text-sm.text-gray-400 { line-height: 1.55; }
     .crt-theme .rounded-xl, .crt-theme .rounded-lg { border-radius: 2px !important; }
     .crt-theme select, .crt-theme input[type="number"], .crt-theme input[type="text"] {
       border-radius: 0;
@@ -191,11 +199,11 @@
     .crt-theme .border-gray-600, .crt-theme .border-gray-700 { border-color: var(--btc-dim) !important; }
     .crt-theme .border-gray-700\/50 { border-color: rgba(26, 107, 26, 0.35) !important; }
     .crt-theme .text-gray-100 { color: var(--crt-text); }
-    .crt-theme .text-gray-200 { color: #d0ffd0; }
-    .crt-theme .text-gray-300 { color: #a0e0a0; }
+    .crt-theme .text-gray-200 { color: #e8ffe8; }
+    .crt-theme .text-gray-300 { color: #b8e8b8; }
     .crt-theme .text-gray-400 { color: var(--crt-muted); }
-    .crt-theme .text-gray-500 { color: #3d6b3d; }
-    .crt-theme .text-gray-600 { color: #2d502d; }
+    .crt-theme .text-gray-500 { color: #5a9a5a; }
+    .crt-theme .text-gray-600 { color: #3d6b3d; }
     .crt-theme .divide-gray-700\/50 > :not([hidden]) ~ :not([hidden]) { border-color: rgba(26, 107, 26, 0.3); }
     .crt-theme #btnArchival.bg-btc, .crt-theme #btnPruned.bg-btc { color: #050805 !important; text-shadow: none; }
     @media (max-width: 1023px) {
@@ -228,9 +236,8 @@
     .onboarding-step-num {
       color: var(--btc);
       font-weight: 700;
-      font-family: 'VT323', monospace;
-      font-size: 0.9rem;
-      text-shadow: 0 0 6px var(--btc-glow);
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.8125rem;
     }
   </style>
 </head>
@@ -1434,7 +1441,7 @@ function affordabilityScore(annualized, annualOpEx) {
   const monthly = annualized / 12;
   const monthlyRun = annualOpEx / 12;
   const runNote = `~${fmtMoney(monthlyRun)}/mo running · ~${fmtMoney(monthly)}/mo all-in (3-yr setup)`;
-  if (monthly < 10) return { label: 'Very Affordable', sub: runNote + ' — easy homelab hobby', color: 'text-btc phosphor-glow' };
+  if (monthly < 10) return { label: 'Very Affordable', sub: runNote + ' — easy homelab hobby', color: 'text-btc' };
   if (monthly < 25) return { label: 'Affordable', sub: runNote + ' — typical node hobbyist range', color: 'text-btc-light' };
   if (monthly < 50) return { label: 'Moderate', sub: runNote + ' — dedicated runner, still reasonable', color: 'text-phosphor-amber' };
   if (monthly < 80) return { label: 'Enthusiast', sub: runNote + ' — index-heavy or peak-era hardware', color: 'text-phosphor-cyan' };
@@ -1689,7 +1696,7 @@ function updateTable() {
 }
 
 function chartColors() {
-  return { text: '#4a7a4a', grid: 'rgba(51,255,51,0.08)', bg: 'transparent' };
+  return { text: '#6aaa6a', grid: 'rgba(51,255,51,0.1)', bg: 'transparent' };
 }
 
 function destroyChart(id) {
@@ -1752,7 +1759,7 @@ function milestoneLabelsPlugin() {
         if (val == null) return;
         ctx.save();
         ctx.fillStyle = '#33ff33';
-        ctx.font = 'bold 12px VT323';
+        ctx.font = 'bold 11px "Share Tech Mono", monospace';
         ctx.fillText(String(year), x.getPixelForValue(idx) - 12, y.getPixelForValue(val) - 8);
         ctx.restore();
       });
@@ -2124,7 +2131,7 @@ function renderChartScreenshot(key) {
   ctx.fillStyle = bg;
   ctx.fillRect(0, 0, out.width, out.height);
   ctx.fillStyle = titleColor;
-  ctx.font = `bold ${Math.round(16 * ratio)}px VT323, monospace`;
+  ctx.font = `bold ${Math.round(14 * ratio)}px "Share Tech Mono", monospace`;
   ctx.fillText(title, pad, pad + Math.round(14 * ratio));
   ctx.drawImage(src, 0, titleH + pad);
   return out;
