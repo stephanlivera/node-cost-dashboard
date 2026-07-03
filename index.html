@@ -55,26 +55,25 @@
         linear-gradient(90deg, var(--bp-grid) 1px, transparent 1px);
       background-size: 20px 20px;
     }
-    .chart-container {
-      position: relative; height: 280px;
-      background-image:
-        linear-gradient(rgba(77, 208, 225, 0.07) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(77, 208, 225, 0.07) 1px, transparent 1px);
-      background-size: 16px 16px;
-      border: 1px dashed var(--bp-line);
-      border-radius: 4px;
-    }
-    @media (min-width: 768px) { .chart-container { height: 320px; } }
+    .chart-container,
     .chart-container-hero {
-      position: relative; height: 320px;
+      position: relative;
+      background-color: rgba(15, 35, 64, 0.25);
       background-image:
-        linear-gradient(rgba(77, 208, 225, 0.07) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(77, 208, 225, 0.07) 1px, transparent 1px);
+        linear-gradient(var(--bp-grid) 1px, transparent 1px),
+        linear-gradient(90deg, var(--bp-grid) 1px, transparent 1px);
       background-size: 16px 16px;
       border: 1px dashed var(--bp-line);
       border-radius: 4px;
     }
+    .chart-container { height: 280px; }
+    @media (min-width: 768px) { .chart-container { height: 320px; } }
+    .chart-container-hero { height: 320px; }
     @media (min-width: 768px) { .chart-container-hero { height: 400px; } }
+    .chart-container canvas,
+    .chart-container-hero canvas {
+      background: transparent !important;
+    }
     .tooltip-wrap { position: relative; display: inline-flex; align-items: center; }
     .tooltip-wrap .tip {
       visibility: hidden; opacity: 0; position: absolute; bottom: calc(100% + 8px); left: 50%;
@@ -1702,7 +1701,16 @@ function updateTable() {
 }
 
 function chartColors() {
-  return { text: '#6a9bb8', grid: 'rgba(77,208,225,0.12)', bg: 'transparent' };
+  return { text: '#6a9bb8', border: 'rgba(77,208,225,0.22)', bg: 'transparent' };
+}
+
+function chartAxis(c, extra = {}) {
+  return {
+    ...(extra.stacked != null ? { stacked: extra.stacked } : {}),
+    ticks: { color: c.text, ...(extra.ticks || {}) },
+    grid: { display: false },
+    border: { color: c.border, display: true }
+  };
 }
 
 function destroyChart(id) {
@@ -1809,8 +1817,8 @@ function updateCharts() {
           }
         },
         scales: {
-          x: { stacked: true, ticks: { color: c.text, maxRotation: 45 }, grid: { color: c.grid } },
-          y: { stacked: true, ticks: { color: c.text, callback: v => '$' + Math.round(v) }, grid: { color: c.grid } }
+          x: chartAxis(c, { stacked: true, ticks: { maxRotation: 45 } }),
+          y: chartAxis(c, { stacked: true, ticks: { callback: v => '$' + Math.round(v) } })
         }
       }
     });
@@ -1847,8 +1855,8 @@ function updateCharts() {
       responsive: true, maintainAspectRatio: false,
       plugins: { legend: { labels: { color: c.text, boxWidth: 12, font: { size: 10 } } } },
       scales: {
-        x: { ticks: { color: c.text, maxRotation: 45 }, grid: { color: c.grid } },
-        y: { ticks: { color: c.text, callback: v => fmtGB(v) }, grid: { color: c.grid } }
+        x: chartAxis(c, { ticks: { maxRotation: 45 } }),
+        y: chartAxis(c, { ticks: { callback: v => fmtGB(v) } })
       }
     },
     plugins: [milestoneLabelsPlugin()]
@@ -1870,8 +1878,8 @@ function updateCharts() {
       responsive: true, maintainAspectRatio: false,
       plugins: { legend: { labels: { color: c.text } } },
       scales: {
-        x: { stacked: true, ticks: { color: c.text }, grid: { color: c.grid } },
-        y: { stacked: true, ticks: { color: c.text, callback: v => '$' + v }, grid: { color: c.grid } }
+        x: chartAxis(c, { stacked: true }),
+        y: chartAxis(c, { stacked: true, ticks: { callback: v => '$' + v } })
       }
     }
   });
@@ -1904,8 +1912,8 @@ function updateCharts() {
       responsive: true, maintainAspectRatio: false,
       plugins: { legend: { labels: { color: c.text, boxWidth: 12, font: { size: 10 } } } },
       scales: {
-        x: { ticks: { color: c.text, maxRotation: 45 }, grid: { color: c.grid } },
-        y: { ticks: { color: c.text, callback: v => '$' + Math.round(v) }, grid: { color: c.grid } }
+        x: chartAxis(c, { ticks: { maxRotation: 45 } }),
+        y: chartAxis(c, { ticks: { callback: v => '$' + Math.round(v) } })
       }
     },
     plugins: [milestoneLabelsPlugin()]
