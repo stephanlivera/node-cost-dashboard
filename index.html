@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en" class="dark crt-theme">
+<html lang="en" class="dark blueprint-theme">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <meta name="theme-color" content="#050805" />
+  <meta name="theme-color" content="#0c1929" />
   <title>Bitcoin Node Cost Tracker: 2009–2040</title>
   <link rel="icon" href="assets/favicon.ico?v=2" sizes="any" />
   <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32x32.png?v=2" />
@@ -16,14 +16,14 @@
       theme: {
         extend: {
           colors: {
-            btc: { DEFAULT: '#33ff33', dark: '#22cc22', light: '#66ff66' },
-            surface: { DEFAULT: '#050805', light: '#e8ffe8', card: '#0a100a', 'card-light': '#f0fff0' },
-            phosphor: { DEFAULT: '#33ff33', dim: '#1a6b1a', bright: '#66ff66', amber: '#ffb000', cyan: '#00e5e5' }
+            btc: { DEFAULT: '#4dd0e1', dark: '#2a9aad', light: '#7ee8f7' },
+            surface: { DEFAULT: '#0c1929', light: '#e8f4f8', card: '#0f2340', 'card-light': '#f0f8fc' },
+            phosphor: { DEFAULT: '#4dd0e1', dim: '#2a5f8f', bright: '#7ee8f7', amber: '#e8b84a', cyan: '#5ec8e8' }
           },
           fontFamily: {
-            sans: ['"Share Tech Mono"', 'monospace'],
-            mono: ['"Share Tech Mono"', 'monospace'],
-            display: ['VT323', 'monospace']
+            sans: ['"IBM Plex Sans"', 'system-ui', 'sans-serif'],
+            mono: ['"IBM Plex Mono"', 'monospace'],
+            display: ['"IBM Plex Sans"', 'system-ui', 'sans-serif']
           }
         }
       }
@@ -31,110 +31,132 @@
   </script>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=VT323&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <style>
     :root {
-      --btc: #33ff33;
-      --btc-dim: #1a6b1a;
-      --btc-glow: rgba(51, 255, 51, 0.35);
-      --phosphor-amber: #ffb000;
-      --crt-bg: #050805;
-      --crt-panel: #0a100a;
-      --crt-text: #d4ffd4;
-      --crt-muted: #6aaa6a;
+      --btc: #4dd0e1;
+      --btc-dim: #2a5f8f;
+      --btc-glow: rgba(77, 208, 225, 0.25);
+      --bp-bg: #0c1929;
+      --bp-panel: #0f2340;
+      --bp-text: #c5e4ef;
+      --bp-muted: #6a9bb8;
+      --bp-line: rgba(77, 208, 225, 0.22);
+      --bp-grid: rgba(77, 208, 225, 0.06);
     }
     * { scrollbar-width: thin; scrollbar-color: var(--btc-dim) transparent; }
     ::-webkit-scrollbar { width: 6px; height: 6px; }
-    ::-webkit-scrollbar-thumb { background: var(--btc-dim); border-radius: 0; }
-    .btc-gradient { background: linear-gradient(135deg, #33ff33 0%, #22aa22 100%); }
-    .glow-btc { box-shadow: 0 0 12px var(--btc-glow), inset 0 0 20px rgba(51, 255, 51, 0.03); }
-    .phosphor-glow { text-shadow: 0 0 8px var(--btc-glow), 0 0 20px rgba(51, 255, 51, 0.15); }
-    .chart-container { position: relative; height: 280px; }
+    ::-webkit-scrollbar-thumb { background: var(--btc-dim); border-radius: 2px; }
+    .btc-gradient { background: linear-gradient(135deg, #4dd0e1 0%, #2a7a9e 100%); }
+    .glow-btc { box-shadow: 0 0 0 1px var(--bp-line), 0 4px 24px rgba(12, 25, 41, 0.6); }
+    .blueprint-grid-bg {
+      background-image:
+        linear-gradient(var(--bp-grid) 1px, transparent 1px),
+        linear-gradient(90deg, var(--bp-grid) 1px, transparent 1px);
+      background-size: 20px 20px;
+    }
+    .chart-container {
+      position: relative; height: 280px;
+      background-image:
+        linear-gradient(rgba(77, 208, 225, 0.07) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(77, 208, 225, 0.07) 1px, transparent 1px);
+      background-size: 16px 16px;
+      border: 1px dashed var(--bp-line);
+      border-radius: 4px;
+    }
     @media (min-width: 768px) { .chart-container { height: 320px; } }
-    .chart-container-hero { position: relative; height: 320px; }
+    .chart-container-hero {
+      position: relative; height: 320px;
+      background-image:
+        linear-gradient(rgba(77, 208, 225, 0.07) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(77, 208, 225, 0.07) 1px, transparent 1px);
+      background-size: 16px 16px;
+      border: 1px dashed var(--bp-line);
+      border-radius: 4px;
+    }
     @media (min-width: 768px) { .chart-container-hero { height: 400px; } }
     .tooltip-wrap { position: relative; display: inline-flex; align-items: center; }
     .tooltip-wrap .tip {
       visibility: hidden; opacity: 0; position: absolute; bottom: calc(100% + 8px); left: 50%;
-      transform: translateX(-50%); background: #050805; color: var(--crt-text); padding: 8px 12px;
-      border-radius: 0; font-size: 11px; line-height: 1.4; width: max-content; max-width: 260px;
-      z-index: 50; border: 1px solid var(--btc-dim); transition: opacity 0.2s; pointer-events: none;
-      box-shadow: 0 0 10px rgba(51, 255, 51, 0.12);
+      transform: translateX(-50%); background: var(--bp-panel); color: var(--bp-text); padding: 8px 12px;
+      border-radius: 4px; font-size: 11px; line-height: 1.45; width: max-content; max-width: 260px;
+      z-index: 50; border: 1px solid var(--bp-line); transition: opacity 0.2s; pointer-events: none;
     }
     .tooltip-wrap:hover .tip { visibility: visible; opacity: 1; }
-    .row-active { background: rgba(51, 255, 51, 0.08) !important; border-left: 3px solid var(--btc); }
+    .row-active { background: rgba(77, 208, 225, 0.1) !important; border-left: 3px solid var(--btc); }
     .sidebar-transition { transition: transform 0.3s ease, width 0.3s ease; }
     input[type="range"] { accent-color: var(--btc); }
     .kpi-card { transition: transform 0.2s, box-shadow 0.2s; }
-    .kpi-card:hover { transform: translateY(-2px); box-shadow: 0 0 18px rgba(51, 255, 51, 0.2); }
-    .tab-active { border-bottom: 2px solid var(--btc); color: var(--btc); }
+    .kpi-card:hover { transform: translateY(-2px); box-shadow: 0 4px 20px rgba(77, 208, 225, 0.12); }
+    .tab-active { border-bottom: 2px solid var(--btc); color: var(--btc); font-weight: 600; }
     .hardware-img {
-      background: #050805;
-      border: 1px solid var(--btc-dim);
+      background: var(--bp-bg);
+      border: 1px dashed var(--bp-line);
+      border-radius: 4px;
     }
     .hardware-img img {
-      filter: sepia(0.4) hue-rotate(55deg) saturate(1.2) brightness(0.55) contrast(1.1);
+      filter: grayscale(0.85) sepia(0.15) hue-rotate(165deg) saturate(2.2) brightness(0.65) contrast(1.15);
     }
     .hero-banner {
       position: relative;
       height: clamp(168px, 30vw, 300px);
-      background: #0a100a;
+      background: var(--bp-panel);
+      border-radius: 4px;
     }
     .hero-slides { position: absolute; inset: 0; }
     .hero-slide {
       position: absolute; inset: 0; width: 100%; height: 100%;
       object-fit: cover; object-position: center;
       opacity: 0; transition: opacity 0.7s ease;
-      filter: sepia(0.4) hue-rotate(55deg) saturate(1.2) brightness(0.55) contrast(1.1);
+      filter: grayscale(0.85) sepia(0.15) hue-rotate(165deg) saturate(2.2) brightness(0.65) contrast(1.15);
     }
     .hero-slide.active { opacity: 1; }
     .hero-overlay {
       position: absolute; inset: 0;
-      background: linear-gradient(to top, rgba(5, 8, 5, 0.96) 0%, rgba(5, 8, 5, 0.45) 50%, transparent 78%);
+      background: linear-gradient(to top, rgba(12, 25, 41, 0.94) 0%, rgba(12, 25, 41, 0.4) 50%, transparent 78%);
       display: flex; flex-direction: column; justify-content: flex-end;
       padding: 1rem 1.25rem; pointer-events: none;
     }
     .hero-era-label {
-      font-family: 'VT323', monospace;
-      font-size: clamp(1.25rem, 3vw, 1.75rem);
-      font-weight: 400;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: clamp(0.95rem, 2.2vw, 1.15rem);
+      font-weight: 600;
       color: var(--btc);
-      text-shadow: 0 0 10px var(--btc-glow);
-      letter-spacing: 0.05em;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
     }
     .hero-dots {
       position: absolute; bottom: 0.85rem; right: 1rem;
       display: flex; gap: 6px; pointer-events: auto;
     }
     .hero-dot {
-      width: 10px; height: 10px; border-radius: 0;
-      background: var(--btc-dim); border: none;
+      width: 8px; height: 8px; border-radius: 50%;
+      background: var(--btc-dim); border: 1px solid var(--bp-line);
       padding: 14px; background-clip: content-box; box-sizing: content-box;
-      cursor: pointer; transition: background 0.2s, transform 0.2s;
+      cursor: pointer; transition: background 0.2s, border-color 0.2s, transform 0.2s;
     }
-    .hero-dot:hover { background: rgba(51, 255, 51, 0.5); }
-    .hero-dot.active { background: var(--btc); transform: scale(1.25); box-shadow: 0 0 8px var(--btc-glow); }
+    .hero-dot:hover { background: rgba(77, 208, 225, 0.45); border-color: var(--btc); }
+    .hero-dot.active { background: var(--btc); border-color: var(--btc); transform: scale(1.2); }
     #projPanel { max-height: min(85vh, 720px); }
     .proj-open #projPanel { display: block; }
-    .milestone-row { background: rgba(51, 255, 51, 0.05); }
+    .milestone-row { background: rgba(77, 208, 225, 0.06); }
     .milestone-row td:first-child { font-weight: 700; color: var(--btc); }
     .chart-action-btn {
       display: inline-flex; align-items: center; justify-content: center;
-      width: 36px; height: 36px; border-radius: 0;
-      border: 1px solid var(--btc-dim); color: var(--crt-muted);
+      width: 36px; height: 36px; border-radius: 4px;
+      border: 1px dashed var(--bp-line); color: var(--bp-muted);
       background: transparent; transition: color 0.15s, border-color 0.15s, background 0.15s;
     }
-    .chart-action-btn:hover { color: var(--btc); border-color: var(--btc); background: rgba(51, 255, 51, 0.08); }
+    .chart-action-btn:hover { color: var(--btc); border-color: var(--btc); border-style: solid; background: rgba(77, 208, 225, 0.08); }
     .chart-action-btn svg { width: 14px; height: 14px; }
     .export-toast {
       position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(8px);
-      padding: 10px 18px; border-radius: 0; font-size: 13px;
-      background: var(--crt-panel); color: var(--crt-text); border: 1px solid var(--btc-dim);
+      padding: 10px 18px; border-radius: 4px; font-size: 13px;
+      background: var(--bp-panel); color: var(--bp-text); border: 1px solid var(--bp-line);
       z-index: 100; opacity: 0; transition: opacity 0.25s, transform 0.25s; pointer-events: none;
-      box-shadow: 0 0 14px rgba(51, 255, 51, 0.15);
     }
     .export-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
-    .export-toast.error { border-color: rgba(255, 68, 68, 0.6); color: #ff8888; }
+    .export-toast.error { border-color: rgba(232, 93, 93, 0.6); color: #f0a0a0; }
     .data-table-viewport {
       max-height: min(calc(100vh - 5.5rem), 42rem);
       overflow: auto;
@@ -144,68 +166,52 @@
       position: sticky;
       top: 0;
       z-index: 10;
-      background: var(--crt-panel);
-      box-shadow: 0 1px 0 var(--btc-dim);
+      background: var(--bp-panel);
+      box-shadow: 0 1px 0 var(--bp-line);
     }
     .data-table { min-width: 42rem; }
-    body { overflow-x: hidden; background: var(--crt-bg); color: var(--crt-text); }
-    /* CRT scanlines + vignette */
-    body.crt-theme::before {
-      content: '';
-      position: fixed;
-      inset: 0;
-      background: repeating-linear-gradient(
-        0deg,
-        rgba(0, 0, 0, 0.09) 0px,
-        rgba(0, 0, 0, 0.09) 1px,
-        transparent 1px,
-        transparent 3px
-      );
-      pointer-events: none;
-      z-index: 9998;
+    body {
+      overflow-x: hidden;
+      background-color: var(--bp-bg);
+      background-image:
+        linear-gradient(var(--bp-grid) 1px, transparent 1px),
+        linear-gradient(90deg, var(--bp-grid) 1px, transparent 1px);
+      background-size: 24px 24px;
+      color: var(--bp-text);
     }
-    body.crt-theme::after {
-      content: '';
-      position: fixed;
-      inset: 0;
-      background: radial-gradient(ellipse at center, transparent 55%, rgba(0, 0, 0, 0.35) 100%);
-      pointer-events: none;
-      z-index: 9997;
+    .blueprint-theme h1, .blueprint-theme h2, .blueprint-theme h3 {
+      font-family: 'IBM Plex Sans', system-ui, sans-serif;
+      letter-spacing: 0.01em;
     }
-    @keyframes crt-flicker {
-      0%, 100% { opacity: 1; }
-      92% { opacity: 1; }
-      93% { opacity: 0.92; }
-      94% { opacity: 1; }
-      97% { opacity: 0.96; }
+    .blueprint-theme .text-\[10px\] { font-size: 11px; line-height: 1.5; }
+    .blueprint-theme .text-\[11px\] { font-size: 12px; line-height: 1.5; }
+    .blueprint-theme .leading-relaxed,
+    .blueprint-theme #tabTradeoffs p,
+    .blueprint-theme #hwDesc,
+    .blueprint-theme footer p,
+    .blueprint-theme .text-sm.text-gray-400 { line-height: 1.55; }
+    .blueprint-theme .kpi-card,
+    .blueprint-theme .bg-surface-card.rounded-xl {
+      border-style: dashed;
     }
-    @media (prefers-reduced-motion: no-preference) {
-      body.crt-theme { animation: crt-flicker 8s infinite; }
+    .blueprint-theme select,
+    .blueprint-theme input[type="number"],
+    .blueprint-theme input[type="text"] {
+      border-radius: 4px;
+      border-color: var(--bp-line);
     }
-    .crt-theme h1, .crt-theme .hero-era-label { font-family: 'VT323', monospace; letter-spacing: 0.04em; }
-    .crt-theme h2, .crt-theme h3 { font-family: 'Share Tech Mono', monospace; letter-spacing: 0.02em; }
-    .crt-theme .text-\[10px\] { font-size: 11px; line-height: 1.5; }
-    .crt-theme .text-\[11px\] { font-size: 12px; line-height: 1.5; }
-    .crt-theme .leading-relaxed,
-    .crt-theme #tabTradeoffs p,
-    .crt-theme #hwDesc,
-    .crt-theme footer p,
-    .crt-theme .text-sm.text-gray-400 { line-height: 1.55; }
-    .crt-theme .rounded-xl, .crt-theme .rounded-lg { border-radius: 2px !important; }
-    .crt-theme select, .crt-theme input[type="number"], .crt-theme input[type="text"] {
-      border-radius: 0;
-      border-color: var(--btc-dim);
-    }
-    .crt-theme .border-gray-600, .crt-theme .border-gray-700 { border-color: var(--btc-dim) !important; }
-    .crt-theme .border-gray-700\/50 { border-color: rgba(26, 107, 26, 0.35) !important; }
-    .crt-theme .text-gray-100 { color: var(--crt-text); }
-    .crt-theme .text-gray-200 { color: #e8ffe8; }
-    .crt-theme .text-gray-300 { color: #b8e8b8; }
-    .crt-theme .text-gray-400 { color: var(--crt-muted); }
-    .crt-theme .text-gray-500 { color: #5a9a5a; }
-    .crt-theme .text-gray-600 { color: #3d6b3d; }
-    .crt-theme .divide-gray-700\/50 > :not([hidden]) ~ :not([hidden]) { border-color: rgba(26, 107, 26, 0.3); }
-    .crt-theme #btnArchival.bg-btc, .crt-theme #btnPruned.bg-btc { color: #050805 !important; text-shadow: none; }
+    .blueprint-theme .border-gray-600,
+    .blueprint-theme .border-gray-700 { border-color: var(--bp-line) !important; }
+    .blueprint-theme .border-gray-700\/50 { border-color: rgba(42, 95, 143, 0.4) !important; }
+    .blueprint-theme .text-gray-100 { color: var(--bp-text); }
+    .blueprint-theme .text-gray-200 { color: #dceef5; }
+    .blueprint-theme .text-gray-300 { color: #a8c8d8; }
+    .blueprint-theme .text-gray-400 { color: var(--bp-muted); }
+    .blueprint-theme .text-gray-500 { color: #5a8aa8; }
+    .blueprint-theme .text-gray-600 { color: #3d6580; }
+    .blueprint-theme .divide-gray-700\/50 > :not([hidden]) ~ :not([hidden]) { border-color: rgba(42, 95, 143, 0.35); }
+    .blueprint-theme #btnArchival.bg-btc,
+    .blueprint-theme #btnPruned.bg-btc { color: #0c1929 !important; font-weight: 600; }
     @media (max-width: 1023px) {
       input, select, textarea { font-size: 16px; }
     }
@@ -219,25 +225,25 @@
       align-items: center;
     }
     .onboarding-strip {
-      background: linear-gradient(90deg, rgba(51, 255, 51, 0.06) 0%, rgba(10, 16, 10, 0.8) 55%, transparent 100%);
-      border-bottom: 1px solid var(--btc-dim);
+      background: linear-gradient(90deg, rgba(77, 208, 225, 0.08) 0%, rgba(15, 35, 64, 0.85) 55%, transparent 100%);
+      border-bottom: 1px solid var(--bp-line);
     }
     .onboarding-step {
       display: inline-flex;
       align-items: center;
       gap: 0.35rem;
       padding: 0.35rem 0.65rem;
-      border-radius: 0;
-      background: rgba(5, 8, 5, 0.6);
-      border: 1px solid var(--btc-dim);
-      color: var(--crt-text);
+      border-radius: 4px;
+      background: rgba(12, 25, 41, 0.7);
+      border: 1px dashed var(--bp-line);
+      color: var(--bp-text);
       font-size: 0.8125rem;
     }
     .onboarding-step-num {
       color: var(--btc);
-      font-weight: 700;
-      font-family: 'Share Tech Mono', monospace;
-      font-size: 0.8125rem;
+      font-weight: 600;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.75rem;
     }
   </style>
 </head>
@@ -252,7 +258,7 @@
             <svg class="w-6 h-6 text-btc" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
           </button>
           <div class="min-w-0">
-            <h1 id="pageTitle" class="text-xl sm:text-2xl font-normal text-btc phosphor-glow truncate">Bitcoin Node Cost Tracker: 2009–2040</h1>
+            <h1 id="pageTitle" class="text-lg sm:text-xl font-semibold text-btc tracking-wide truncate">Bitcoin Node Cost Tracker: 2009–2040</h1>
             <p class="text-xs sm:text-sm text-gray-400 hidden sm:block max-w-2xl">How affordable was running a Bitcoin node over time? Archival models dedicated hardware + drive; pruned assumes your existing PC ($0 setup — OpEx only). Storage + CPU/RAM + internet + elec.</p>
           </div>
         </div>
@@ -1696,7 +1702,7 @@ function updateTable() {
 }
 
 function chartColors() {
-  return { text: '#6aaa6a', grid: 'rgba(51,255,51,0.1)', bg: 'transparent' };
+  return { text: '#6a9bb8', grid: 'rgba(77,208,225,0.12)', bg: 'transparent' };
 }
 
 function destroyChart(id) {
@@ -1758,8 +1764,8 @@ function milestoneLabelsPlugin() {
         const val = chart.data.datasets[0]?.data[idx] ?? chart.data.datasets[chart.data.datasets.length - 1]?.data[idx];
         if (val == null) return;
         ctx.save();
-        ctx.fillStyle = '#33ff33';
-        ctx.font = 'bold 11px "Share Tech Mono", monospace';
+        ctx.fillStyle = '#4dd0e1';
+        ctx.font = '600 11px "IBM Plex Mono", monospace';
         ctx.fillText(String(year), x.getPixelForValue(idx) - 12, y.getPixelForValue(val) - 8);
         ctx.restore();
       });
@@ -1772,18 +1778,18 @@ function updateCharts() {
   const years = data.map(d => d.year);
   const c = chartColors();
   const showIndexCols = hasOptionalIndexUI();
-  const scenarioColors = { baseline: '#66ff66', ai_shock: '#ff4444', optimistic: '#00e5e5', pessimistic: '#4a6a4a' };
-  const projColor = scenarioColors[state.projectionScenario] || '#66ff66';
+  const scenarioColors = { baseline: '#7ee8f7', ai_shock: '#e85d5d', optimistic: '#4dd0e1', pessimistic: '#5a7a9a' };
+  const projColor = scenarioColors[state.projectionScenario] || '#7ee8f7';
   const barColor = (base, proj) => data.map(d => d.isProjected ? proj : base);
   const indexBar = showIndexCols
-    ? [{ label: 'Optional Indexes', data: data.map(d => (d.optionalIndexGB ?? 0) > 0 ? d.indexCost : 0), backgroundColor: barColor('rgba(255,176,0,0.85)', 'rgba(255,176,0,0.45)') }]
+    ? [{ label: 'Optional Indexes', data: data.map(d => (d.optionalIndexGB ?? 0) > 0 ? d.indexCost : 0), backgroundColor: barColor('rgba(232,184,74,0.85)', 'rgba(232,184,74,0.45)') }]
     : [];
 
   destroyChart('setup');
   if (!state.pruned) {
     const setupDatasets = [
-      { label: 'Blocks + UTXO', data: data.map(d => d.storageCost), backgroundColor: barColor('rgba(51,255,51,0.85)', 'rgba(51,255,51,0.4)') },
-      { label: 'CPU/RAM Kit', data: data.map(d => d.basePC), backgroundColor: barColor('rgba(0,229,229,0.75)', 'rgba(0,229,229,0.35)') },
+      { label: 'Blocks + UTXO', data: data.map(d => d.storageCost), backgroundColor: barColor('rgba(77,208,225,0.85)', 'rgba(77,208,225,0.4)') },
+      { label: 'CPU/RAM Kit', data: data.map(d => d.basePC), backgroundColor: barColor('rgba(91,143,185,0.8)', 'rgba(91,143,185,0.4)') },
       ...indexBar
     ];
     charts.setup = new Chart(document.getElementById('chartSetup'), {
@@ -1815,7 +1821,7 @@ function updateCharts() {
   const sizeDatasets = [
     {
       label: showIndexCols ? 'Blocks + UTXO (historical)' : 'Block chain (historical)',
-      data: sizeBase.hist, borderColor: '#33ff33', backgroundColor: 'rgba(51,255,51,0.08)', fill: true, tension: 0.3, pointRadius: 2
+      data: sizeBase.hist, borderColor: '#4dd0e1', backgroundColor: 'rgba(77,208,225,0.1)', fill: true, tension: 0.3, pointRadius: 2
     }
   ];
   if (state.projectionEnabled) {
@@ -1829,9 +1835,9 @@ function updateCharts() {
       sizeDatasets,
       buildStorageBumpSeries(data, d => (d.optionalIndexGB ?? 0) > 0, d => d.minStorage),
       'With optional indexes',
-      '#ffb000',
+      '#e8b84a',
       [4, 4],
-      'rgba(255,176,0,0.06)'
+      'rgba(232,184,74,0.08)'
     );
   }
   charts.size = new Chart(document.getElementById('chartSize'), {
@@ -1850,12 +1856,12 @@ function updateCharts() {
 
   destroyChart('breakdown');
   const breakdownDatasets = [
-    ...(!state.pruned ? [{ label: 'Blocks + UTXO', data: data.map(d => d.storageCost), backgroundColor: barColor('rgba(51,255,51,0.8)', 'rgba(51,255,51,0.35)') }] : []),
-    ...(state.pruned && state.prunedStorageCost === 'usb' ? [{ label: 'USB/SD (reference)', data: data.map(d => d.storageCost), backgroundColor: barColor('rgba(51,255,51,0.8)', 'rgba(51,255,51,0.35)') }] : []),
+    ...(!state.pruned ? [{ label: 'Blocks + UTXO', data: data.map(d => d.storageCost), backgroundColor: barColor('rgba(77,208,225,0.8)', 'rgba(77,208,225,0.35)') }] : []),
+    ...(state.pruned && state.prunedStorageCost === 'usb' ? [{ label: 'USB/SD (reference)', data: data.map(d => d.storageCost), backgroundColor: barColor('rgba(77,208,225,0.8)', 'rgba(77,208,225,0.35)') }] : []),
     ...indexBar,
-    ...(!state.pruned ? [{ label: 'Base HW/CPU', data: data.map(d => d.basePC), backgroundColor: barColor('rgba(0,229,229,0.65)', 'rgba(0,229,229,0.3)') }] : []),
-    { label: 'Internet (yr)', data: data.map(d => d.internetPortion * 12), backgroundColor: barColor('rgba(26,107,26,0.7)', 'rgba(26,107,26,0.4)') },
-    { label: 'Electricity (yr)', data: data.map(d => d.elecAnnual), backgroundColor: barColor('rgba(102,255,102,0.55)', 'rgba(102,255,102,0.25)') }
+    ...(!state.pruned ? [{ label: 'Base HW/CPU', data: data.map(d => d.basePC), backgroundColor: barColor('rgba(91,143,185,0.7)', 'rgba(91,143,185,0.35)') }] : []),
+    { label: 'Internet (yr)', data: data.map(d => d.internetPortion * 12), backgroundColor: barColor('rgba(61,122,184,0.7)', 'rgba(61,122,184,0.4)') },
+    { label: 'Electricity (yr)', data: data.map(d => d.elecAnnual), backgroundColor: barColor('rgba(126,200,227,0.6)', 'rgba(126,200,227,0.3)') }
   ];
   charts.breakdown = new Chart(document.getElementById('chartBreakdown'), {
     type: 'bar',
@@ -1874,7 +1880,7 @@ function updateCharts() {
   const annBase = splitHistProj(data, 'baseAnnualizedTotal');
   const annualDatasets = [{
     label: state.pruned ? 'Base Pruned (historical)' : 'Base Archival (historical)',
-    data: annBase.hist, borderColor: '#33ff33', backgroundColor: 'rgba(51,255,51,0.1)', fill: true, tension: 0.35, pointRadius: 3
+    data: annBase.hist, borderColor: '#4dd0e1', backgroundColor: 'rgba(77,208,225,0.12)', fill: true, tension: 0.35, pointRadius: 3
   }];
   if (state.projectionEnabled) {
     annualDatasets.push({
@@ -1887,7 +1893,7 @@ function updateCharts() {
       annualDatasets,
       buildStorageBumpSeries(data, d => (d.optionalIndexGB ?? 0) > 0, d => d.annualizedTotal),
       'With optional indexes',
-      '#ffb000',
+      '#e8b84a',
       [4, 4]
     );
   }
@@ -1908,24 +1914,24 @@ function updateCharts() {
   const sel = getSelected();
   let pieLabels = ['Internet/yr', 'Elec/yr'];
   let pieData = [sel.internetPortion * 12, sel.elecAnnual];
-  let pieColors = ['#1a6b1a', '#66ff66'];
+  let pieColors = ['#3d7ab8', '#7ec8e3'];
   if (!state.pruned) {
     pieLabels.unshift('Base HW');
     pieData.unshift(sel.basePC);
-    pieColors.unshift('#00e5e5');
+    pieColors.unshift('#5b8fb9');
     pieLabels.unshift('Blocks + UTXO');
     pieData.unshift(sel.storageCost);
-    pieColors.unshift('#33ff33');
+    pieColors.unshift('#4dd0e1');
   } else if (state.prunedStorageCost === 'usb' && sel.storageCost > 0) {
     pieLabels.unshift('USB/SD (reference)');
     pieData.unshift(sel.storageCost);
-    pieColors.unshift('#33ff33');
+    pieColors.unshift('#4dd0e1');
   }
   if (showIndexCols && sel.indexCost > 0) {
     const insertAt = state.pruned ? 0 : 2;
     pieLabels.splice(insertAt, 0, 'Optional Indexes');
     pieData.splice(insertAt, 0, sel.indexCost);
-    pieColors.splice(insertAt, 0, '#ffb000');
+    pieColors.splice(insertAt, 0, '#e8b84a');
   }
   destroyChart('pie');
   charts.pie = new Chart(document.getElementById('chartPie'), {
@@ -2121,8 +2127,8 @@ function renderChartScreenshot(key) {
   const ratio = src.width / chart.width;
   const pad = Math.round(16 * ratio);
   const titleH = Math.round(24 * ratio);
-  const bg = '#0a100a';
-  const titleColor = '#33ff33';
+  const bg = '#0f2340';
+  const titleColor = '#4dd0e1';
 
   const out = document.createElement('canvas');
   out.width = src.width;
@@ -2131,7 +2137,7 @@ function renderChartScreenshot(key) {
   ctx.fillStyle = bg;
   ctx.fillRect(0, 0, out.width, out.height);
   ctx.fillStyle = titleColor;
-  ctx.font = `bold ${Math.round(14 * ratio)}px "Share Tech Mono", monospace`;
+  ctx.font = `600 ${Math.round(13 * ratio)}px "IBM Plex Sans", system-ui, sans-serif`;
   ctx.fillText(title, pad, pad + Math.round(14 * ratio));
   ctx.drawImage(src, 0, titleH + pad);
   return out;
