@@ -631,10 +631,6 @@
             <input type="range" id="nodeWatts" min="5" max="150" value="15" class="w-full" />
             <span id="wattsDisplay" class="text-btc font-mono">15 W</span>
           </div>
-          <div>
-            <label class="text-gray-400">Future Growth (GB/yr projection)</label>
-            <input type="number" id="growthRate" value="90" min="30" max="150" class="w-full mt-1 bg-surface border border-gray-600 rounded px-2 py-1.5" />
-          </div>
         </div>
         <button id="btnReset" class="w-full mt-4 px-3 py-2 text-xs rounded-lg border border-btc/40 text-btc hover:bg-btc/10">Reset to Historical</button>
       </section>
@@ -1082,7 +1078,6 @@ const state = {
   internetValue: 15,
   elecPrice: null,
   nodeWatts: 15,
-  growthRate: 90,
   electrumMode: 'none',
   coreIndexes: { txindex: false, coinstatsindex: false, blockfilterindex: false },
   projectionEnabled: true,
@@ -1283,8 +1278,7 @@ function getDataEndYear() {
 
 function getBlocksGB(year) {
   if (year <= HISTORICAL_THROUGH) return lerp(RAW.blocksGB, RAW.years, year);
-  const rate = state.projectionEnabled ? state.projGrowthRate : state.growthRate;
-  return BLOCKS_ANCHOR_2026 + (year - HISTORICAL_THROUGH) * rate;
+  return BLOCKS_ANCHOR_2026 + (year - HISTORICAL_THROUGH) * state.projGrowthRate;
 }
 
 function getUtxoGB(year) {
@@ -2536,7 +2530,6 @@ function resetDefaults() {
   state.internetValue = 15;
   state.elecPrice = null;
   state.nodeWatts = 15;
-  state.growthRate = 90;
   state.electrumMode = 'none';
   state.coreIndexes = { txindex: false, coinstatsindex: false, blockfilterindex: false };
   document.querySelector('input[name="electrum"][value="none"]').checked = true;
@@ -2548,7 +2541,6 @@ function resetDefaults() {
   document.getElementById('internetValue').value = 15;
   document.getElementById('elecPrice').value = US_RATES.elec;
   document.getElementById('nodeWatts').value = 15;
-  document.getElementById('growthRate').value = 90;
   document.getElementById('storageMultDisplay').textContent = '1.0×';
   document.getElementById('wattsDisplay').textContent = '15 W';
   refresh();
@@ -2698,7 +2690,6 @@ function bindEvents() {
     document.getElementById('wattsDisplay').textContent = e.target.value + ' W';
     refresh();
   });
-  document.getElementById('growthRate').addEventListener('input', e => { state.growthRate = +e.target.value; refresh(); });
   document.getElementById('btnReset').addEventListener('click', resetDefaults);
 
   document.querySelectorAll('.tab-btn').forEach(btn => {
