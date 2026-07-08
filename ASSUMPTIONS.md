@@ -1,0 +1,198 @@
+# 2026 Ground Truth Sheet
+
+Sense-check of dashboard anchors vs external sources for **calendar year 2026** (model “present”).  
+**Sheet date:** 2026-07-09 · **Model file:** `index.html` (`RAW` + constants)  
+**Model refresh:** 2026-07-09 — applied follow-ups from this sheet (blocks, electricity, broadband)
+
+**Pass rule:** if a real “buy a node this month” total is within **~±20%** of the dashboard’s 2026 archival setup, the product story holds.
+
+---
+
+## Executive summary
+
+| Area | Model (2026, post-refresh) | External check | Status |
+|------|----------------------------|----------------|--------|
+| Block files | **753 GB** | YCharts **~752.6 GB** (2026-07-07) | **Pass** |
+| UTXO / chainstate | **12.5 GB** | Field / docs **~10–15 GB** | **Pass** |
+| Archival min storage (×1.15) | **~880 GB** | → **2 TB** SKU | **Pass** |
+| Consumer NVMe | **$130/TB** (~$260 / 2 TB) | Retail mid-tier **~$250–320** / 2 TB | **Pass** |
+| Kit (Pi / mini-PC, no data drive) | **$165** | N100 / Pi 5 kits **~$150–250** | **Pass** |
+| Archival one-time setup | **~$451** | Cart **~$400–550** | **Pass** |
+| Electricity | **18.8 ¢/kWh** | EIA residential **18.83 ¢** (Apr 2026) | **Pass** |
+| Broadband plan | **$70 / mo** | USTelecom BPI-Speed nominal **~$69–73** | **Pass** |
+| Default watts | **15 W** | Pi 5 / N100 idle–light **~8–20 W** | **Pass** (policy) |
+| Internet attribution | **15%** of plan | Judgment, not measured | **Policy** |
+| Pruned disk | **~18 GB** | **~15–25 GB** field | **Pass** |
+| Pruned setup | **$0** | Existing PC + free space | **Pass** (by design) |
+
+**Bottom line:** 2026 anchors pass after aligning electricity and broadband to latest EIA / BPI and bumping blocks to mid-2026 chain size. OpEx knobs (15% internet, 15 W) remain intentional.
+
+---
+
+## Changes applied 2026-07-09
+
+| Parameter | Before | After | Rationale |
+|-----------|--------|-------|-----------|
+| `BLOCKS_ANCHOR_2026` / `blocksGB[2026]` | 750 | **753** | YCharts ~752.62 GB on 2026-07-07 |
+| `elecPerKwh[2026]` / `US_RATES.elec` | 0.1775 (17.75¢) | **0.188 (18.8¢)** | EIA Table 5.6.A residential Apr 2026 **18.83¢** |
+| Near-term elec path 2027–30 | 0.180…0.189 | **0.191…0.200** | Smooth upward from new 2026 level |
+| `internetMonthly[2025–26]` | 74 / 75 | **70 / 70** | BPI-Speed nominal ~$69–70 (2025 BPI) |
+| Copy / footer | Jun 2026 750 GB, ~17.8¢ | Jul 2026 **753 GB**, **~18.8¢**, link to this file | Keep UI honest |
+
+Storage kit and NVMe left unchanged (already within ±20% of street).
+
+---
+
+## 1. Chain size & disk footprint
+
+### 1.1 Block files
+
+| | Value |
+|--|--------|
+| **Model** | `BLOCKS_ANCHOR_2026 = 753` · `RAW.blocksGB[2026] = 753` |
+| **External** | YCharts Bitcoin Blockchain Size: **752.62 GB** (2026-07-07) |
+| **Source** | [YCharts I:BBS](https://ycharts.com/indicators/bitcoin_blockchain_size) |
+| **Verdict** | **Pass.** |
+
+### 1.2 UTXO / chainstate
+
+| | Value |
+|--|--------|
+| **Model** | `UTXO_ANCHOR_2026 = 12.5` GB |
+| **How to re-verify** | `du -sh ~/.bitcoin/chainstate` on a synced archival node |
+| **Verdict** | **Pass** as mid-range (~10–15 GB). |
+
+### 1.3 Archival storage formula
+
+| | Value |
+|--|--------|
+| **Model** | `(blocks + UTXO) × 1.15` → **(753 + 12.5) × 1.15 ≈ 880 GB** |
+| **Drive SKU** | **2 TB** (era min since 2019) |
+| **Verdict** | **Pass.** |
+
+### 1.4 Pruned footprint
+
+| | Value |
+|--|--------|
+| **Model** | **18 GB** in 2026 (`PRUNED_SIZE_ANCHORS`) |
+| **Verdict** | **Pass.** |
+
+---
+
+## 2. Storage $/TB
+
+| | Value |
+|--|--------|
+| **Model** | `ssdPerTB[2026] = 130` → **$260 / 2 TB** + enclosure **$26** ≈ **$286** storage line |
+| **External** | Mid-tier 2 TB often **~$250–320** (Tom's Hardware tracking / deals, mid-2026) |
+| **Verdict** | **Pass** for mid-tier Gen4, not floor deals. |
+
+---
+
+## 3. Hardware kit
+
+| | Value |
+|--|--------|
+| **Model** | `basePCCost[2026] = 165` |
+| **Verdict** | **Pass** (~$150–250 street for N100 / Pi 5 class kit without data drive). |
+
+---
+
+## 4. One-time archival setup
+
+| Component | Model $ |
+|-----------|--------|
+| Storage (2 TB × $130 + enclosure) | **286** |
+| Base PC kit | **165** |
+| **Total setup (no optional indexes)** | **451** |
+
+±20% band: **$361 – $541**. Realistic carts still land here. **Pass.**
+
+---
+
+## 5. Annual OpEx (post-refresh)
+
+### 5.1 Electricity
+
+| | Value |
+|--|--------|
+| **Model** | **0.188 $/kWh** (18.8 ¢) |
+| **EIA** | **18.83 ¢** residential (April 2026, Table 5.6.A) |
+| **Source** | [EIA EPM 5.6.A](https://www.eia.gov/electricity/monthly/epm_table_grapher.php?t=epmt_5_6_a) |
+| **At 15 W** | **~(0.015 × 24 × 365 × 0.188) ≈ $24.7 / yr** |
+| **Verdict** | **Pass.** |
+
+### 5.2 Watts
+
+| | Value |
+|--|--------|
+| **Default** | **15 W** — efficient dedicated node average |
+| **Verdict** | **Pass** as policy default; use slider for desktops. |
+
+### 5.3 Internet
+
+| | Value |
+|--|--------|
+| **Model plan** | **$70 / mo** (2025–26) |
+| **BPI-Speed** | ~$72.58 (2024) → ~$69.33 (2025) nominal |
+| **Sources** | [USTelecom 2026 BPI](https://ustelecom.org/research/2026-bpi/) |
+| **15% attribution** | **$10.50 / mo** · **$126 / yr** |
+| **Verdict** | **Pass** (plan). Attribution remains a **policy knob**. |
+
+### 5.4 Combined annual OpEx (defaults)
+
+| Component | Model |
+|-----------|--------|
+| Internet (15% × $70 × 12) | **$126** |
+| Electricity (15 W × 18.8 ¢) | **~$25** |
+| **Total annual OpEx** | **~$151** |
+
+---
+
+## 6. Indexes (spot-check)
+
+| Index | Model basis | ~2026 size @ 753 GB blocks |
+|-------|-------------|----------------------------|
+| txindex | 44 / 554 of blocks | **~60 GB** |
+| blockfilterindex | 9.4 / 554 | **~13 GB** |
+| coinstatsindex | ~3 GB | **~3 GB** |
+
+```bash
+du -sh ~/.bitcoin/blocks ~/.bitcoin/chainstate ~/.bitcoin/indexes
+```
+
+Re-`du` before treating index costs as precise.
+
+---
+
+## 7. Not validated by this sheet
+
+- Historical years 2009–2025 detail  
+- Projection deflation paths 2027–2040  
+- Non-US rates · real (CPI) dollars · first-sync bandwidth  
+- That 15% internet share matches any one household  
+
+---
+
+## 8. Re-verify checklist
+
+- [x] Blocks within ±5% of YCharts  
+- [x] Chainstate in 10–15 GB band  
+- [x] 2 TB NVMe within ±20% of $260  
+- [x] Kit within ±25% of $165  
+- [x] Archival setup within ±20% of $451  
+- [x] EIA residential ¢/kWh within ±10% of model  
+- [x] BPI / plan level aligned (~$70)  
+- [x] Policy knobs (15% net, 15 W, ×1.15, 3-yr amort) documented  
+
+**Next full review:** after major Core release, large NAND price move, or new EIA/BPI annuals — target within one quarter.
+
+---
+
+## Sources (accessed ~2026-07-09)
+
+- YCharts — Bitcoin Blockchain Size  
+- EIA — Electric Power Monthly Tables 5.3 / 5.6.A (April 2026)  
+- USTelecom — Broadband Pricing Index 2024–2026  
+- Tom's Hardware — SSD price tracking & deals 2026  
+- Dashboard: `RAW`, anchors, `US_RATES`

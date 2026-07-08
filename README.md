@@ -73,9 +73,13 @@ Historical data runs through 2026; 2027–2040 uses the selected scenario.
 
 All model data lives in `index.html` inside the `RAW`, `PRUNED_SIZE_ANCHORS`, `CORE_INDEX_OPTIONS`, and `ELECTRUM_OPTIONS` arrays at the top of the `<script>` block. Edit nominal $/TB, kit costs, chain size anchors, and projection defaults there.
 
+## Model sense-check
+
+See **[ASSUMPTIONS.md](./ASSUMPTIONS.md)** for the 2026 ground-truth sheet (chain size, NVMe, kit, EIA electricity, BPI broadband) and a re-verify checklist. Anchors last reviewed **2026-07-09**.
+
 ## Sources
 
-Data synthesized from Blockchain.com, YCharts, Backblaze, [Bitcoin.org](https://bitcoin.org/en/full-node), historical HDD/SSD pricing, and 2026 NVMe retail estimates (Tom's Hardware, TrendForce). Approximations for illustration — not financial advice.
+Data synthesized from Blockchain.com, YCharts, Backblaze, [Bitcoin.org](https://bitcoin.org/en/full-node), historical HDD/SSD pricing, 2026 NVMe retail estimates (Tom's Hardware, TrendForce), EIA Electric Power Monthly, and USTelecom BPI. Approximations for illustration — not financial advice.
 
 ## License
 

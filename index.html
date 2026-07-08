@@ -687,7 +687,7 @@
           </div>
           <div>
             <label class="text-gray-400 flex items-center gap-1">Electricity $/kWh
-              <span class="tooltip-wrap"><span class="cursor-help">ⓘ</span><span class="tip">Override the year-varying U.S. residential average (EIA Table 5.3). Leave at default to follow historical 11.5¢ (2009) → ~17.8¢ (2026).</span></span>
+              <span class="tooltip-wrap"><span class="cursor-help">ⓘ</span><span class="tip">Override the year-varying U.S. residential average (EIA Table 5.3). Leave at default to follow historical 11.5¢ (2009) → ~18.8¢ (2026).</span></span>
             </label>
             <input type="number" id="elecPrice" step="0.01" class="w-full mt-1 bg-surface border border-gray-600 rounded px-2 py-1.5" />
           </div>
@@ -732,7 +732,7 @@
       <section class="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3">
         <div class="kpi-card bp-regmarks bg-surface-card rounded-xl p-4 border border-gray-700/50">
           <p class="text-xs text-gray-400 flex items-center gap-1">Block Chain Size
-            <span class="tooltip-wrap"><span class="cursor-help">ⓘ</span><span class="tip">Raw block files on disk (~750 GB in Jun 2026). UTXO/chainstate (~10–15 GB) and optional Electrum-style indexes are tracked separately below.</span></span>
+            <span class="tooltip-wrap"><span class="cursor-help">ⓘ</span><span class="tip">Raw block files on disk (~753 GB as of Jul 2026). UTXO/chainstate (~10–15 GB) and optional Electrum-style indexes are tracked separately below.</span></span>
           </p>
           <p id="kpiSize" class="text-xl font-bold text-btc font-mono mt-1">—</p>
           <p id="kpiSizeSub" class="text-[10px] text-gray-500 mt-0.5"></p>
@@ -878,7 +878,7 @@
           <div class="bg-surface-card rounded-xl p-5 border border-btc/30">
             <h3 class="text-lg font-semibold text-btc mb-3">Archival Node</h3>
             <ul class="text-sm text-gray-300 space-y-3 leading-relaxed list-none">
-              <li>Runs the full 750+ GB blockchain plus indexes.</li>
+              <li>Runs the full 750+ GB blockchain plus indexes (~753 GB as of mid-2026).</li>
               <li>Requires 2 TB storage — today that means spending roughly <strong class="text-gray-200">$450–$550</strong> on an N100 mini PC plus 2 TB SSD. Longer term, as drive prices normalize, this cost should come down.</li>
               <li>Best if you want to run an Electrum server or scan many different wallets quickly. Fast and convenient, but more expensive.</li>
             </ul>
@@ -902,7 +902,7 @@
             <div><strong class="text-gray-200">Storage price history:</strong> Bulk HDD $/TB fell from ~$110 (2009) to ~$10 (2026). Consumer NVMe was ~$50–70/TB through 2024–2025, then spiked to ~$130/TB in 2026 — the era shown for new archival builds (auto mode uses SSD from 2018+).</div>
             <div><strong class="text-gray-200">Efficient hardware:</strong> Raspberry Pi 4/5 runs Bitcoin Core with 4–8 GB RAM, replacing $500+ desktops from 2009–2012.</div>
             <div><strong class="text-gray-200">Bandwidth abundance:</strong> Unlimited home internet became standard; node traffic is a tiny fraction of monthly caps after initial sync.</div>
-            <div><strong class="text-gray-200">OpEx assumptions (USA):</strong> Internet plan cost follows USTelecom Broadband Pricing Index anchors — ~$38/mo entry broadband (2009), ~$66 (2015 popular tier), ~$52 (2020), ~$73 (2024 BPI-Speed 100–940 Mbps). Default attributes 15% of the plan to the node. Electricity uses EIA residential averages: 11.5¢/kWh (2009) → 17.8¢/kWh (2026), with ~15 W default draw (Pi/mini-PC; raise for a desktop).</div>
+            <div><strong class="text-gray-200">OpEx assumptions (USA):</strong> Internet plan cost follows USTelecom Broadband Pricing Index anchors — ~$38/mo entry broadband (2009), ~$66 (2015 popular tier), ~$52 (2020), ~$70 (2025–26 BPI-Speed 100–940 Mbps). Default attributes 15% of the plan to the node. Electricity uses EIA residential averages: 11.5¢/kWh (2009) → ~18.8¢/kWh (2026, Apr EIA), with ~15 W default draw (Pi/mini-PC; raise for a desktop).</div>
             <div><strong class="text-gray-200">Software optimization:</strong> Compact blocks, assumevalid, and better I/O let Core run on modest hardware while still validating the full chain.</div>
             <div><strong class="text-gray-200">The 2026 NAND spike:</strong> Consumer 2 TB NVMe jumped from ~$120–150 (2025 lows) to ~$250–300+ in 2026 as AI datacenters absorbed NAND supply. A 2 TB archival build today is mostly the drive, not the mini-PC.</div>
             <div><strong class="text-gray-200">The catch:</strong> Absolute chain size still grows ~50–65 GB/year. Archival nodes always need more disk — historically $/TB fell faster than the chain grew; the 2026 spike is a temporary reversal.</div>
@@ -919,7 +919,7 @@
   <div id="exportToast" class="export-toast" role="status" aria-live="polite"></div>
 
   <footer class="border-t border-gray-700 mt-8 py-6 px-4 text-center text-xs text-gray-500 max-w-[1600px] mx-auto">
-    <p class="mb-2"><strong class="text-btc">Sources & Notes:</strong> Data synthesized from Blockchain.com, YCharts, Backblaze, Bitcoin.org, historical HDD/SSD pricing; 2026 NVMe calibrated to ~$250–300/2 TB retail (Tom's Hardware, TrendForce NAND reports, Jun 2026). OpEx: EIA residential electricity (Table 5.3 / Electric Power Annual); USTelecom Broadband Pricing Index (2015–2024). Approximations for illustration.</p>
+    <p class="mb-2"><strong class="text-btc">Sources & Notes:</strong> Anchors last sense-checked <strong class="text-gray-400">2026-07-09</strong> (see <code class="text-gray-400">ASSUMPTIONS.md</code>). Chain size: YCharts / Blockchain.com (~753 GB Jul 2026). NVMe: ~$250–300/2 TB retail (Tom's Hardware, TrendForce). OpEx: EIA residential electricity Table 5.6.A (~18.8¢/kWh Apr 2026); USTelecom BPI-Speed (~$70/mo 2025–26). Approximations for illustration.</p>
     <p>All costs in nominal USD for the selected year. Electricity and internet follow U.S. national averages; your local rates may differ. Not financial advice. Built for Bitcoin educators & hodlers.</p>
   </footer>
 
@@ -927,12 +927,12 @@
 // ═══════════════════════════════════════════════════════════════
 // DATA — edit these arrays to tweak the model
 // ═══════════════════════════════════════════════════════════════
-const BLOCKS_ANCHOR_2026 = 750;
+const BLOCKS_ANCHOR_2026 = 753; // YCharts ~752.6 GB on 2026-07-07; rounded for Jul 2026 sense-check
 const UTXO_ANCHOR_2026 = 12.5; // ~10–15 GB chainstate/UTXO set in 2026
 const RAW = {
   years: [2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025, 2026, 2027, 2028, 2029, 2030],
-  // Block files only — anchored ~750 GB in Jun 2026 (Blockchain.com block data)
-  blocksGB: [0.01, 0.18, 0.35, 1.93, 9.04, 20.44, 38.68, 74.21, 122.8, 173.7, 226.8, 284.9, 352.4, 413.6, 491.2, 581.9, 668.2, 750, 828.9, 907.9, 986.8, 1065.8],
+  // Block files only — anchored ~753 GB Jul 2026 (YCharts / Blockchain.com class series)
+  blocksGB: [0.01, 0.18, 0.35, 1.93, 9.04, 20.44, 38.68, 74.21, 122.8, 173.7, 226.8, 284.9, 352.4, 413.6, 491.2, 581.9, 668.2, 753, 831.9, 910.9, 989.8, 1068.8],
   // UTXO/chainstate — ~12.5 GB in 2026; scaled proportionally for historical years
   utxoGB: [0.0001, 0.003, 0.006, 0.032, 0.151, 0.341, 0.645, 1.24, 2.05, 2.9, 3.78, 4.75, 5.87, 6.89, 8.19, 9.7, 11.14, 12.5, 13.8, 15.1, 16.4, 17.7],
   // Bulk external / NAS-grade HDD $/TB (nominal, that year)
@@ -945,10 +945,10 @@ const RAW = {
   // USB enclosure or powered USB hub for external drives
   enclosureCost: [5, 8, 10, 12, 14, 15, 16, 18, 18, 20, 20, 22, 22, 24, 24, 25, 25, 26, 26, 28, 28, 30],
   // Typical U.S. residential fixed-broadband plan ($/mo, nominal). Anchors: USTelecom BPI Consumer Choice 2015 $66 / 2020 $52;
-  // BPI-Speed (100–940 Mbps) 2023 $75 / 2024 $73; ~$38 entry broadband circa 2009 (NYT/BITS survey).
-  internetMonthly: [38, 40, 42, 45, 48, 52, 66, 64, 61, 59, 56, 52, 58, 64, 75, 73, 74, 75, 74, 73, 72, 71],
-  // EIA residential avg ¢/kWh (Table 5.3 annual + 2026 YTD); values in $/kWh
-  elecPerKwh: [0.1151, 0.1154, 0.1180, 0.1188, 0.1213, 0.1252, 0.1265, 0.1255, 0.1289, 0.1287, 0.1301, 0.1315, 0.1366, 0.1504, 0.1600, 0.1648, 0.1730, 0.1775, 0.180, 0.183, 0.186, 0.189],
+  // BPI-Speed (100–940 Mbps) ~$73 (2024), ~$69–70 (2025–26); ~$38 entry broadband circa 2009 (NYT/BITS survey).
+  internetMonthly: [38, 40, 42, 45, 48, 52, 66, 64, 61, 59, 56, 52, 58, 64, 75, 73, 70, 70, 70, 69, 69, 68],
+  // EIA residential avg $/kWh (Table 5.3 / 5.6.A). 2026 anchored to Apr 2026 residential ~18.83¢ → 0.188
+  elecPerKwh: [0.1151, 0.1154, 0.1180, 0.1188, 0.1213, 0.1252, 0.1265, 0.1255, 0.1289, 0.1287, 0.1301, 0.1315, 0.1366, 0.1504, 0.1600, 0.1648, 0.1730, 0.188, 0.191, 0.194, 0.197, 0.200],
   cpuDesc: [
     'Any spare PC (Satoshi era)', 'Any spare PC', 'Any spare PC', 'Old laptop + HDD',
     'Budget desktop', 'Used desktop', 'Mini PC / old laptop', 'NUC / mini PC',
@@ -959,7 +959,7 @@ const RAW = {
   ]
 };
 
-const US_RATES = { elec: 0.1775, internetMult: 1.0, label: 'USA' };
+const US_RATES = { elec: 0.188, internetMult: 1.0, label: 'USA' };
 
 const DRIVE_SKUS_TB = [0.5, 1, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20];
 
@@ -974,7 +974,7 @@ const CORE_INDEX_OPTIONS = {
   },
   coinstatsindex: {
     label: 'coinstatsindex', short: 'coinstats', availableFrom: 2022,
-    anchorGB: 3, anchorBlocksGB: 750,
+    anchorGB: 3, anchorBlocksGB: 753,
     debut: 'Per-height UTXO set stats + MuHash (Bitcoin Core 22+)'
   },
   blockfilterindex: {
@@ -1118,7 +1118,7 @@ const HW_RECOMMENDATIONS = [
   { until: 2017, emoji: '🖥️', title: '2015–2017: Budget Desktop / NUC', desc: '80–130 GB chain. Mini PCs and used desktops with 4 GB RAM became the sweet spot. Full archival still affordable.', cost: '~$150–250' },
   { until: 2020, emoji: '🥧', title: '2018–2020: Raspberry Pi 3/4 + External HDD', desc: 'Pi kit (~$95–120: board, PSU, case, SD card) plus a 1–2 TB USB HDD ($40–70 at the time). 180–300 GB chain, but you buy whole drives — not exact-size slices.', cost: '~$150–190' },
   { until: 2023, emoji: '🥧', title: '2021–2023: Raspberry Pi 4/5 + SSD', desc: 'Pi scalping pushed kits to $150–200. SSDs still cost more per TB than HDDs. Realistic archival build: 8 GB Pi + 2 TB SSD/NVMe + accessories.', cost: '~$220–320' },
-  { until: 2030, emoji: '⚡', title: '2024–2030: Pi 5 / N100 Mini PC + 2–4 TB NVMe', desc: '~750 GB–1 TB blocks; buy 2–4 TB NVMe for archival headroom. Pi 5 + NVMe HAT or N100 mini PC (~$150–180). Storage spiked in 2026 (~$250–300 for 2 TB NVMe); model assumes gradual recovery toward ~$90–120/2 TB by 2030.', cost: '~$400–480 today · easing to ~$250–350' },
+  { until: 2030, emoji: '⚡', title: '2024–2030: Pi 5 / N100 Mini PC + 2–4 TB NVMe', desc: '~753 GB–1 TB blocks; buy 2–4 TB NVMe for archival headroom. Pi 5 + NVMe HAT or N100 mini PC (~$150–180). Storage spiked in 2026 (~$250–300 for 2 TB NVMe); model assumes gradual recovery toward ~$90–120/2 TB by 2030.', cost: '~$400–480 today · easing to ~$250–350' },
   {
     until: 2040, emoji: '🔮', projected: true,
     title: '2031–2040: Low-Power Mini PC + 4–8 TB NVMe (projected)',
