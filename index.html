@@ -120,30 +120,90 @@
       position: absolute; inset: 0;
       background: linear-gradient(to top, rgba(12, 25, 41, 0.94) 0%, rgba(12, 25, 41, 0.4) 50%, transparent 78%);
       display: flex; flex-direction: column; justify-content: flex-end;
-      padding: 1rem 1.25rem; pointer-events: none;
+      padding: 1rem 1.25rem; padding-right: 6.5rem; pointer-events: none;
     }
     .hero-era-label {
       font-family: 'IBM Plex Mono', monospace;
-      font-size: clamp(0.95rem, 2.2vw, 1.15rem);
+      font-size: clamp(0.8rem, 2.2vw, 1.15rem);
       font-weight: 600;
       color: var(--btc);
-      letter-spacing: 0.08em;
+      letter-spacing: 0.06em;
       text-transform: uppercase;
+      line-height: 1.35;
+      max-width: 100%;
     }
     .hero-dots {
-      position: absolute; bottom: 0.85rem; right: 1rem;
-      display: flex; gap: 6px; pointer-events: auto;
+      position: absolute; bottom: 0.85rem; right: 0.65rem;
+      display: flex; gap: 2px; pointer-events: auto;
     }
     .hero-dot {
       width: 8px; height: 8px; border-radius: 50%;
       background: var(--btc-dim); border: 1px solid var(--bp-line);
       padding: 14px; background-clip: content-box; box-sizing: content-box;
       cursor: pointer; transition: background 0.2s, border-color 0.2s, transform 0.2s;
+      touch-action: manipulation;
     }
     .hero-dot:hover { background: rgba(77, 208, 225, 0.45); border-color: var(--btc); }
     .hero-dot.active { background: var(--btc); border-color: var(--btc); transform: scale(1.2); }
-    #projPanel { max-height: min(85vh, 720px); }
+    #projPanel {
+      max-height: min(85vh, 720px);
+      max-height: min(85dvh, 720px);
+    }
     .proj-open #projPanel { display: block; }
+    /* Mobile: full-height drawer above sticky nav; dynamic nav height for panel offset */
+    :root { --nav-h: 57px; }
+    @media (max-width: 1023px) {
+      #sidebar {
+        top: 0 !important;
+        height: 100% !important;
+        height: 100dvh !important;
+        z-index: 50;
+        padding-top: max(1rem, env(safe-area-inset-top, 0px));
+        padding-bottom: env(safe-area-inset-bottom, 0px);
+        box-shadow: 8px 0 32px rgba(0, 0, 0, 0.45);
+      }
+      #sidebarOverlay { z-index: 45; }
+      #projPanel {
+        top: calc(var(--nav-h) + 6px) !important;
+        right: 0.5rem !important;
+        left: 0.5rem !important;
+        width: auto !important;
+        max-height: calc(100dvh - var(--nav-h) - 12px - env(safe-area-inset-bottom, 0px));
+        z-index: 50;
+      }
+      #projPanelOverlay { z-index: 45; }
+      .export-toast {
+        bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+        max-width: calc(100vw - 2rem);
+        text-align: center;
+      }
+    }
+    body.drawer-open { overflow: hidden; }
+    .icon-hit {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 44px;
+      min-height: 44px;
+      touch-action: manipulation;
+    }
+    @media (max-width: 360px) {
+      .hero-overlay {
+        padding-right: 1rem;
+        padding-bottom: 2.85rem;
+      }
+      .hero-dots {
+        left: 0;
+        right: 0;
+        bottom: 0.35rem;
+        justify-content: center;
+      }
+    }
+    /* Avoid hover-lift jank on touch; keep affordability text readable */
+    @media (hover: none) {
+      .kpi-card:hover { transform: none; box-shadow: none; }
+    }
+    #kpiScoreSub { overflow-wrap: anywhere; word-break: break-word; }
     .milestone-row { background: rgba(77, 208, 225, 0.06); }
     .milestone-row td:first-child { font-weight: 700; color: var(--btc); }
     .chart-action-btn {
@@ -373,6 +433,8 @@
     }
     @media (max-width: 1023px) {
       input, select, textarea { font-size: 16px; }
+      /* Keep range thumbs easy to drag on touch devices */
+      input[type="range"] { min-height: 28px; }
     }
     @media (hover: none) {
       .tooltip-wrap .tip { pointer-events: none; }
@@ -417,23 +479,26 @@
     <div class="max-w-[1600px] mx-auto px-4 py-3">
       <div class="flex flex-wrap items-center justify-between gap-3">
         <div class="flex items-center gap-3 min-w-0">
-          <button id="sidebarToggle" class="lg:hidden p-2 rounded-lg hover:bg-btc/10" aria-label="Toggle sidebar">
+          <button id="sidebarToggle" class="lg:hidden icon-hit p-2 rounded-lg hover:bg-btc/10" aria-label="Open menu" aria-controls="sidebar" aria-expanded="false">
             <svg class="w-6 h-6 text-btc" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
           </button>
           <div class="min-w-0">
-            <h1 id="pageTitle" class="text-lg sm:text-xl font-semibold text-btc tracking-wide truncate">Bitcoin Node Cost Tracker: 2009–2040</h1>
+            <h1 id="pageTitle" class="text-base sm:text-xl font-semibold text-btc tracking-wide truncate">
+              <span class="sm:hidden">Node Cost Tracker</span>
+              <span class="hidden sm:inline">Bitcoin Node Cost Tracker: 2009–2040</span>
+            </h1>
             <p class="text-xs sm:text-sm text-gray-400 hidden sm:block max-w-2xl">How affordable was running a Bitcoin node over time? Archival models dedicated hardware + drive; pruned assumes your existing PC ($0 setup — OpEx only). Storage + CPU/RAM + internet + elec.</p>
           </div>
         </div>
         <div class="flex flex-wrap items-center gap-2 sm:gap-3 w-full sm:w-auto justify-start sm:justify-end">
           <span class="hidden sm:inline px-3 py-1.5 text-xs sm:text-sm rounded-lg border border-gray-600 bg-surface-card text-gray-300">🇺🇸 USA · Nominal USD</span>
-          <span class="sm:hidden px-2.5 py-1.5 text-xs rounded-lg border border-gray-600 bg-surface-card text-gray-300">🇺🇸 USA</span>
+          <span class="sm:hidden px-2.5 py-1.5 text-xs rounded-lg border border-gray-600 bg-surface-card text-gray-300" title="USA · Nominal USD">🇺🇸 USA</span>
           <div class="flex rounded-lg overflow-hidden border border-gray-600 text-xs">
-            <button id="btnArchival" class="px-3 py-2.5 sm:py-1.5 bg-btc text-black font-medium">Archival</button>
-            <button id="btnPruned" class="px-3 py-2.5 sm:py-1.5 bg-surface-card hover:bg-btc/10">Pruned</button>
+            <button id="btnArchival" class="px-3 py-2.5 sm:py-1.5 bg-btc text-black font-medium touch-manipulation">Archival</button>
+            <button id="btnPruned" class="px-3 py-2.5 sm:py-1.5 bg-surface-card hover:bg-btc/10 touch-manipulation">Pruned</button>
           </div>
-          <button id="btnProjPanel" class="px-3 py-2.5 sm:py-1.5 text-xs rounded-lg border border-btc/60 bg-btc/10 text-btc hover:bg-btc/20 font-medium"><span class="sm:hidden">2040</span><span class="hidden sm:inline">Projections to 2040</span></button>
-          <button id="btnShare" class="px-3 py-2.5 sm:py-1.5 text-xs rounded-lg border border-gray-600 hover:border-btc" title="Copy or share a link to this view">Share</button>
+          <button id="btnProjPanel" class="px-3 py-2.5 sm:py-1.5 text-xs rounded-lg border border-btc/60 bg-btc/10 text-btc hover:bg-btc/20 font-medium touch-manipulation"><span class="sm:hidden">2040</span><span class="hidden sm:inline">Projections to 2040</span></button>
+          <button id="btnShare" class="px-3 py-2.5 sm:py-1.5 text-xs rounded-lg border border-gray-600 hover:border-btc touch-manipulation" title="Copy or share a link to this view">Share</button>
         </div>
       </div>
     </div>
@@ -454,15 +519,15 @@
           Toggle <span class="text-btc font-medium">Archival</span> or <span class="text-gray-200 font-medium">Pruned</span>
         </span>
       </div>
-      <button type="button" id="onboardingDismiss" class="shrink-0 px-3 py-1.5 text-xs rounded-lg border border-gray-600 text-gray-300 hover:border-btc hover:text-btc transition-colors">Got it</button>
+      <button type="button" id="onboardingDismiss" class="shrink-0 px-3 py-2.5 sm:py-1.5 text-xs rounded-lg border border-gray-600 text-gray-300 hover:border-btc hover:text-btc transition-colors touch-manipulation">Got it</button>
     </div>
   </div>
 
   <!-- 2040 Projection Panel (top-right) -->
-  <div id="projPanel" class="hidden fixed right-2 sm:right-4 top-[60px] z-50 w-[min(100vw-1rem,420px)] bg-surface-card border border-btc/30 rounded-xl shadow-2xl overflow-y-auto proj-panel">
+  <div id="projPanel" class="hidden fixed right-2 sm:right-4 top-[60px] z-50 w-[min(100vw-1rem,420px)] bg-surface-card border border-btc/30 rounded-xl shadow-2xl overflow-y-auto proj-panel" role="dialog" aria-modal="true" aria-labelledby="projPanelTitle">
     <div class="sticky top-0 bg-surface-card border-b border-btc/20 px-4 py-3 flex justify-between items-center">
-      <h2 class="text-sm font-bold text-btc">Projections to 2040</h2>
-      <button id="btnProjClose" class="text-gray-400 hover:text-btc text-xl leading-none">&times;</button>
+      <h2 id="projPanelTitle" class="text-sm font-bold text-btc">Projections to 2040</h2>
+      <button id="btnProjClose" class="icon-hit text-gray-400 hover:text-btc text-2xl leading-none rounded-lg" aria-label="Close projections panel">&times;</button>
     </div>
     <div class="p-4 space-y-4 text-xs">
       <div>
@@ -503,8 +568,8 @@
 
   <div class="flex max-w-[1600px] mx-auto">
     <!-- Sidebar -->
-    <aside id="sidebar" class="sidebar-transition fixed lg:sticky top-[57px] left-0 z-30 w-72 h-[calc(100vh-57px)] bg-surface-card border-r border-btc/10 overflow-y-auto -translate-x-full lg:translate-x-0 p-4 space-y-5">
-      <button id="sidebarClose" class="lg:hidden absolute top-2 right-2 p-1 text-gray-400 hover:text-btc">&times;</button>
+    <aside id="sidebar" class="sidebar-transition fixed lg:sticky top-[57px] left-0 z-30 w-72 h-[calc(100vh-57px)] bg-surface-card border-r border-btc/10 overflow-y-auto -translate-x-full lg:translate-x-0 p-4 space-y-5" aria-label="Controls">
+      <button id="sidebarClose" class="lg:hidden absolute top-2 right-2 icon-hit text-gray-400 hover:text-btc text-2xl leading-none rounded-lg" aria-label="Close menu">&times;</button>
 
       <!-- Year Range -->
       <section>
@@ -2565,15 +2630,88 @@ function dismissOnboarding() {
   document.getElementById('onboardingStrip')?.classList.add('hidden');
 }
 
+function syncNavOffset() {
+  const nav = document.querySelector('nav');
+  if (!nav) return;
+  const h = Math.ceil(nav.getBoundingClientRect().height);
+  document.documentElement.style.setProperty('--nav-h', `${h}px`);
+}
+
+function isMobileChrome() {
+  return window.matchMedia('(max-width: 1023px)').matches;
+}
+
+function isSidebarOpen() {
+  const sidebar = document.getElementById('sidebar');
+  return sidebar && !sidebar.classList.contains('-translate-x-full') && isMobileChrome();
+}
+
+function isProjOpen() {
+  const panel = document.getElementById('projPanel');
+  return panel && !panel.classList.contains('hidden');
+}
+
+function syncBodyScrollLock() {
+  const locked = isSidebarOpen() || isProjOpen();
+  document.body.classList.toggle('drawer-open', locked);
+}
+
+function openSidebar() {
+  const sidebar = document.getElementById('sidebar');
+  const overlay = document.getElementById('sidebarOverlay');
+  const toggle = document.getElementById('sidebarToggle');
+  if (sidebar) sidebar.classList.remove('-translate-x-full');
+  if (overlay) overlay.classList.remove('hidden');
+  if (toggle) toggle.setAttribute('aria-expanded', 'true');
+  syncBodyScrollLock();
+}
+
+function closeSidebar() {
+  const sidebar = document.getElementById('sidebar');
+  const overlay = document.getElementById('sidebarOverlay');
+  const toggle = document.getElementById('sidebarToggle');
+  if (sidebar) sidebar.classList.add('-translate-x-full');
+  if (overlay) overlay.classList.add('hidden');
+  if (toggle) toggle.setAttribute('aria-expanded', 'false');
+  syncBodyScrollLock();
+}
+
+function openProj() {
+  document.getElementById('projPanel')?.classList.remove('hidden');
+  document.getElementById('projPanelOverlay')?.classList.remove('hidden');
+  syncNavOffset();
+  syncBodyScrollLock();
+  document.getElementById('btnProjClose')?.focus();
+}
+
+function closeProj() {
+  document.getElementById('projPanel')?.classList.add('hidden');
+  document.getElementById('projPanelOverlay')?.classList.add('hidden');
+  syncBodyScrollLock();
+}
+
 function bindEvents() {
   initBlueprintRegmarks();
   initOnboarding();
+  syncNavOffset();
+  window.addEventListener('resize', () => {
+    syncNavOffset();
+    const overlay = document.getElementById('sidebarOverlay');
+    if (!isMobileChrome()) {
+      // Desktop: sidebar always visible; clear mobile drawer chrome
+      overlay?.classList.add('hidden');
+      document.getElementById('sidebar')?.classList.remove('-translate-x-full');
+      document.getElementById('sidebarToggle')?.setAttribute('aria-expanded', 'false');
+    } else if (overlay?.classList.contains('hidden')) {
+      // Crossing into mobile: start with drawer closed unless it was open
+      document.getElementById('sidebar')?.classList.add('-translate-x-full');
+      document.getElementById('sidebarToggle')?.setAttribute('aria-expanded', 'false');
+    }
+    syncBodyScrollLock();
+  });
   document.getElementById('onboardingDismiss')?.addEventListener('click', dismissOnboarding);
   document.getElementById('onboardingOpenSidebar')?.addEventListener('click', () => {
-    const sidebar = document.getElementById('sidebar');
-    const overlay = document.getElementById('sidebarOverlay');
-    if (sidebar) sidebar.classList.remove('-translate-x-full');
-    if (overlay) overlay.classList.remove('hidden');
+    openSidebar();
     document.getElementById('yearSlider')?.focus();
   });
 
@@ -2584,6 +2722,12 @@ function bindEvents() {
       if (w !== wrap) w.classList.remove('tip-open');
     });
     if (wrap) wrap.classList.toggle('tip-open');
+  });
+
+  document.addEventListener('keydown', e => {
+    if (e.key !== 'Escape') return;
+    if (isProjOpen()) { closeProj(); return; }
+    if (isSidebarOpen()) closeSidebar();
   });
 
   const yearSlider = document.getElementById('yearSlider');
@@ -2646,13 +2790,9 @@ function bindEvents() {
     });
   });
 
-  const projPanel = document.getElementById('projPanel');
-  const projOverlay = document.getElementById('projPanelOverlay');
-  const openProj = () => { projPanel.classList.remove('hidden'); projOverlay.classList.remove('hidden'); };
-  const closeProj = () => { projPanel.classList.add('hidden'); projOverlay.classList.add('hidden'); };
   document.getElementById('btnProjPanel').addEventListener('click', openProj);
   document.getElementById('btnProjClose').addEventListener('click', closeProj);
-  projOverlay.addEventListener('click', closeProj);
+  document.getElementById('projPanelOverlay').addEventListener('click', closeProj);
 
   document.getElementById('projScenario').addEventListener('change', e => { state.projectionScenario = e.target.value; refresh(); });
   document.getElementById('btnProjReset').addEventListener('click', resetProjSlidersUI);
@@ -2718,15 +2858,14 @@ function bindEvents() {
   });
   document.getElementById('btnShare').addEventListener('click', () => shareDashboardLink());
 
-  const sidebar = document.getElementById('sidebar');
-  const overlay = document.getElementById('sidebarOverlay');
-  const closeSidebar = () => { sidebar.classList.add('-translate-x-full'); overlay.classList.add('hidden'); };
-  document.getElementById('sidebarToggle').addEventListener('click', () => { sidebar.classList.remove('-translate-x-full'); overlay.classList.remove('hidden'); });
+  document.getElementById('sidebarToggle').addEventListener('click', openSidebar);
   document.getElementById('sidebarClose').addEventListener('click', closeSidebar);
-  overlay.addEventListener('click', closeSidebar);
-  yearSlider.addEventListener('change', closeSidebar);
+  document.getElementById('sidebarOverlay').addEventListener('click', closeSidebar);
+  // Close drawer after year pick on mobile (change fires once on release)
+  yearSlider.addEventListener('change', () => { if (isMobileChrome()) closeSidebar(); });
 
   applyUrlParams(new URLSearchParams(location.search));
+  requestAnimationFrame(syncNavOffset);
 }
 
 /** URL params override saved form state; otherwise read sidebar controls into state */
