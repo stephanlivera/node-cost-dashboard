@@ -622,7 +622,7 @@
           </label>
           <label class="flex items-start gap-2 p-2 rounded-lg border border-transparent hover:border-btc/30 cursor-pointer electrum-opt">
             <input type="radio" name="electrum" value="electrs" class="mt-0.5 accent-btc" />
-            <span><span class="font-medium text-gray-200">electrs Light</span> <span class="text-btc/80 text-[10px]">~10% of blocks · from 2019</span></span>
+            <span><span class="font-medium text-gray-200">electrs Light</span> <span class="text-btc/80 text-[10px]">~10% of blocks · from 2018</span></span>
           </label>
           <label class="flex items-start gap-2 p-2 rounded-lg border border-transparent hover:border-btc/30 cursor-pointer electrum-opt">
             <input type="radio" name="electrum" value="fulcrum" class="mt-0.5 accent-btc" />
@@ -642,10 +642,10 @@
         <div class="space-y-3 text-xs">
           <div>
             <label class="text-gray-400 flex items-center gap-1">Storage Type
-              <span class="tooltip-wrap"><span class="cursor-help">ⓘ</span><span class="tip">Auto uses HDD before 2018, SSD from 2018 onward (when SSDs became practical for node storage). You always buy a whole drive (1–4 TB), not exact chain size.</span></span>
+              <span class="tooltip-wrap"><span class="cursor-help">ⓘ</span><span class="tip">Auto uses HDD through 2020, SSD from 2021 (usual archival recommendation). Whole-drive SKUs only: min 0.5 TB → 1 TB (2015+) → 2 TB (2019+ future-proofing). USB enclosure charged 2012–2023 only.</span></span>
             </label>
             <select id="storageType" class="w-full mt-1 bg-surface border border-gray-600 rounded px-2 py-1.5">
-              <option value="auto" selected>Auto (SSD from 2018)</option>
+              <option value="auto" selected>Auto (SSD from 2021)</option>
               <option value="hdd">HDD (era $/TB)</option>
               <option value="ssd">SSD (era $/TB)</option>
               <option value="hybrid">Hybrid SSD+HDD blend</option>
@@ -692,9 +692,12 @@
             <input type="number" id="elecPrice" step="0.01" class="w-full mt-1 bg-surface border border-gray-600 rounded px-2 py-1.5" />
           </div>
           <div>
-            <label class="text-gray-400">Node Power Draw (watts)</label>
+            <label class="text-gray-400 flex items-center gap-1">Node Power Draw (watts)
+              <span class="tooltip-wrap"><span class="cursor-help">ⓘ</span><span class="tip">Auto follows the hardware era (desktop ~40–55 W → NUC ~25 W → Pi ~12 W → modern mini PC ~15 W). Drag to override; Reset restores auto.</span></span>
+            </label>
             <input type="range" id="nodeWatts" min="5" max="150" value="15" class="w-full" />
-            <span id="wattsDisplay" class="text-btc font-mono">15 W</span>
+            <span id="wattsDisplay" class="text-btc font-mono">15 W (auto)</span>
+            <p id="wattsHint" class="text-[10px] text-gray-500 mt-1"></p>
           </div>
         </div>
         <button id="btnReset" class="w-full mt-4 px-3 py-2 text-xs rounded-lg border border-btc/40 text-btc hover:bg-btc/10">Reset to Historical</button>
@@ -710,21 +713,20 @@
       <!-- Hero: hardware evolution (syncs with year slider) -->
       <section id="heroBanner" class="hero-banner bp-regmarks rounded-xl overflow-hidden border border-btc/20 glow-btc" aria-label="Node hardware over time">
         <div class="hero-slides">
+          <!-- Slides are rewired from HERO_ERAS / PRUNED_HERO_ERAS; extras reuse assets for finer era bands -->
           <img class="hero-slide" data-era="0" src="assets/hero/era-2009.jpg" alt="2009 era desktop PC running a Bitcoin node" loading="eager" decoding="async" />
           <img class="hero-slide" data-era="1" src="assets/hero/era-2013.jpg" alt="2013 era laptop with external hard drive" loading="lazy" decoding="async" />
-          <img class="hero-slide" data-era="2" src="assets/hero/era-2018.jpg" alt="2018 era Raspberry Pi node" loading="lazy" decoding="async" />
-          <img class="hero-slide" data-era="3" src="assets/hero/era-2026.jpg" alt="2026 era mini PC node" loading="lazy" decoding="async" />
-          <img class="hero-slide" data-era="4" src="assets/hero/era-2035.jpg" alt="2035 era projected mini PC with 4-8 TB NVMe node" loading="lazy" decoding="async" />
+          <img class="hero-slide" data-era="2" src="assets/hero/era-2013.jpg" alt="2015 era desktop or NUC node" loading="lazy" decoding="async" />
+          <img class="hero-slide" data-era="3" src="assets/hero/era-2018.jpg" alt="2018 era Raspberry Pi node with HDD" loading="lazy" decoding="async" />
+          <img class="hero-slide" data-era="4" src="assets/hero/era-2018.jpg" alt="2021 era Raspberry Pi node with SSD" loading="lazy" decoding="async" />
+          <img class="hero-slide" data-era="5" src="assets/hero/era-2026.jpg" alt="2026 era mini PC node with NVMe" loading="lazy" decoding="async" />
+          <img class="hero-slide" data-era="6" src="assets/hero/era-2035.jpg" alt="2035 era projected mini PC with 4-8 TB NVMe node" loading="lazy" decoding="async" />
         </div>
         <div class="hero-overlay">
           <p id="heroEraLabel" class="hero-era-label">—</p>
         </div>
         <div class="hero-dots" id="heroDots" role="tablist" aria-label="Hardware era">
-          <button type="button" class="hero-dot" data-era="0" data-year="2010" aria-label="2009–2011" title="2009–2011"></button>
-          <button type="button" class="hero-dot" data-era="1" data-year="2013" aria-label="2012–2014" title="2012–2014"></button>
-          <button type="button" class="hero-dot" data-era="2" data-year="2018" aria-label="2015–2020" title="2015–2020"></button>
-          <button type="button" class="hero-dot" data-era="3" data-year="2026" aria-label="2021–2030" title="2021–2030"></button>
-          <button type="button" class="hero-dot" data-era="4" data-year="2035" aria-label="2031–2040 projected" title="2031–2040 (projected)"></button>
+          <!-- Rebuilt by updateHeroBanner() -->
         </div>
       </section>
 
@@ -732,7 +734,7 @@
       <section class="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3">
         <div class="kpi-card bp-regmarks bg-surface-card rounded-xl p-4 border border-gray-700/50">
           <p class="text-xs text-gray-400 flex items-center gap-1">Block Chain Size
-            <span class="tooltip-wrap"><span class="cursor-help">ⓘ</span><span class="tip">Raw block files on disk (~753 GB as of Jul 2026). UTXO/chainstate (~10–15 GB) and optional Electrum-style indexes are tracked separately below.</span></span>
+            <span class="tooltip-wrap"><span class="cursor-help">ⓘ</span><span class="tip">Raw block files on disk (~753 GB as of Jul 2026). UTXO/chainstate (~12.5 GB model) and optional Electrum-style indexes are tracked separately below.</span></span>
           </p>
           <p id="kpiSize" class="text-xl font-bold text-btc font-mono mt-1">—</p>
           <p id="kpiSizeSub" class="text-[10px] text-gray-500 mt-0.5"></p>
@@ -898,15 +900,16 @@
         <details class="bg-surface-card rounded-xl border border-gray-700 group">
           <summary class="p-4 cursor-pointer font-semibold text-btc hover:bg-btc/5 rounded-xl">Why It Got Cheaper — FAQ</summary>
           <div class="px-4 pb-4 text-sm text-gray-400 space-y-3">
-            <div><strong class="text-gray-200">2009–2011 spare-PC era:</strong> Early nodes reused desktops you already owned — we show ~$50 marginal kit cost, not a $400 laptop purchase. Dedicated hardware pricing kicks in from 2012 as the chain grew.</div>
-            <div><strong class="text-gray-200">Storage price history:</strong> Bulk HDD $/TB fell from ~$110 (2009) to ~$10 (2026). Consumer NVMe was ~$50–70/TB through 2024–2025, then spiked to ~$130/TB in 2026 — the era shown for new archival builds (auto mode uses SSD from 2018+).</div>
-            <div><strong class="text-gray-200">Efficient hardware:</strong> Raspberry Pi 4/5 runs Bitcoin Core with 4–8 GB RAM, replacing $500+ desktops from 2009–2012.</div>
+            <div><strong class="text-gray-200">2009–2011 spare-PC era:</strong> Early nodes reused desktops you already owned — kit is ~$50 marginal (cables/wear), not a new PC. Setup totals ~$100–110 because the model still prices a small data drive. Dedicated kit pricing starts in 2012 as the chain left the MB scale.</div>
+            <div><strong class="text-gray-200">Storage price history:</strong> Bulk HDD $/TB fell from ~$110 (2009) to ~$10 (2026). Consumer SSD/NVMe was ~$50–70/TB through 2024–2025, then spiked to ~$130/TB in 2026. Auto mode prices <strong class="text-gray-200">HDD through 2020, SSD from 2021+</strong> (usual archival recommendation). You always buy whole drive SKUs: min 0.5 TB → 1 TB (2015+) → <strong class="text-gray-200">2 TB from 2019</strong> (future-proofing before need alone forces it). USB enclosure is charged only for external-drive eras (2012–2023), not spare-PC internals or modern NVMe HAT kits.</div>
+            <div><strong class="text-gray-200">2020→2021 step:</strong> Auto storage flips HDD→SSD while Pi-era kits were scalped — modeled one-time setup roughly doubles. That is policy (recommended media + kit market), not a sudden chain-size shock.</div>
+            <div><strong class="text-gray-200">Efficient hardware:</strong> Raspberry Pi 4/5 runs Bitcoin Core with 4–8 GB RAM, replacing $500+ desktops from 2009–2012. Hero eras match the cost model: spare PC → laptop → NUC → Pi+HDD → Pi+SSD → N100/NVMe.</div>
             <div><strong class="text-gray-200">Bandwidth abundance:</strong> Unlimited home internet became standard; node traffic is a tiny fraction of monthly caps after initial sync.</div>
-            <div><strong class="text-gray-200">OpEx assumptions (USA):</strong> Internet plan cost follows USTelecom Broadband Pricing Index anchors — ~$38/mo entry broadband (2009), ~$66 (2015 popular tier), ~$52 (2020), ~$70 (2025–26 BPI-Speed 100–940 Mbps). Default attributes 15% of the plan to the node. Electricity uses EIA residential averages: 11.5¢/kWh (2009) → ~18.8¢/kWh (2026, Apr EIA), with ~15 W default draw (Pi/mini-PC; raise for a desktop).</div>
+            <div><strong class="text-gray-200">OpEx assumptions (USA):</strong> Internet plan cost follows USTelecom Broadband Pricing Index anchors — ~$38/mo entry broadband (2009), ~$66 (2015 popular tier), ~$52 (2020), ~$70 (2025–26 BPI-Speed 100–940 Mbps). Default attributes 15% of the plan to the node. Electricity uses EIA residential averages: 11.5¢/kWh (2009) → ~18.8¢/kWh (2026, Apr EIA). Default watts are <strong class="text-gray-200">era-aware</strong> (always-on desktop ~40–55 W → NUC ~25 W → Pi ~12 W → modern mini PC ~15 W); override with the slider.</div>
             <div><strong class="text-gray-200">Software optimization:</strong> Compact blocks, assumevalid, and better I/O let Core run on modest hardware while still validating the full chain.</div>
             <div><strong class="text-gray-200">The 2026 NAND spike:</strong> Consumer 2 TB NVMe jumped from ~$120–150 (2025 lows) to ~$250–300+ in 2026 as AI datacenters absorbed NAND supply. A 2 TB archival build today is mostly the drive, not the mini-PC.</div>
             <div><strong class="text-gray-200">The catch:</strong> Absolute chain size still grows ~50–65 GB/year. Archival nodes always need more disk — historically $/TB fell faster than the chain grew; the 2026 spike is a temporary reversal.</div>
-            <div><strong class="text-gray-200">Pruned vs archival storage:</strong> Pruned nodes validate the full chain but discard old block files. Steady-state disk grew with the chainstate (UTXO set): &lt;1 GB (2010–12), ~2–3 GB (2015), ~5 GB (2017–18), ~8–10 GB (2020–22), ~15–20 GB today (2025–26, ~11 GB chainstate + headroom) — still far below ~870 GB archival. First sync still downloads the full chain (~740 GB bandwidth) either way.</div>
+            <div><strong class="text-gray-200">Pruned vs archival storage:</strong> Pruned nodes validate the full chain but discard old block files. Steady-state disk grew with the chainstate (UTXO set): &lt;1 GB (2010–12), ~2–3 GB (2015), ~5 GB (2017–18), ~8–10 GB (2020–22), ~15–20 GB today (2025–26, ~12.5 GB chainstate + headroom) — still far below ~880 GB archival min. First sync still downloads the full chain (~753 GB bandwidth today) either way.</div>
             <div><strong class="text-gray-200">Pruned cost model:</strong> Pruned mode assumes Core on a laptop/desktop you already own. One-time setup is <strong class="text-gray-200">$0</strong> by default — you use existing free disk space (~18 GB today), not a new Pi or USB drive. The real pruned cost is <strong class="text-gray-200">annual OpEx</strong> (electricity + internet share). Toggle “USB/SD reference” in Assumptions if your disk is full and you’d buy a small stick.</div>
             <div><strong class="text-gray-200">2031–2040 (projected):</strong> Hardware class stays similar (efficient mini PC / ARM, 16 GB RAM) — bigger change is buying 4–8 TB NVMe instead of 2–4 TB. Baseline assumes NAND supply recovers and $/TB resumes deflation.</div>
           </div>
@@ -937,12 +940,12 @@ const RAW = {
   utxoGB: [0.0001, 0.003, 0.006, 0.032, 0.151, 0.341, 0.645, 1.24, 2.05, 2.9, 3.78, 4.75, 5.87, 6.89, 8.19, 9.7, 11.14, 12.5, 13.8, 15.1, 16.4, 17.7],
   // Bulk external / NAS-grade HDD $/TB (nominal, that year)
   hddPerTB: [110, 95, 80, 60, 50, 42, 35, 30, 28, 25, 22, 18, 16, 15, 13, 12, 11, 10, 9.5, 9, 8.5, 8],
-  // Consumer NVMe $/TB (nominal retail, whole-drive purchase). 2025 ≈ $120–150/2TB lows; 2026 AI/NAND spike ≈ $250–300/2TB mid-tier Gen4 (Tom's Hardware, DropReference, Jun 2026).
+  // Consumer flash $/TB (nominal retail, whole-drive purchase). Pre-~2016 ≈ SATA SSD; later ≈ SATA/NVMe; 2025 ≈ $120–150/2TB lows; 2026 AI/NAND spike ≈ $250–300/2TB mid-tier Gen4.
   ssdPerTB: [600, 500, 400, 300, 250, 200, 160, 130, 110, 95, 85, 75, 70, 60, 55, 52, 68, 130, 110, 90, 75, 60],
   // Full node kit: board or mini-PC + PSU + case + boot media + cables (not board MSRP alone)
-  // 2009–2011: marginal cost of reusing a PC you already owned (not a new purchase); dedicated hardware from 2012
+  // 2009–2011: marginal cost of reusing a PC you already owned (not a new purchase); dedicated kit from 2012 (budget laptop/desktop → NUC → Pi → N100)
   basePCCost: [50, 50, 50, 200, 280, 250, 200, 180, 165, 130, 115, 120, 175, 155, 145, 175, 170, 165, 155, 150, 145, 140],
-  // USB enclosure or powered USB hub for external drives
+  // USB enclosure / powered hub when data lives on an external drive (applied only 2012–2023 — see usesExternalDriveEnclosure)
   enclosureCost: [5, 8, 10, 12, 14, 15, 16, 18, 18, 20, 20, 22, 22, 24, 24, 25, 25, 26, 26, 28, 28, 30],
   // Typical U.S. residential fixed-broadband plan ($/mo, nominal). Anchors: USTelecom BPI Consumer Choice 2015 $66 / 2020 $52;
   // BPI-Speed (100–940 Mbps) ~$73 (2024), ~$69–70 (2025–26); ~$38 entry broadband circa 2009 (NYT/BITS survey).
@@ -992,7 +995,7 @@ const ELECTRUM_OPTIONS = {
     debut: ''
   },
   electrs: {
-    label: 'electrs Light', short: 'electrs', availableFrom: 2019,
+    label: 'electrs Light', short: 'electrs', availableFrom: 2018,
     baseRatio: 0.10, ratioPerYear: 0.002, maxRatio: 0.14, minGB: 12, ssdPremium: 1.15,
     debut: 'electrs released Jul 2018; ~10% of chain size for RocksDB index'
   },
@@ -1008,19 +1011,24 @@ const ELECTRUM_OPTIONS = {
   }
 };
 
+// Align with HW_RECOMMENDATIONS / cpuDesc / AUTO_SSD_FROM_YEAR (images reused across adjacent eras)
 const HERO_ERAS = [
   { until: 2011, image: 'assets/hero/era-2009.jpg', label: '2009–2011', subtitle: 'Any spare PC', jumpYear: 2010 },
-  { until: 2014, image: 'assets/hero/era-2013.jpg', label: '2012–2014', subtitle: 'Laptop + external HDD', jumpYear: 2013 },
-  { until: 2020, image: 'assets/hero/era-2018.jpg', label: '2015–2020', subtitle: 'Raspberry Pi + drive', jumpYear: 2018 },
-  { until: 2030, image: 'assets/hero/era-2026.jpg', label: '2021–2030', subtitle: 'NUC / mini PC + NVMe', jumpYear: 2026 },
+  { until: 2014, image: 'assets/hero/era-2013.jpg', label: '2012–2014', subtitle: 'Budget laptop + external HDD', jumpYear: 2013 },
+  { until: 2017, image: 'assets/hero/era-2013.jpg', label: '2015–2017', subtitle: 'Desktop / NUC + drive', jumpYear: 2016 },
+  { until: 2020, image: 'assets/hero/era-2018.jpg', label: '2018–2020', subtitle: 'Raspberry Pi + external HDD', jumpYear: 2019 },
+  { until: 2023, image: 'assets/hero/era-2018.jpg', label: '2021–2023', subtitle: 'Raspberry Pi + SSD', jumpYear: 2022 },
+  { until: 2030, image: 'assets/hero/era-2026.jpg', label: '2024–2030', subtitle: 'Pi 5 / N100 + NVMe', jumpYear: 2026 },
   { until: 9999, image: 'assets/hero/era-2035.jpg', label: '2031–2040', subtitle: '4–8 TB NVMe · projected', jumpYear: 2035 }
 ];
 
-/** Pruned: same laptop/desktop throughout — only disk footprint changes */
+/** Pruned: same laptop/desktop throughout — only disk footprint changes (bands match PRUNED_HW_RECOMMENDATIONS) */
 const PRUNED_HERO_ERAS = [
-  { until: 2014, image: 'assets/hero/era-2009.jpg', label: '2009–2014', subtitle: 'Your existing desktop or laptop', jumpYear: 2010 },
-  { until: 2022, image: 'assets/hero/era-2013.jpg', label: '2015–2022', subtitle: 'Same PC — pruned disk ~2–10 GB', jumpYear: 2018 },
-  { until: 9999, image: 'assets/hero/era-2013.jpg', label: '2023–2040', subtitle: 'Same PC — pruned disk ~15–20 GB', jumpYear: 2026 }
+  { until: 2012, image: 'assets/hero/era-2009.jpg', label: '2009–2012', subtitle: 'Your existing desktop or laptop', jumpYear: 2010 },
+  { until: 2017, image: 'assets/hero/era-2013.jpg', label: '2013–2017', subtitle: 'Same PC — pruned disk ~1–5 GB', jumpYear: 2015 },
+  { until: 2022, image: 'assets/hero/era-2013.jpg', label: '2018–2022', subtitle: 'Same PC — pruned disk ~5–10 GB', jumpYear: 2020 },
+  { until: 2026, image: 'assets/hero/era-2013.jpg', label: '2023–2026', subtitle: 'Same PC — pruned disk ~15–20 GB', jumpYear: 2025 },
+  { until: 9999, image: 'assets/hero/era-2013.jpg', label: '2027–2040', subtitle: 'Same PC — pruned disk grows slowly', jumpYear: 2030 }
 ];
 
 let currentHeroEra = -1;
@@ -1113,12 +1121,36 @@ const PRUNED_HW_RECOMMENDATIONS = [
 ];
 
 const HW_RECOMMENDATIONS = [
-  { until: 2011, emoji: '🖥️', title: '2009–2011: Any Spare PC', desc: 'Bitcoin launched with a tiny chain. You ran the reference client on hardware you already had — no new PC purchase. We model ~$50 marginal kit cost (cables, wear) plus minimal storage; the chain was MB-scale.', cost: '~$50–80 total' },
-  { until: 2014, emoji: '💻', title: '2012–2014: Old Laptop + 500 GB HDD', desc: 'Chain reached tens of GB. A used laptop with a 500 GB HDD (~$50) sufficed. Sync took hours, not days.', cost: '~$50–150 total' },
-  { until: 2017, emoji: '🖥️', title: '2015–2017: Budget Desktop / NUC', desc: '80–130 GB chain. Mini PCs and used desktops with 4 GB RAM became the sweet spot. Full archival still affordable.', cost: '~$150–250' },
-  { until: 2020, emoji: '🥧', title: '2018–2020: Raspberry Pi 3/4 + External HDD', desc: 'Pi kit (~$95–120: board, PSU, case, SD card) plus a 1–2 TB USB HDD ($40–70 at the time). 180–300 GB chain, but you buy whole drives — not exact-size slices.', cost: '~$150–190' },
-  { until: 2023, emoji: '🥧', title: '2021–2023: Raspberry Pi 4/5 + SSD', desc: 'Pi scalping pushed kits to $150–200. SSDs still cost more per TB than HDDs. Realistic archival build: 8 GB Pi + 2 TB SSD/NVMe + accessories.', cost: '~$220–320' },
-  { until: 2030, emoji: '⚡', title: '2024–2030: Pi 5 / N100 Mini PC + 2–4 TB NVMe', desc: '~753 GB–1 TB blocks; buy 2–4 TB NVMe for archival headroom. Pi 5 + NVMe HAT or N100 mini PC (~$150–180). Storage spiked in 2026 (~$250–300 for 2 TB NVMe); model assumes gradual recovery toward ~$90–120/2 TB by 2030.', cost: '~$400–480 today · easing to ~$250–350' },
+  {
+    until: 2011, emoji: '🖥️', title: '2009–2011: Any Spare PC',
+    desc: 'Bitcoin launched with a tiny chain. You ran the reference client on hardware you already had — no new PC purchase. Kit is ~$50 marginal (cables/wear); model also prices a small 0.5 TB data drive. Chain was MB-scale.',
+    cost: '~$90–110 total'
+  },
+  {
+    until: 2014, emoji: '💻', title: '2012–2014: Budget Laptop / Desktop + HDD',
+    desc: 'Chain reached tens of GB. Model assumes a dedicated budget machine (not free spare hardware) plus a 0.5 TB external HDD and USB enclosure — typical of people standing up a full node as the chain left the toy era.',
+    cost: '~$240–320 total'
+  },
+  {
+    until: 2017, emoji: '🖥️', title: '2015–2017: Budget Desktop / NUC',
+    desc: '80–130 GB chain. Mini PCs and used desktops with 4 GB RAM became the sweet spot; 1 TB HDD SKU (era minimum from 2015). Full archival still affordable.',
+    cost: '~$210–250 total'
+  },
+  {
+    until: 2020, emoji: '🥧', title: '2018–2020: Raspberry Pi 3/4 + External HDD',
+    desc: 'Pi kit (~$115–130: board, PSU, case, SD card) plus USB HDD. Auto mode still prices HDD. From 2019 the model buys a 2 TB SKU (future-proofing) even though need is still well under 1 TB. 180–300 GB chain.',
+    cost: '~$175–180 total'
+  },
+  {
+    until: 2023, emoji: '🥧', title: '2021–2023: Raspberry Pi 4/5 + SSD',
+    desc: 'SSD becomes the usual archival recommendation (auto mode). Pi scalping pushed kits to ~$145–175. Realistic build: 8 GB Pi + 2 TB SSD + USB enclosure. 2021 is the step-up year as media flips HDD→SSD.',
+    cost: '~$280–340 total'
+  },
+  {
+    until: 2030, emoji: '⚡', title: '2024–2030: Pi 5 / N100 Mini PC + 2–4 TB NVMe',
+    desc: '2026 blocks ~753 GB (growing toward ~1 TB by ~2030 under baseline). Buy 2–4 TB NVMe for archival headroom; enclosure not charged (NVMe HAT / internal). Pi 5 + HAT or N100 mini PC (~$150–180 kit). Storage spiked in 2026 (~$250–300 for 2 TB NVMe); model assumes gradual recovery toward ~$90–120/2 TB by 2030.',
+    cost: '~$280–430 · ~$425 peak 2026'
+  },
   {
     until: 2040, emoji: '🔮', projected: true,
     title: '2031–2040: Low-Power Mini PC + 4–8 TB NVMe (projected)',
@@ -1142,7 +1174,8 @@ const state = {
   internetMode: 'percent',
   internetValue: 15,
   elecPrice: null,
-  nodeWatts: 15,
+  /** null = era-auto watts; number = manual override */
+  nodeWatts: null,
   electrumMode: 'none',
   coreIndexes: { txindex: false, coinstatsindex: false, blockfilterindex: false },
   projectionEnabled: true,
@@ -1218,9 +1251,59 @@ function getElecPricePerKwh(year) {
   return lerp(RAW.elecPerKwh, RAW.years, year);
 }
 
+/** Always-on node draw by hardware era (auto watts when state.nodeWatts is null). */
+function getEraDefaultWatts(year) {
+  if (year <= 2011) return 55; // spare desktop / tower
+  if (year <= 2014) return 40; // budget laptop or desktop
+  if (year <= 2017) return 25; // NUC / mini PC
+  if (year <= 2023) return 12; // Raspberry Pi 3/4/5 class
+  return 15; // Pi 5 + NVMe HAT / N100 efficient mini PC
+}
+
+function getNodeWatts(year) {
+  if (state.nodeWatts != null) return state.nodeWatts;
+  return getEraDefaultWatts(year);
+}
+
+function syncWattsUI() {
+  const slider = document.getElementById('nodeWatts');
+  const display = document.getElementById('wattsDisplay');
+  const hint = document.getElementById('wattsHint');
+  const effective = getNodeWatts(state.selectedYear);
+  if (slider && state.nodeWatts == null) slider.value = effective;
+  if (display) {
+    display.textContent = state.nodeWatts == null ? `${effective} W (auto)` : `${effective} W`;
+  }
+  if (hint) {
+    hint.textContent = state.nodeWatts == null
+      ? `Auto for ${state.selectedYear}: era-typical always-on draw (~${getEraDefaultWatts(state.selectedYear)} W)`
+      : 'Manual override — Reset restores era auto';
+  }
+}
+
+// Auto mode: HDD was the usual archival media through the Pi + external-drive era;
+// SSD becomes the standard recommendation from ~2021 (IBD pain + 1–2 TB consumer SSDs).
+const AUTO_SSD_FROM_YEAR = 2021;
+
 function getStorageTypeForYear(year) {
-  if (state.storageType === 'auto') return year >= 2018 ? 'ssd' : 'hdd';
+  if (state.storageType === 'auto') return year >= AUTO_SSD_FROM_YEAR ? 'ssd' : 'hdd';
   return state.storageType;
+}
+
+/**
+ * USB/SATA enclosure for external data drives.
+ * Spare-PC era uses internal disk; 2024+ NVMe HAT / internal bay cost is in the kit, not a separate enclosure line.
+ */
+function usesExternalDriveEnclosure(year) {
+  if (year <= 2011) return false;
+  if (year >= 2024) return false;
+  return true;
+}
+
+function getEnclosureCost(year, cpi) {
+  if (!usesExternalDriveEnclosure(year)) return 0;
+  const y = Math.min(year, HISTORICAL_THROUGH);
+  return lerp(RAW.enclosureCost, RAW.years, y) * cpi;
 }
 
 function getStoragePricePerTB(year) {
@@ -1321,7 +1404,11 @@ function calcPrunedChainStorage(year, storageGB, cpi) {
   };
 }
 
-/** Real drives are sold in fixed SKUs — you buy 0.5/1/2/4 TB, not exact chain size; 4 TB only when headroom exceeds 2 TB */
+/**
+ * Real drives are sold in fixed SKUs — buy 0.5/1/2/4 TB, not exact chain size.
+ * Era minimums (policy, not pure need): 0.5 TB → 1 TB from 2015 → 2 TB from 2019 (future-proof as chain
+ * approached ~300 GB; need alone would still fit 1 TB until ~2025).
+ */
 function getPurchaseTB(year, headroomTB) {
   if (state.pruned) return state.prunedStorageCost === 'usb' ? getPrunedDriveGB(headroomTB * 1000) / 1000 : 0;
   let eraMin = 0.5;
@@ -1516,7 +1603,7 @@ function calcChainStorage(year, storageGB, extraIndexGB, cpi) {
   const purchaseTB = getPurchaseTB(year, headroomTB);
   if (state.pruned && extraIndexGB === 0) return calcPrunedChainStorage(year, storageGB, cpi);
   const pricePerTB = getStoragePricePerTB(year);
-  const enclosure = lerp(RAW.enclosureCost, RAW.years, year) * cpi;
+  const enclosure = getEnclosureCost(year, cpi);
   return {
     headroomTB, purchaseTB,
     storageCost: purchaseTB * pricePerTB * cpi + enclosure
@@ -1557,7 +1644,8 @@ function calcYearHistorical(year) {
     internetPortion = state.internetValue * cpi;
   }
   const elecPrice = getElecPricePerKwh(year) * cpi;
-  const elecAnnual = (state.nodeWatts / 1000) * 24 * 365 * elecPrice;
+  const watts = getNodeWatts(year);
+  const elecAnnual = (watts / 1000) * 24 * 365 * elecPrice;
   const annualOpEx = internetPortion * 12 + elecAnnual;
   const baseAnnualizedTotal = baseTotalSetup / 3 + annualOpEx;
   const annualizedTotal = totalSetup / 3 + annualOpEx;
@@ -1569,7 +1657,7 @@ function calcYearHistorical(year) {
     coreIndexGB, electrumIndexGB, optionalIndexGB,
     storageCost, indexCost, coreIndexCost, electrumOnlyCost, electrumIndexCost: indexCost, basePC, baseTotalSetup, totalSetup,
     internetPortion, elecAnnual, annualOpEx, baseAnnualizedTotal, annualizedTotal,
-    cpuDesc, pricePerTB: getStoragePricePerTB(year),
+    cpuDesc, pricePerTB: getStoragePricePerTB(year), nodeWatts: watts,
     purchaseTB: fullStore.purchaseTB, basePurchaseTB: baseStore.purchaseTB,
     storageOnly: storageCost,
     referenceMediaCost: state.pruned ? baseStore.referenceMediaCost : 0,
@@ -1646,7 +1734,7 @@ function baseStoreCost(year, storageGB, extraIndexGB, cpi, pricePerTB) {
   if (state.pruned && extraIndexGB === 0) return calcChainStorage(year, storageGB, 0, cpi);
   const headroomTB = (storageGB + extraIndexGB) / 1000;
   const purchaseTB = getPurchaseTB(year, headroomTB);
-  const enclosure = lerp(RAW.enclosureCost, RAW.years, Math.min(year, HISTORICAL_THROUGH)) * cpi;
+  const enclosure = getEnclosureCost(year, cpi);
   return { purchaseTB, storageCost: purchaseTB * pricePerTB * cpi + enclosure };
 }
 
@@ -1971,7 +2059,7 @@ function updateKPIs(animate = false) {
   if (!(hw.projected && state.selectedYear > HISTORICAL_THROUGH)) {
     hwCostEl.textContent = state.pruned
       ? `${hw.cost} — modeled setup ${fmtMoney(d.baseTotalSetup)}${d.referenceMediaCost ? ` (USB ref ~${fmtMoney(d.referenceMediaCost)})` : ''}`
-      : 'Typical cost: ' + hw.cost;
+      : `Modeled setup ${fmtMoney(d.baseTotalSetup)} · era band ${hw.cost}`;
   }
   const hwE = document.getElementById('hwElectrum');
   const note = getElectrumHwNote(d);
@@ -2344,6 +2432,7 @@ function updateCharts() {
 function refresh(opts = {}) {
   syncStorageTypeHint();
   syncBasePCHint();
+  syncWattsUI();
   syncPrunedUI();
   syncElectrumUI();
   syncProjectionUI();
@@ -2612,7 +2701,7 @@ function resetDefaults() {
   state.internetMode = 'percent';
   state.internetValue = 15;
   state.elecPrice = null;
-  state.nodeWatts = 15;
+  state.nodeWatts = null; // era auto
   state.electrumMode = 'none';
   state.coreIndexes = { txindex: false, coinstatsindex: false, blockfilterindex: false };
   document.querySelector('input[name="electrum"][value="none"]').checked = true;
@@ -2623,9 +2712,8 @@ function resetDefaults() {
   document.getElementById('internetMode').value = 'percent';
   document.getElementById('internetValue').value = 15;
   document.getElementById('elecPrice').value = US_RATES.elec;
-  document.getElementById('nodeWatts').value = 15;
+  document.getElementById('nodeWatts').value = getEraDefaultWatts(state.selectedYear);
   document.getElementById('storageMultDisplay').textContent = '1.0×';
-  document.getElementById('wattsDisplay').textContent = '15 W';
   refresh();
 }
 
@@ -2855,8 +2943,7 @@ function bindEvents() {
   document.getElementById('internetValue').addEventListener('input', e => { state.internetValue = +e.target.value; refresh(); });
   document.getElementById('elecPrice').addEventListener('input', e => { state.elecPrice = +e.target.value; refresh(); });
   document.getElementById('nodeWatts').addEventListener('input', e => {
-    state.nodeWatts = +e.target.value;
-    document.getElementById('wattsDisplay').textContent = e.target.value + ' W';
+    state.nodeWatts = +e.target.value; // manual override (null = era auto)
     refresh();
   });
   document.getElementById('btnReset').addEventListener('click', resetDefaults);

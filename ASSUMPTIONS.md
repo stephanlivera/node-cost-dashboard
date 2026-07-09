@@ -17,10 +17,10 @@ Sense-check of dashboard anchors vs external sources for **calendar year 2026** 
 | Archival min storage (×1.15) | **~880 GB** | → **2 TB** SKU | **Pass** |
 | Consumer NVMe | **$130/TB** (~$260 / 2 TB) | Retail mid-tier **~$250–320** / 2 TB | **Pass** |
 | Kit (Pi / mini-PC, no data drive) | **$165** | N100 / Pi 5 kits **~$150–250** | **Pass** |
-| Archival one-time setup | **~$451** | Cart **~$400–550** | **Pass** |
+| Archival one-time setup | **~$425** (2 TB × $130 + $165 kit; no USB enclosure from 2024+) | Cart **~$400–550** | **Pass** |
 | Electricity | **18.8 ¢/kWh** | EIA residential **18.83 ¢** (Apr 2026) | **Pass** |
 | Broadband plan | **$70 / mo** | USTelecom BPI-Speed nominal **~$69–73** | **Pass** |
-| Default watts | **15 W** | Pi 5 / N100 idle–light **~8–20 W** | **Pass** (policy) |
+| Default watts (2026) | **15 W** era-auto | Pi 5 / N100 idle–light **~8–20 W** | **Pass** (era-auto; higher for pre-Pi years) |
 | Internet attribution | **15%** of plan | Judgment, not measured | **Policy** |
 | Pruned disk | **~18 GB** | **~15–25 GB** field | **Pass** |
 | Pruned setup | **$0** | Existing PC + free space | **Pass** (by design) |
@@ -83,7 +83,7 @@ Storage kit and NVMe left unchanged (already within ±20% of street).
 
 | | Value |
 |--|--------|
-| **Model** | `ssdPerTB[2026] = 130` → **$260 / 2 TB** + enclosure **$26** ≈ **$286** storage line |
+| **Model** | `ssdPerTB[2026] = 130` → **$260 / 2 TB** (USB enclosure not charged from 2024+; NVMe HAT/internal in kit) |
 | **External** | Mid-tier 2 TB often **~$250–320** (Tom's Hardware tracking / deals, mid-2026) |
 | **Verdict** | **Pass** for mid-tier Gen4, not floor deals. |
 
@@ -102,11 +102,11 @@ Storage kit and NVMe left unchanged (already within ±20% of street).
 
 | Component | Model $ |
 |-----------|--------|
-| Storage (2 TB × $130 + enclosure) | **286** |
+| Storage (2 TB × $130; no USB enclosure from 2024+) | **260** |
 | Base PC kit | **165** |
-| **Total setup (no optional indexes)** | **451** |
+| **Total setup (no optional indexes)** | **425** |
 
-±20% band: **$361 – $541**. Realistic carts still land here. **Pass.**
+±20% band: **$340 – $510**. Realistic carts still land here. **Pass.**
 
 ---
 
@@ -126,8 +126,8 @@ Storage kit and NVMe left unchanged (already within ±20% of street).
 
 | | Value |
 |--|--------|
-| **Default** | **15 W** — efficient dedicated node average |
-| **Verdict** | **Pass** as policy default; use slider for desktops. |
+| **Default** | **Era-auto:** ~55 W (2009–11 desktop) → ~40 W (2012–14) → ~25 W (NUC) → ~12 W (Pi) → **15 W** (2024+ mini PC). Slider overrides. |
+| **Verdict** | **Pass** for 2026; historical OpEx now tracks era hardware better. |
 
 ### 5.3 Internet
 
@@ -180,10 +180,10 @@ Re-`du` before treating index costs as precise.
 - [x] Chainstate in 10–15 GB band  
 - [x] 2 TB NVMe within ±20% of $260  
 - [x] Kit within ±25% of $165  
-- [x] Archival setup within ±20% of $451  
+- [x] Archival setup within ±20% of $425  
 - [x] EIA residential ¢/kWh within ±10% of model  
 - [x] BPI / plan level aligned (~$70)  
-- [x] Policy knobs (15% net, 15 W, ×1.15, 3-yr amort) documented  
+- [x] Policy knobs (15% net, era-auto watts, ×1.15, 3-yr amort, SSD from 2021, 2 TB min from 2019) documented  
 
 **Next full review:** after major Core release, large NAND price move, or new EIA/BPI annuals — target within one quarter.
 

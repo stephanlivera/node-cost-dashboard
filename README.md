@@ -30,10 +30,10 @@ python -m http.server 8080
 
 | Component | Model |
 |-----------|--------|
-| **Storage** | `(blocks + UTXO) × 1.15` headroom; buy whole drive SKUs (0.5–4+ TB by era). HDD pricing before 2018, SSD from 2018 (auto mode). 2026 NVMe spike calibrated ~$130/TB retail |
-| **Hardware** | Pi / mini-PC kit costs by year (`RAW.basePCCost`) |
-| **Indexes** | Marginal storage on top of base chain size |
-| **OpEx** | Internet attribution (% or fixed $/mo) + electricity at configurable watts and $/kWh |
+| **Storage** | `(blocks + UTXO) × 1.15` headroom; whole-drive SKUs with era mins (0.5 → 1 TB from 2015 → 2 TB from 2019). Auto: HDD through 2020, SSD from 2021. USB enclosure only 2012–2023. 2026 NVMe spike ~$130/TB |
+| **Hardware** | Era kits (`RAW.basePCCost`): spare PC → budget laptop → NUC → Pi → N100; matches hero + HW cards |
+| **Indexes** | Marginal storage on top of base chain size (archival only; disabled when pruned) |
+| **OpEx** | Internet attribution (% or fixed $/mo) + electricity (era-auto watts by default, or manual slider; EIA $/kWh) |
 
 ### Pruned
 
@@ -45,7 +45,7 @@ python -m http.server 8080
 | **Indexes** | Disabled (require full block files) |
 | **OpEx** | Same as archival — this is where pruned cost actually lives |
 
-First sync still downloads the full chain (~740 GB bandwidth) in both modes.
+First sync still downloads the full chain (~753 GB bandwidth in 2026) in both modes.
 
 ## Projections
 
