@@ -789,6 +789,7 @@
 
       <!-- Table Tab -->
       <section id="tabTable" class="tab-panel hidden">
+        <p class="text-[11px] text-gray-500 mb-2">Storage $ = Buy TB × $/TB + enclosure (enclosure only 2012–2023). Need GB is headroom; Buy TB is the whole-drive SKU.</p>
         <p class="text-[11px] text-gray-500 mb-2 sm:hidden">Swipe horizontally for more columns · header stays pinned while scrolling</p>
         <div class="data-table-viewport rounded-xl border border-gray-700">
           <table class="data-table w-full text-xs sm:text-sm">
@@ -797,6 +798,11 @@
                 <th class="px-3 py-3 text-left">Year</th>
                 <th class="px-3 py-3 text-right">Blocks (GB)</th>
                 <th class="px-3 py-3 text-right">UTXO (GB)</th>
+                <th class="px-3 py-3 text-right">Need (GB)</th>
+                <th class="px-3 py-3 text-right">Buy (TB)</th>
+                <th class="px-3 py-3 text-left">Media</th>
+                <th class="px-3 py-3 text-right">$/TB</th>
+                <th class="px-3 py-3 text-right">Encl. $</th>
                 <th class="px-3 py-3 text-right">Storage $</th>
                 <th class="px-3 py-3 text-right electrum-col hidden">Index $</th>
                 <th class="px-3 py-3 text-left">CPU/RAM</th>
@@ -840,6 +846,19 @@
               </div>
             </div>
             <div class="chart-container"><canvas id="chartSize"></canvas></div>
+          </div>
+          <div class="bp-regmarks bg-surface-card rounded-xl p-4 border border-gray-700" data-chart-card="storagePrice">
+            <div class="flex items-start justify-between gap-2 mb-2">
+              <div class="min-w-0">
+                <h3 id="chartStoragePriceTitle" class="text-sm font-semibold text-btc">Storage $/TB Over Time</h3>
+                <p class="text-[10px] text-gray-500 mt-0.5">Market media price — separate from how many TB you buy. Bold line = effective (Auto/HDD/SSD setting).</p>
+              </div>
+              <div class="chart-actions flex shrink-0 gap-1">
+                <button type="button" class="chart-action-btn" data-chart-action="copy" data-chart="storagePrice" title="Copy chart image" aria-label="Copy chart image"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg></button>
+                <button type="button" class="chart-action-btn" data-chart-action="download" data-chart="storagePrice" title="Download chart PNG" aria-label="Download chart PNG"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg></button>
+              </div>
+            </div>
+            <div class="chart-container"><canvas id="chartStoragePrice"></canvas></div>
           </div>
           <div class="bp-regmarks bg-surface-card rounded-xl p-4 border border-gray-700" data-chart-card="breakdown">
             <div class="flex items-start justify-between gap-2 mb-2">
@@ -1290,6 +1309,13 @@ function getStorageTypeForYear(year) {
   return state.storageType;
 }
 
+function getStorageTypeLabel(year) {
+  const t = getStorageTypeForYear(year);
+  if (state.storageType === 'auto') return t === 'ssd' ? 'Auto·SSD' : 'Auto·HDD';
+  if (t === 'hybrid') return 'Hybrid';
+  return t.toUpperCase();
+}
+
 /**
  * USB/SATA enclosure for external data drives.
  * Spare-PC era uses internal disk; 2024+ NVMe HAT / internal bay cost is in the kit, not a separate enclosure line.
@@ -1304,6 +1330,31 @@ function getEnclosureCost(year, cpi) {
   if (!usesExternalDriveEnclosure(year)) return 0;
   const y = Math.min(year, HISTORICAL_THROUGH);
   return lerp(RAW.enclosureCost, RAW.years, y) * cpi;
+}
+
+/** HDD market $/TB (storage mult applied). Post-2026: deflate from 2026 HDD anchor. */
+function getHddPricePerTB(year) {
+  const mult = state.storageMult;
+  if (year <= HISTORICAL_THROUGH) return lerp(RAW.hddPerTB, RAW.years, year) * mult;
+  let price = lerp(RAW.hddPerTB, RAW.years, HISTORICAL_THROUGH) * mult;
+  for (let y = 2027; y <= year; y++) {
+    const mods = getScenarioModifiers(y);
+    price *= mods.aiHike * (1 + mods.storageDefl);
+  }
+  return Math.max(price, 0.5);
+}
+
+/** SSD/NVMe market $/TB (storage mult applied). Post-2026: NAND recovery path from 2026 SSD. */
+function getSsdPricePerTB(year) {
+  const mult = state.storageMult;
+  if (year <= HISTORICAL_THROUGH) return lerp(RAW.ssdPerTB, RAW.years, year) * mult;
+  const ssdPrem = 1 + state.projSsdPremiumPct / 100;
+  let price = lerp(RAW.ssdPerTB, RAW.years, HISTORICAL_THROUGH) * mult * ssdPrem;
+  for (let y = 2027; y <= year; y++) {
+    const mods = getScenarioModifiers(y);
+    price *= mods.aiHike * (1 + mods.storageDefl);
+  }
+  return Math.max(price, 0.5);
 }
 
 function getStoragePricePerTB(year) {
@@ -1399,6 +1450,7 @@ function calcPrunedChainStorage(year, storageGB, cpi) {
     headroomTB: storageGB / 1000,
     purchaseTB: usesExistingDisk ? 0 : getPrunedDriveGB(storageGB) / 1000,
     storageCost: usesExistingDisk ? 0 : referenceMediaCost,
+    enclosureCost: 0,
     referenceMediaCost,
     usesExistingDisk
   };
@@ -1605,7 +1657,7 @@ function calcChainStorage(year, storageGB, extraIndexGB, cpi) {
   const pricePerTB = getStoragePricePerTB(year);
   const enclosure = getEnclosureCost(year, cpi);
   return {
-    headroomTB, purchaseTB,
+    headroomTB, purchaseTB, enclosureCost: enclosure,
     storageCost: purchaseTB * pricePerTB * cpi + enclosure
   };
 }
@@ -1652,13 +1704,16 @@ function calcYearHistorical(year) {
   const cpuDesc = getCpuDesc(year);
 
   const fullStore = calcChainStorage(year, nodeStorageGB, optionalIndexGB, cpi);
+  const pricePerTB = getStoragePricePerTB(year);
   return {
     year, sizeGB, blocksGB, utxoGB, minStorage, baseMinStorage,
     coreIndexGB, electrumIndexGB, optionalIndexGB,
     storageCost, indexCost, coreIndexCost, electrumOnlyCost, electrumIndexCost: indexCost, basePC, baseTotalSetup, totalSetup,
     internetPortion, elecAnnual, annualOpEx, baseAnnualizedTotal, annualizedTotal,
-    cpuDesc, pricePerTB: getStoragePricePerTB(year), nodeWatts: watts,
+    cpuDesc, pricePerTB, hddPerTB: getHddPricePerTB(year), ssdPerTB: getSsdPricePerTB(year),
+    storageMedia: getStorageTypeLabel(year), nodeWatts: watts,
     purchaseTB: fullStore.purchaseTB, basePurchaseTB: baseStore.purchaseTB,
+    enclosureCost: baseStore.enclosureCost ?? 0,
     storageOnly: storageCost,
     referenceMediaCost: state.pruned ? baseStore.referenceMediaCost : 0,
     usesExistingDisk: state.pruned ? baseStore.usesExistingDisk : false,
@@ -1719,7 +1774,10 @@ function buildProjectionSeries() {
       baseAnnualizedTotal: baseTotalSetup / 3 + annualOpEx,
       annualizedTotal: totalSetup / 3 + annualOpEx,
       cpuDesc: getCpuDesc(y), pricePerTB,
+      hddPerTB: getHddPricePerTB(y), ssdPerTB: getSsdPricePerTB(y),
+      storageMedia: getStorageTypeLabel(y),
       purchaseTB: fullStore.purchaseTB, basePurchaseTB: baseStore.purchaseTB,
+      enclosureCost: baseStore.enclosureCost ?? 0,
       storageOnly: storageCost,
       referenceMediaCost: state.pruned ? baseStore.referenceMediaCost : 0,
       usesExistingDisk: state.pruned ? baseStore.usesExistingDisk : false,
@@ -1735,7 +1793,7 @@ function baseStoreCost(year, storageGB, extraIndexGB, cpi, pricePerTB) {
   const headroomTB = (storageGB + extraIndexGB) / 1000;
   const purchaseTB = getPurchaseTB(year, headroomTB);
   const enclosure = getEnclosureCost(year, cpi);
-  return { purchaseTB, storageCost: purchaseTB * pricePerTB * cpi + enclosure };
+  return { purchaseTB, enclosureCost: enclosure, storageCost: purchaseTB * pricePerTB * cpi + enclosure };
 }
 
 function calcYear(year) {
@@ -2071,17 +2129,33 @@ function updateKPIs(animate = false) {
   }
 }
 
+function fmtBuyTB(tb) {
+  if (tb == null || tb <= 0) return '—';
+  return Number.isInteger(tb) ? String(tb) : tb.toFixed(2);
+}
+
 function updateTable() {
   const data = computeAll();
   const showIndexCols = hasOptionalIndexUI();
   const tbody = document.getElementById('dataTable');
   tbody.innerHTML = data.map(d => {
     const isActive = d.year === state.selectedYear;
+    const buyTB = state.pruned ? d.basePurchaseTB : d.basePurchaseTB;
+    const needGB = d.baseMinStorage;
+    const priceShown = state.pruned && state.prunedStorageCost === 'marginal'
+      ? d.pricePerTB // market reference even when setup storage $0
+      : d.pricePerTB;
+    const encl = d.enclosureCost ?? 0;
     return `
     <tr class="hover:bg-btc/5 cursor-pointer transition-colors ${isActive ? 'row-active' : ''} ${[2030, 2040].includes(d.year) ? 'milestone-row' : ''} ${d.isProjected ? 'row-projected' : ''}" data-year="${d.year}">
       <td class="px-3 py-2.5 font-mono font-medium ${isActive ? 'row-active-marker bp-march' : ''}">${d.year}${d.isProjected ? '<span class="ml-1 text-[9px] text-phosphor-amber/80">proj</span>' : ''}</td>
       <td class="px-3 py-2.5 text-right font-mono">${fmtGB(d.blocksGB)}</td>
       <td class="px-3 py-2.5 text-right font-mono text-gray-400">${fmtGB(d.utxoGB)}</td>
+      <td class="px-3 py-2.5 text-right font-mono text-gray-300">${fmtGB(needGB)}</td>
+      <td class="px-3 py-2.5 text-right font-mono">${fmtBuyTB(buyTB)}</td>
+      <td class="px-3 py-2.5 text-left font-mono text-[11px] text-gray-400">${d.storageMedia || getStorageTypeLabel(d.year)}</td>
+      <td class="px-3 py-2.5 text-right font-mono text-btc-light">${fmtMoney(priceShown, true)}</td>
+      <td class="px-3 py-2.5 text-right font-mono text-gray-500">${encl > 0 ? fmtMoney(encl, true) : '—'}</td>
       <td class="px-3 py-2.5 text-right font-mono">${fmtMoney(d.storageCost, true)}</td>
       ${showIndexCols ? `<td class="px-3 py-2.5 text-right font-mono text-phosphor-amber electrum-col">${(d.optionalIndexGB ?? 0) > 0 ? fmtMoney(d.indexCost, true) : '<span class="text-gray-600">—</span>'}</td>` : ''}
       <td class="px-3 py-2.5 text-left"><span class="text-gray-400">${d.cpuDesc}</span> <span class="text-btc font-mono">${fmtMoney(d.basePC, true)}</span></td>
@@ -2330,6 +2404,70 @@ function updateCharts() {
     plugins: [milestoneLabelsPlugin(), selectedYearCursorPlugin()]
   });
 
+  // Storage $/TB: market price path separate from Buy TB × price (Storage $)
+  destroyChart('storagePrice');
+  const storagePriceDatasets = [
+    {
+      label: 'Effective $/TB' + (state.storageType === 'auto' ? ' (Auto)' : ` (${state.storageType.toUpperCase()})`),
+      data: data.map(d => d.pricePerTB),
+      borderColor: '#4dd0e1',
+      backgroundColor: 'rgba(77,208,225,0.08)',
+      fill: false,
+      tension: 0.25,
+      pointRadius: 2,
+      borderWidth: 2.5
+    },
+    {
+      label: 'HDD $/TB',
+      data: data.map(d => d.hddPerTB),
+      borderColor: 'rgba(91,143,185,0.85)',
+      borderDash: [6, 4],
+      fill: false,
+      tension: 0.25,
+      pointRadius: 0,
+      borderWidth: 1.5
+    },
+    {
+      label: 'SSD $/TB',
+      data: data.map(d => d.ssdPerTB),
+      borderColor: 'rgba(232,184,74,0.9)',
+      borderDash: [3, 3],
+      fill: false,
+      tension: 0.25,
+      pointRadius: 0,
+      borderWidth: 1.5
+    }
+  ];
+  charts.storagePrice = new Chart(document.getElementById('chartStoragePrice'), {
+    type: 'line',
+    data: { labels: years, datasets: storagePriceDatasets },
+    options: {
+      ...chartCommonOpts(),
+      plugins: {
+        legend: { labels: { color: c.text, boxWidth: 12, font: { size: 10 } } },
+        tooltip: {
+          callbacks: {
+            afterBody: items => {
+              const idx = items[0]?.dataIndex;
+              if (idx == null) return '';
+              const d = data[idx];
+              if (!d) return '';
+              const bits = [`Media: ${d.storageMedia}`, `Buy: ${fmtBuyTB(d.basePurchaseTB)} TB`];
+              if ((d.enclosureCost ?? 0) > 0) bits.push(`Encl: ${fmtMoney(d.enclosureCost)}`);
+              bits.push(`Storage $: ${fmtMoney(d.storageCost)}`);
+              return bits;
+            }
+          }
+        }
+      },
+      scales: {
+        x: chartAxis(c, { ticks: { maxRotation: 45 } }),
+        y: chartAxis(c, { ticks: { callback: v => '$' + Math.round(v) } })
+      }
+    },
+    plugins: [milestoneLabelsPlugin(), selectedYearCursorPlugin()]
+  });
+
   destroyChart('breakdown');
   const breakdownDatasets = [
     ...(!state.pruned ? [{ label: 'Blocks + UTXO', data: data.map(d => d.storageCost), backgroundColor: barColor('rgba(77,208,225,0.8)', 'rgba(77,208,225,0.35)') }] : []),
@@ -2449,6 +2587,7 @@ function refresh(opts = {}) {
 const CHART_EXPORT_META = {
   setup: { filename: 'initial-hardware-cost' },
   size: { filename: 'blockchain-size-growth' },
+  storagePrice: { filename: 'storage-price-per-tb' },
   breakdown: { filename: 'cost-breakdown' },
   annual: { filename: 'annual-cost' },
   pie: { filename: 'year-breakdown' }
@@ -2665,8 +2804,38 @@ async function copyChartImage(key) {
 
 function exportCSV() {
   const data = computeAll();
-  const headers = ['Year', 'Blocks_GB', 'UTXO_GB', 'Min_Storage_GB', 'Core_Index_GB', 'Electrum_Index_GB', 'Optional_Index_GB', 'Storage_Cost', 'Index_Cost', 'Base_PC', 'Internet_Monthly', 'Base_Setup', 'Total_Setup', 'Annual_OpEx', 'Base_Annualized', 'Annualized_Total'];
-  const rows = data.map(d => [d.year, d.blocksGB.toFixed(2), d.utxoGB.toFixed(2), d.minStorage.toFixed(2), d.coreIndexGB.toFixed(2), d.electrumIndexGB.toFixed(2), d.optionalIndexGB.toFixed(2), d.storageCost.toFixed(2), d.indexCost.toFixed(2), d.basePC.toFixed(2), d.internetPortion.toFixed(2), d.baseTotalSetup.toFixed(2), d.totalSetup.toFixed(2), d.annualOpEx.toFixed(2), d.baseAnnualizedTotal.toFixed(2), d.annualizedTotal.toFixed(2)]);
+  const headers = [
+    'Year', 'Blocks_GB', 'UTXO_GB', 'Need_GB', 'Buy_TB', 'Storage_Media',
+    'Price_Per_TB', 'HDD_Per_TB', 'SSD_Per_TB', 'Enclosure_Cost', 'Storage_Cost',
+    'Min_Storage_GB', 'Core_Index_GB', 'Electrum_Index_GB', 'Optional_Index_GB',
+    'Index_Cost', 'Base_PC', 'Internet_Monthly', 'Base_Setup', 'Total_Setup',
+    'Annual_OpEx', 'Base_Annualized', 'Annualized_Total'
+  ];
+  const rows = data.map(d => [
+    d.year,
+    d.blocksGB.toFixed(2),
+    d.utxoGB.toFixed(2),
+    d.baseMinStorage.toFixed(2),
+    (d.basePurchaseTB ?? 0).toFixed(3),
+    d.storageMedia || getStorageTypeLabel(d.year),
+    d.pricePerTB.toFixed(2),
+    (d.hddPerTB ?? getHddPricePerTB(d.year)).toFixed(2),
+    (d.ssdPerTB ?? getSsdPricePerTB(d.year)).toFixed(2),
+    (d.enclosureCost ?? 0).toFixed(2),
+    d.storageCost.toFixed(2),
+    d.minStorage.toFixed(2),
+    d.coreIndexGB.toFixed(2),
+    d.electrumIndexGB.toFixed(2),
+    d.optionalIndexGB.toFixed(2),
+    d.indexCost.toFixed(2),
+    d.basePC.toFixed(2),
+    d.internetPortion.toFixed(2),
+    d.baseTotalSetup.toFixed(2),
+    d.totalSetup.toFixed(2),
+    d.annualOpEx.toFixed(2),
+    d.baseAnnualizedTotal.toFixed(2),
+    d.annualizedTotal.toFixed(2)
+  ]);
   const csv = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
   const blob = new Blob([csv], { type: 'text/csv' });
   const a = document.createElement('a');

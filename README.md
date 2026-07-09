@@ -20,8 +20,8 @@ python -m http.server 8080
 - **Optional indexes** — Bitcoin Core (`txindex`, `coinstatsindex`, `blockfilterindex`) and Electrum server modes (`electrs`, Fulcrum Standard/Full). Indexes are archival-only; Fulcrum auto-enables `txindex`
 - **Projections to 2040** — always on; adjust scenario (baseline, AI-shock, optimistic, pessimistic) and projection sliders from the panel
 - **KPIs** — disk footprint, one-time setup, annual OpEx, hobbyist affordability score
-- **Charts** — chain size, cost breakdown, annual cost, year pie (archival also shows one-time hardware chart; hidden in pruned mode)
-- **Data table** — year-by-year costs with CSV export
+- **Charts** — chain size, storage $/TB (effective + HDD/SSD), cost breakdown, annual cost, year pie (archival also shows one-time hardware chart; hidden in pruned mode)
+- **Data table** — year-by-year need GB, buy TB, media, $/TB, enclosure, storage $, setup, OpEx; CSV export
 - **Share link** — copies URL with year, mode, indexes, and scenario params
 
 ## Cost models
