@@ -1,6 +1,6 @@
 # Bitcoin Node Cost Tracker (2009–2040)
 
-Interactive single-page dashboard exploring how affordable it has been to run a Bitcoin node over time — storage, hardware, internet, and electricity — with projections through 2040.
+Interactive single-page dashboard exploring how affordable it has been to run a Bitcoin node over time — storage, hardware, internet, and electricity — with projections through 2040. A **Tech Deflation** tab puts those costs in multi-decade context (storage, bandwidth, and compute unit prices fell by orders of magnitude, despite periodic spikes).
 
 **Archival** models buying dedicated node hardware (Pi, NUC, mini PC) plus a drive sized to the full chain. **Pruned** assumes you run Bitcoin Core on a laptop or desktop you already own: **$0 one-time setup** by default (uses free disk space); real cost is **annual OpEx**.
 
@@ -20,10 +20,26 @@ python -m http.server 8080
 - **Optional indexes** — Bitcoin Core (`txindex`, `coinstatsindex`, `blockfilterindex`) and Electrum server modes (`electrs`, Fulcrum Standard/Full). Indexes are archival-only; Fulcrum auto-enables `txindex`
 - **Projections to 2040** — always on; adjust scenario (baseline, AI-shock, optimistic, pessimistic) and projection sliders from the panel
 - **KPIs** — disk footprint, one-time setup, annual OpEx, hobbyist affordability score
+- **Tabs** — **Charts** (node cost history), **Tech Deflation** (multi-decade unit costs — see below), **Data Table**, **Trade-offs**
 - **Charts** — chain size, storage $/TB (effective + HDD/SSD), cost breakdown, annual cost, year pie (archival also shows one-time hardware chart; hidden in pruned mode)
-- **Tech Deflation** — streamlined unit-cost index (Storage / Bandwidth / Compute; log, 2009=100), linear storage $/TB with Baseline vs AI-Shock projections to 2040, milestones, “what $100 bought,” and bridge back to the node cost model
 - **Data table** — year-by-year need GB, buy TB, media, $/TB, enclosure, storage $, setup, OpEx; CSV export
 - **Share link** — copies URL with year, mode, indexes, scenario, and active tab params
+
+## Tech Deflation tab
+
+Educational context for the node cost story: over decades, **unit costs** of storage, bandwidth, and compute fell by orders of magnitude, even when prices spike for a while (Thailand floods, AI/NAND demand). Open via the tab bar or `?tab=deflation`.
+
+| Piece | What it shows |
+|-------|----------------|
+| **KPI cards** | Headline facts for storage (~10⁹× cheaper/TB), bandwidth (~−80% real $/Mbps home), compute (~10× FLOPS/$ every 4–8 yr) — colors match the chart series |
+| **Unit costs · log index (1980–2026)** | Three series only — **Storage**, **Bandwidth**, **Compute** — as an index (**2009 = 100**). Lower = cheaper. Storage = era media (HDD through 2020, SSD/NVMe from 2021, same as Auto mode). History only; click the legend to hide a series. |
+| **Bitcoin callout** | Short “so what for nodes”: unit costs fell faster than chain growth for most of history; 2026 flash spike is a temporary setback |
+| **Storage $/TB · linear (2009–2040)** | Node-era HDD + SSD prices; dashed **Baseline** vs **AI-Shock** NVMe projections (same scenario math as the node model). Spikes (2011, 2026) are intentional. |
+| **Moments on the curve** | Click a year to jump the dashboard year (2009+) and highlight the linear chart |
+| **What ~$100 bought** | Illustrative HDD capacity by era |
+| **Bridge** | Jump to Charts at 2026 with live node-model framing |
+
+Long-run series live in `TECH_DEFLATION` inside `index.html` (not used by the node cost formulas). Methodology and sources: **[ASSUMPTIONS.md](./ASSUMPTIONS.md)** § Tech Deflation.
 
 ## Cost models
 
@@ -83,15 +99,29 @@ Historical years (≤2026) are fixed. Charts shade the projected band and update
 
 ## Customization
 
-All model data lives in `index.html` inside the `RAW`, `TECH_DEFLATION`, `PRUNED_SIZE_ANCHORS`, `CORE_INDEX_OPTIONS`, and `ELECTRUM_OPTIONS` arrays at the top of the `<script>` block. Edit nominal $/TB, kit costs, chain size anchors, long-run deflation series, and projection defaults there.
+All model data lives in `index.html` inside the `<script>` block:
+
+| Constant | Purpose |
+|----------|---------|
+| `RAW` | Node cost anchors: chain size, HDD/SSD $/TB, kit costs, internet, electricity (2009–2030 window + lerp) |
+| `TECH_DEFLATION` | Multi-decade storage / bandwidth / compute series for the Tech Deflation tab |
+| `PRUNED_SIZE_ANCHORS` | Pruned on-disk footprint by year |
+| `CORE_INDEX_OPTIONS` / `ELECTRUM_OPTIONS` | Optional index size models |
+| Projection sliders / `getScenarioModifiers` | 2027–2040 paths (also drive Tech Deflation’s Baseline vs AI-Shock SSD lines) |
+
+Edit nominal $/TB, kit costs, chain size anchors, long-run deflation series, and projection defaults there.
 
 ## Model sense-check
 
-See **[ASSUMPTIONS.md](./ASSUMPTIONS.md)** for the 2026 ground-truth sheet (chain size, NVMe, kit, EIA electricity, BPI broadband) and a re-verify checklist. Anchors last reviewed **2026-07-09**.
+See **[ASSUMPTIONS.md](./ASSUMPTIONS.md)** for the 2026 ground-truth sheet (chain size, NVMe, kit, EIA electricity, BPI broadband), Tech Deflation series notes, and a re-verify checklist. Anchors last reviewed **2026-07-09**.
 
 ## Sources
 
-Data synthesized from Blockchain.com, YCharts, Backblaze, [Bitcoin.org](https://bitcoin.org/en/full-node), historical HDD/SSD pricing (John C. McCallum / Our World in Data, Matt Komorowski), 2026 NVMe retail estimates (Tom's Hardware, TrendForce), EIA Electric Power Monthly, and USTelecom BPI. Approximations for illustration — not financial advice.
+**Node costs:** Blockchain.com, YCharts, Backblaze, [Bitcoin.org](https://bitcoin.org/en/full-node), 2026 NVMe retail estimates (Tom's Hardware, TrendForce), EIA Electric Power Monthly, USTelecom BPI.
+
+**Tech Deflation (long-run):** John C. McCallum disk/memory tables (via Our World in Data), Matt Komorowski hard-drive cost history, Backblaze cost-per-GB, AI Impacts–class compute price-performance trends, USTelecom BPI $/Mbps.
+
+Approximations for illustration — not financial advice.
 
 ## License
 
