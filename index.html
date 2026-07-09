@@ -1429,7 +1429,15 @@ function electrumRequiresTxindex() {
 }
 
 function applyElectrumTxindexDefaults() {
+  // txindex is incompatible with prune=; never force it on in pruned mode
+  if (state.pruned) return;
   if (electrumRequiresTxindex()) state.coreIndexes.txindex = true;
+}
+
+/** Pruned nodes cannot use txindex (or other full-block indexes / Electrum servers). */
+function clearIndexesForPruned() {
+  state.coreIndexes = { txindex: false, coinstatsindex: false, blockfilterindex: false };
+  state.electrumMode = 'none';
 }
 
 function isCoreIndexActive(key, year) {
@@ -1811,12 +1819,12 @@ function syncProjSliderLabels() {
 // UI UPDATE
 // ═══════════════════════════════════════════════════════════════
 function syncElectrumUI() {
+  if (state.pruned) clearIndexesForPruned();
   const hasServerIndex = state.electrumMode !== 'none';
   const showIndexCols = hasOptionalIndexUI();
   const indexSection = document.getElementById('indexOptionsSection');
   if (indexSection) {
     indexSection.classList.toggle('opacity-50', state.pruned);
-    indexSection.querySelectorAll('input').forEach(inp => { inp.disabled = state.pruned; });
   }
 
   applyElectrumTxindexDefaults();
@@ -1824,13 +1832,16 @@ function syncElectrumUI() {
     const cb = label.querySelector('input[data-core-index]');
     if (!cb) return;
     const isTxindex = cb.dataset.coreIndex === 'txindex';
-    const locked = isTxindex && electrumRequiresTxindex();
-    const active = state.coreIndexes[cb.dataset.coreIndex];
+    // Fulcrum locks txindex on in archival mode only; pruned always disables all indexes
+    const locked = !state.pruned && isTxindex && electrumRequiresTxindex();
+    const active = !state.pruned && state.coreIndexes[cb.dataset.coreIndex];
     label.classList.toggle('border-btc/50', active);
     label.classList.toggle('bg-btc/10', active);
-    label.classList.toggle('opacity-80', locked);
+    label.classList.toggle('opacity-80', locked || state.pruned);
+    label.classList.toggle('cursor-pointer', !state.pruned && !locked);
+    label.classList.toggle('cursor-not-allowed', state.pruned || locked);
     cb.checked = !!active;
-    cb.disabled = locked;
+    cb.disabled = state.pruned || locked;
   });
   document.querySelectorAll('.electrum-col').forEach(el => el.classList.toggle('hidden', !showIndexCols));
   const thBase = document.getElementById('thSetupBase');
@@ -1839,13 +1850,16 @@ function syncElectrumUI() {
     const radio = label.querySelector('input');
     const active = radio.value === state.electrumMode;
     radio.checked = active;
+    radio.disabled = state.pruned;
     label.classList.toggle('border-btc/50', active);
     label.classList.toggle('bg-btc/10', active);
+    label.classList.toggle('cursor-pointer', !state.pruned);
+    label.classList.toggle('cursor-not-allowed', state.pruned);
   });
   const hint = document.getElementById('indexHint');
   if (hint) {
     if (state.pruned) {
-      hint.textContent = 'Indexes need full block data — unavailable in pruned mode (txindex also incompatible with prune)';
+      hint.textContent = 'Indexes need full block data — unavailable in pruned mode (txindex is incompatible with prune=)';
     } else if (!showIndexCols) {
       hint.textContent = '';
     } else {
@@ -2373,11 +2387,14 @@ function buildShareParams() {
   if (state.pruned && state.prunedStorageCost !== 'marginal') {
     params.set('prunedStorage', state.prunedStorageCost);
   }
-  if (state.electrumMode !== 'none') params.set('electrum', state.electrumMode);
+  // Indexes are archival-only (txindex incompatible with prune); omit from pruned share links
+  if (!state.pruned) {
+    if (state.electrumMode !== 'none') params.set('electrum', state.electrumMode);
+    if (state.coreIndexes.txindex) params.set('txindex', 'true');
+    if (state.coreIndexes.coinstatsindex) params.set('coinstats', 'true');
+    if (state.coreIndexes.blockfilterindex) params.set('blockfilter', 'true');
+  }
   if (state.projectionScenario !== 'baseline') params.set('scenario', state.projectionScenario);
-  if (state.coreIndexes.txindex) params.set('txindex', 'true');
-  if (state.coreIndexes.coinstatsindex) params.set('coinstats', 'true');
-  if (state.coreIndexes.blockfilterindex) params.set('blockfilter', 'true');
   if (state.yearFrom !== 2009) params.set('from', String(state.yearFrom));
   if (state.yearTo !== PROJECTION_THROUGH) params.set('to', String(state.yearTo));
   return params;
@@ -2431,6 +2448,7 @@ async function shareDashboardLink() {
 
 function setPrunedModeUI(pruned) {
   state.pruned = pruned;
+  if (pruned) clearIndexesForPruned();
   document.getElementById('btnArchival').className = pruned
     ? 'px-3 py-2.5 sm:py-1.5 bg-surface-card hover:bg-btc/10'
     : 'px-3 py-2.5 sm:py-1.5 bg-btc text-black font-medium';
@@ -2772,6 +2790,11 @@ function bindEvents() {
 
   document.querySelectorAll('input[name="electrum"]').forEach(radio => {
     radio.addEventListener('change', e => {
+      if (state.pruned) {
+        e.target.checked = e.target.value === 'none';
+        state.electrumMode = 'none';
+        return;
+      }
       state.electrumMode = e.target.value;
       applyElectrumTxindexDefaults();
       refresh();
@@ -2780,6 +2803,12 @@ function bindEvents() {
   document.querySelectorAll('input[data-core-index]').forEach(cb => {
     cb.addEventListener('change', e => {
       const key = e.target.dataset.coreIndex;
+      // txindex (and other Core indexes) unavailable in pruned mode
+      if (state.pruned) {
+        e.target.checked = false;
+        state.coreIndexes[key] = false;
+        return;
+      }
       if (key === 'txindex' && electrumRequiresTxindex() && !e.target.checked) {
         e.target.checked = true;
         state.coreIndexes.txindex = true;
@@ -2870,6 +2899,12 @@ function bindEvents() {
 
 /** URL params override saved form state; otherwise read sidebar controls into state */
 function syncIndexOptionsState(params = new URLSearchParams(location.search)) {
+  // Pruned mode: txindex and other indexes are not options — ignore URL/form index state
+  if (state.pruned) {
+    clearIndexesForPruned();
+    return;
+  }
+
   if (params.has('electrum')) {
     const mode = params.get('electrum');
     if (ELECTRUM_OPTIONS[mode]) state.electrumMode = mode;
