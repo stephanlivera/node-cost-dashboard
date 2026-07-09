@@ -21,7 +21,7 @@ python -m http.server 8080
 - **Projections to 2040** — always on; adjust scenario (baseline, AI-shock, optimistic, pessimistic) and projection sliders from the panel
 - **KPIs** — disk footprint, one-time setup, annual OpEx, hobbyist affordability score
 - **Charts** — chain size, storage $/TB (effective + HDD/SSD), cost breakdown, annual cost, year pie (archival also shows one-time hardware chart; hidden in pruned mode)
-- **Tech Deflation** — multi-series unit-cost index (storage, bandwidth, compute; log, 2009=100), series toggles, linear storage $/TB with Baseline vs AI-Shock projections to 2040, milestones, “what $100 bought,” and bridge back to the node cost model
+- **Tech Deflation** — streamlined unit-cost index (Storage / Bandwidth / Compute; log, 2009=100), linear storage $/TB with Baseline vs AI-Shock projections to 2040, milestones, “what $100 bought,” and bridge back to the node cost model
 - **Data table** — year-by-year need GB, buy TB, media, $/TB, enclosure, storage $, setup, OpEx; CSV export
 - **Share link** — copies URL with year, mode, indexes, scenario, and active tab params
 

@@ -175,10 +175,11 @@ Educational multi-decade series (not used by the node cost formulas). Lives in `
 | `ssdPerTB` | sparse → 2026 | Nominal $/TB | Null until ~2008; 2009+ matches `RAW.ssdPerTB` (includes 2026 AI/NAND spike at 130). |
 | `bandwidthUsdPerMbps` | 1998–2026 | Nominal $/Mbps/mo | Residential effective rate (early broadband → BPI-class 2015 $0.87 / 2023 $0.18 → ~$0.12 by 2026). Sparse; log-interpolated on the chart. |
 | `computeCostIndex` | 1980–2026 | Index, 2009 = 100 | Illustrative $ for a fixed unit of performance (inverse FLOPS/$ ~10× / 4–8 yr). Not a BLS PPI. |
-| Projections 2027–40 | dashed | $/TB → index | Same math as node model via `getSsdPricePerTBForScenario` / `getHddPricePerTBForScenario`: always plots **Baseline** and **AI-Shock** SSD paths for comparison. |
+| Log “Storage” line | 1980–2026 | Era media | HDD until `AUTO_SSD_FROM_YEAR` (2021), then SSD/NVMe — one series on the index chart. |
+| Projections 2027–40 | linear chart only | $/TB | Dashed NVMe **Baseline** vs **AI-Shock** via `getSsdPricePerTBForScenario`. Not on the log index chart. |
 | KPIs | — | Facts | Storage ~10⁹×; compute ~10× FLOPS/$ per 4–8 yr; bandwidth real $/Mbps ~−80% BPI 2015→2023. |
 
-**Charts:** multi-series log **index (2009 = 100)** with series toggles; linear storage $/TB 2009–2040 with dashed projections. Bitcoin node era band = 2009–2026. Share URL supports `?tab=deflation`.
+**Charts:** log **index (2009 = 100)** with three core series (Storage / Bandwidth / Compute), distinct colors; linear storage $/TB 2009–2040 for spikes + scenario fan. Bitcoin node era band = 2009–2026. Share URL supports `?tab=deflation`.
 
 **Not claimed:** matched-model PPI, CPI-adjusted series on the chart, or live TeleGeography feeds.
 
