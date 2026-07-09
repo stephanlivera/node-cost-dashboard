@@ -165,16 +165,36 @@ Re-`du` before treating index costs as precise.
 
 ---
 
-## 7. Not validated by this sheet
+## 7. Tech Deflation tab (`TECH_DEFLATION`)
+
+Educational multi-decade series (not used by the node cost formulas). Lives in `index.html` as `TECH_DEFLATION`.
+
+| Series | Range | Units | Notes |
+|--------|-------|-------|--------|
+| `hddPerTB` | 1980–2026 | Nominal $/TB | Pre-2009: representative HDD retail from Komorowski / McCallum lineage ($/GB × 1000). 2009+: aligns with `RAW.hddPerTB`; **2011 set to 100** (vs smoothed 80) so the Thailand flood spike is visible on the linear chart. |
+| `ssdPerTB` | sparse → 2026 | Nominal $/TB | Null until ~2008; 2009+ matches `RAW.ssdPerTB` (includes 2026 AI/NAND spike at 130). |
+| `bandwidthUsdPerMbps` | 1998–2026 | Nominal $/Mbps/mo | Residential effective rate (early broadband → BPI-class 2015 $0.87 / 2023 $0.18 → ~$0.12 by 2026). Sparse; log-interpolated on the chart. |
+| `computeCostIndex` | 1980–2026 | Index, 2009 = 100 | Illustrative $ for a fixed unit of performance (inverse FLOPS/$ ~10× / 4–8 yr). Not a BLS PPI. |
+| Projections 2027–40 | dashed | $/TB → index | Same math as node model via `getSsdPricePerTBForScenario` / `getHddPricePerTBForScenario`: always plots **Baseline** and **AI-Shock** SSD paths for comparison. |
+| KPIs | — | Facts | Storage ~10⁹×; compute ~10× FLOPS/$ per 4–8 yr; bandwidth real $/Mbps ~−80% BPI 2015→2023. |
+
+**Charts:** multi-series log **index (2009 = 100)** with series toggles; linear storage $/TB 2009–2040 with dashed projections. Bitcoin node era band = 2009–2026. Share URL supports `?tab=deflation`.
+
+**Not claimed:** matched-model PPI, CPI-adjusted series on the chart, or live TeleGeography feeds.
+
+---
+
+## 8. Not validated by this sheet
 
 - Historical years 2009–2025 detail  
 - Projection deflation paths 2027–2040  
 - Non-US rates · real (CPI) dollars · first-sync bandwidth  
 - That 15% internet share matches any one household  
+- Pre-2009 storage anchors beyond order-of-magnitude (Tech Deflation tab)
 
 ---
 
-## 8. Re-verify checklist
+## 9. Re-verify checklist
 
 - [x] Blocks within ±5% of YCharts  
 - [x] Chainstate in 10–15 GB band  
@@ -195,4 +215,7 @@ Re-`du` before treating index costs as precise.
 - EIA — Electric Power Monthly Tables 5.3 / 5.6.A (April 2026)  
 - USTelecom — Broadband Pricing Index 2024–2026  
 - Tom's Hardware — SSD price tracking & deals 2026  
-- Dashboard: `RAW`, anchors, `US_RATES`
+- John C. McCallum disk/memory tables · Our World in Data historical storage costs  
+- Matt Komorowski — cost per gigabyte (HDD history)  
+- Backblaze — hard drive cost per gigabyte  
+- Dashboard: `RAW`, `TECH_DEFLATION`, anchors, `US_RATES`

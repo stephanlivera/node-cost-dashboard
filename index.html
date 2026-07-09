@@ -401,6 +401,7 @@
     .blueprint-theme .text-\[11px\] { font-size: 12px; line-height: 1.5; }
     .blueprint-theme .leading-relaxed,
     .blueprint-theme #tabTradeoffs p,
+    .blueprint-theme #tabDeflation p,
     .blueprint-theme #hwDesc,
     .blueprint-theme footer p,
     .blueprint-theme .text-sm.text-gray-400 { line-height: 1.55; }
@@ -785,6 +786,7 @@
       <div class="flex gap-2 sm:gap-4 border-b border-gray-700 text-sm overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0">
         <button class="tab-btn pb-2 px-2 shrink-0 text-gray-400 hover:text-btc" data-tab="table">Data Table</button>
         <button class="tab-btn tab-active pb-2 px-2 shrink-0" data-tab="charts">Charts</button>
+        <button class="tab-btn pb-2 px-2 shrink-0 text-gray-400 hover:text-btc" data-tab="deflation">Tech Deflation</button>
         <button class="tab-btn pb-2 px-2 shrink-0 text-gray-400 hover:text-btc" data-tab="tradeoffs">Trade-offs</button>
       </div>
 
@@ -894,6 +896,118 @@
         </div>
       </section>
 
+      <!-- Tech Deflation Tab -->
+      <section id="tabDeflation" class="tab-panel hidden space-y-4">
+        <div class="bg-surface-card rounded-xl p-5 border border-btc/30 glow-btc">
+          <h2 class="text-lg sm:text-xl font-bold text-btc mb-2">Technology deflation, not a straight line</h2>
+          <p class="text-sm text-gray-300 leading-relaxed max-w-3xl">
+            Over decades, the <strong class="text-gray-200">unit cost</strong> of storage, compute, and bandwidth has collapsed by orders of magnitude.
+            Floods, pandemics, and AI demand create <strong class="text-gray-200">periodic spikes</strong> — real, painful, and temporary relative to the multi-decade envelope.
+            Bitcoin node affordability rides the same curve: chain growth is roughly linear; tech unit costs have historically fallen much faster.
+          </p>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div class="kpi-card bg-surface-card rounded-xl p-4 border border-btc/25">
+            <div class="text-[10px] uppercase tracking-wide text-gray-500 mb-1">Storage</div>
+            <div class="text-2xl font-bold font-mono text-btc">~10<sup class="text-lg">9</sup>×</div>
+            <div class="text-sm text-gray-200 mt-1">Cheaper per TB</div>
+            <p class="text-[11px] text-gray-500 mt-1 leading-snug">Since the mid-20th century (McCallum / Our World in Data class). Log scale is essential.</p>
+          </div>
+          <div class="kpi-card bg-surface-card rounded-xl p-4 border border-gray-700">
+            <div class="text-[10px] uppercase tracking-wide text-gray-500 mb-1">Compute</div>
+            <div class="text-2xl font-bold font-mono text-btc">~10× / 4–8 yr</div>
+            <div class="text-sm text-gray-200 mt-1">FLOPS per dollar</div>
+            <p class="text-[11px] text-gray-500 mt-1 leading-snug">Long-run price-performance (Moore era / AI Impacts). Single-thread gains slowed after ~2005; multi-core &amp; efficiency continued.</p>
+          </div>
+          <div class="kpi-card bg-surface-card rounded-xl p-4 border border-gray-700">
+            <div class="text-[10px] uppercase tracking-wide text-gray-500 mb-1">Bandwidth</div>
+            <div class="text-2xl font-bold font-mono text-btc">~−80%</div>
+            <div class="text-sm text-gray-200 mt-1">Real $/Mbps (home)</div>
+            <p class="text-[11px] text-gray-500 mt-1 leading-snug">USTelecom BPI-Speed ~2015→2023. Plan dollars stay ~flat; megabits per dollar explode. Wholesale transit now cents/Mbps.</p>
+          </div>
+        </div>
+
+        <div class="bp-regmarks bg-surface-card rounded-xl p-5 border border-btc/30" data-chart-card="deflationStorage">
+          <div class="flex items-start justify-between gap-2 mb-2">
+            <div class="min-w-0">
+              <h3 class="text-base sm:text-lg font-bold text-btc">Unit costs · log index (1980–2040)</h3>
+              <p class="text-xs text-gray-500 mt-1">
+                All series as an <strong class="text-gray-400">index (2009 = 100)</strong> so storage, bandwidth, and compute share one log axis.
+                Lower = cheaper per unit. Tooltip shows native units. Dashed storage paths = model projections (Baseline vs AI-Shock).
+              </p>
+            </div>
+            <div class="chart-actions flex shrink-0 gap-1">
+              <button type="button" class="chart-action-btn" data-chart-action="copy" data-chart="deflationStorage" title="Copy chart image" aria-label="Copy chart image"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg></button>
+              <button type="button" class="chart-action-btn" data-chart-action="download" data-chart="deflationStorage" title="Download chart PNG" aria-label="Download chart PNG"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg></button>
+            </div>
+          </div>
+          <div id="deflationSeriesToggles" class="flex flex-wrap gap-x-4 gap-y-2 text-xs text-gray-300 mb-3">
+            <label class="inline-flex items-center gap-1.5 cursor-pointer"><input type="checkbox" data-deflation-series="hdd" checked class="accent-btc" /> HDD storage</label>
+            <label class="inline-flex items-center gap-1.5 cursor-pointer"><input type="checkbox" data-deflation-series="ssd" checked class="accent-btc" /> Flash / SSD</label>
+            <label class="inline-flex items-center gap-1.5 cursor-pointer"><input type="checkbox" data-deflation-series="bandwidth" checked class="accent-btc" /> Bandwidth $/Mbps</label>
+            <label class="inline-flex items-center gap-1.5 cursor-pointer"><input type="checkbox" data-deflation-series="compute" checked class="accent-btc" /> Compute cost</label>
+            <label class="inline-flex items-center gap-1.5 cursor-pointer"><input type="checkbox" data-deflation-series="proj" checked class="accent-btc" /> Projected storage (2027–40)</label>
+          </div>
+          <div class="chart-container-hero"><canvas id="chartDeflationStorage"></canvas></div>
+          <p class="text-[10px] text-gray-500 mt-2">Straight-ish lines on a log chart ≈ exponential decline. Spikes look small here — use the linear storage zoom below. Active projection scenario also drives the Charts tab.</p>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <div class="bp-regmarks bg-surface-card rounded-xl p-4 border border-gray-700" data-chart-card="deflationRecent">
+            <div class="flex items-start justify-between gap-2 mb-2">
+              <div class="min-w-0">
+                <h3 class="text-sm font-semibold text-btc">Storage $/TB · linear (2009–2040)</h3>
+                <p class="text-[10px] text-gray-500 mt-0.5">Historical node-model prices + dashed NVMe paths for <strong class="text-gray-400">Baseline</strong> and <strong class="text-gray-400">AI-Shock</strong>. 2011 flood &amp; 2026 NAND spikes are intentional.</p>
+              </div>
+              <div class="chart-actions flex shrink-0 gap-1">
+                <button type="button" class="chart-action-btn" data-chart-action="copy" data-chart="deflationRecent" title="Copy chart image" aria-label="Copy chart image"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg></button>
+                <button type="button" class="chart-action-btn" data-chart-action="download" data-chart="deflationRecent" title="Download chart PNG" aria-label="Download chart PNG"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg></button>
+              </div>
+            </div>
+            <div class="chart-container"><canvas id="chartDeflationRecent"></canvas></div>
+          </div>
+
+          <div class="bg-surface-card rounded-xl p-4 border border-gray-700">
+            <h3 class="text-sm font-semibold text-btc mb-3">Moments on the curve</h3>
+            <ol id="deflationMilestones" class="space-y-3 text-sm text-gray-300 list-none"></ol>
+          </div>
+        </div>
+
+        <div>
+          <h3 class="text-sm font-semibold text-btc mb-2">What ~$100 bought in storage</h3>
+          <p class="text-[11px] text-gray-500 mb-3">Illustrative capacity for roughly $100 of magnetic disk (HDD-class) at that year’s price — order-of-magnitude, not a quote.</p>
+          <div id="deflationWhat100" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2"></div>
+        </div>
+
+        <div class="bg-surface-card rounded-xl p-5 border border-btc/25 flex flex-col sm:flex-row sm:items-center gap-4 justify-between">
+          <div class="min-w-0">
+            <h3 class="text-sm font-semibold text-btc mb-1">Bridge to the node cost model</h3>
+            <p class="text-sm text-gray-400 leading-relaxed">
+              In this dashboard’s archival model, bulk HDD fell from ~$110/TB (2009) to ~$10/TB (2026). Consumer flash fell for years, then spiked to ~$130/TB in 2026.
+              Chain size grew from megabytes to ~753 GB — still often cheaper to store because <strong class="text-gray-200">$/TB fell faster than the chain grew</strong> (until temporary spikes reverse that).
+            </p>
+          </div>
+          <button type="button" id="btnJumpToNodeCharts" class="shrink-0 px-4 py-2.5 rounded-lg border border-btc text-btc text-sm font-medium hover:bg-btc/10 whitespace-nowrap">
+            Open Charts · 2026 →
+          </button>
+        </div>
+
+        <details class="bg-surface-card rounded-xl border border-gray-700 group">
+          <summary class="p-4 cursor-pointer font-semibold text-btc hover:bg-btc/5 rounded-xl">Sources, units &amp; methodology</summary>
+          <div class="px-4 pb-4 text-sm text-gray-400 space-y-3">
+            <div><strong class="text-gray-200">Storage long-run:</strong> John C. McCallum historical disk/memory tables (via Our World in Data); Matt Komorowski hard-drive cost series (1980–2009); Backblaze cost-per-GB blogs (2009–2022+). Pre-2009 points are <em>representative retail anchors</em>, not a matched-model PPI.</div>
+            <div><strong class="text-gray-200">2009–2026 node series:</strong> Same <code class="text-gray-400">RAW.hddPerTB</code> / <code class="text-gray-400">RAW.ssdPerTB</code> as the Charts tab (see <code class="text-gray-400">ASSUMPTIONS.md</code>). 2011 flood is annotated; the series is smoothed yearly averages, so the bump is modest vs retail day-to-day noise.</div>
+            <div><strong class="text-gray-200">Index chart (2009 = 100):</strong> Storage, bandwidth, and compute are rebased so they share a log axis. Toggle series on/off above the chart. Index 50 ≈ half the 2009 unit cost.</div>
+            <div><strong class="text-gray-200">Compute series:</strong> Illustrative <em>cost of a fixed unit of performance</em> (inverse of FLOPS/$ trends; AI Impacts / Sandberg–Bostrom class, ~10× every 4–8 years). Sparse anchors, log-interpolated — not a BLS PPI.</div>
+            <div><strong class="text-gray-200">Bandwidth series:</strong> Approximate U.S. residential <strong class="text-gray-300">$/Mbps/mo</strong> (nominal) from early broadband → BPI-class 2015–2023 (~$0.87 → ~$0.18) → mid-2020s. Plan dollars stay sticky; Mbps explode. Separate from wholesale IP transit (~$0.05/Mbps floors).</div>
+            <div><strong class="text-gray-200">Projections 2027–2040:</strong> Dashed NVMe paths use the same scenario math as the node model (<code class="text-gray-400">getScenarioModifiers</code>): Baseline (sticky then ~−12%/yr) vs AI-Shock (+15%/yr through 2030, then steeper deflation). Changing the Projections panel scenario updates the Charts tab; both Baseline and AI-Shock are always shown here for comparison.</div>
+            <div><strong class="text-gray-200">Nominal USD:</strong> Underlying storage/bandwidth dollars are nominal (year of sale), not CPI-adjusted. Inflation adjustment would steepen early declines further in real terms for many eras.</div>
+            <div><strong class="text-gray-200">Not financial advice.</strong> Order-of-magnitude illustration for educators. Spike years prove the thesis is not “prices only go down every month.”</div>
+          </div>
+        </details>
+      </section>
+
       <!-- Trade-offs Tab -->
       <section id="tabTradeoffs" class="tab-panel hidden space-y-4">
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
@@ -942,7 +1056,7 @@
   <div id="exportToast" class="export-toast" role="status" aria-live="polite"></div>
 
   <footer class="border-t border-gray-700 mt-8 py-6 px-4 text-center text-xs text-gray-500 max-w-[1600px] mx-auto">
-    <p class="mb-2"><strong class="text-btc">Sources & Notes:</strong> Anchors last sense-checked <strong class="text-gray-400">2026-07-09</strong> (see <code class="text-gray-400">ASSUMPTIONS.md</code>). Chain size: YCharts / Blockchain.com (~753 GB Jul 2026). NVMe: ~$250–300/2 TB retail (Tom's Hardware, TrendForce). OpEx: EIA residential electricity Table 5.6.A (~18.8¢/kWh Apr 2026); USTelecom BPI-Speed (~$70/mo 2025–26). Approximations for illustration.</p>
+    <p class="mb-2"><strong class="text-btc">Sources & Notes:</strong> Anchors last sense-checked <strong class="text-gray-400">2026-07-09</strong> (see <code class="text-gray-400">ASSUMPTIONS.md</code>). Chain size: YCharts / Blockchain.com (~753 GB Jul 2026). NVMe: ~$250–300/2 TB retail (Tom's Hardware, TrendForce). OpEx: EIA residential electricity Table 5.6.A (~18.8¢/kWh Apr 2026); USTelecom BPI-Speed (~$70/mo 2025–26). Long-run storage series (Tech Deflation tab): McCallum / OWID, Komorowski, Backblaze + node-model $/TB. Approximations for illustration.</p>
     <p>All costs in nominal USD for the selected year. Electricity and internet follow U.S. national averages; your local rates may differ. Not financial advice. Built for Bitcoin educators & hodlers.</p>
   </footer>
 
@@ -979,6 +1093,56 @@ const RAW = {
     'Raspberry Pi 4 (8GB)', 'Raspberry Pi 4 / mini PC', 'Raspberry Pi 5 (4GB)', 'Raspberry Pi 5 (8GB)',
     'Raspberry Pi 5 (8GB)', 'Raspberry Pi 5 + NVMe hat', 'Pi 5 / N100 mini PC', 'N100 mini PC',
     'N100 / ARM SBC', 'Efficient ARM / N100'
+  ]
+};
+
+// ═══════════════════════════════════════════════════════════════
+// TECH DEFLATION — multi-decade educational series (Tech Deflation tab)
+// Pre-2009 storage: representative HDD retail anchors (Komorowski / McCallum lineage).
+// 2009+: same scale as RAW.hddPerTB / RAW.ssdPerTB (node model). Nominal USD.
+// ═══════════════════════════════════════════════════════════════
+const TECH_DEFLATION = {
+  // Historical storage anchors (pre-projection). Chart extends yearly through PROJECTION_THROUGH.
+  storageYears: [
+    1980, 1981, 1985, 1988, 1990, 1992, 1995, 1998, 2000, 2002, 2004, 2006, 2008,
+    2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025, 2026
+  ],
+  // Nominal $/TB magnetic disk (HDD-class). Early points = $/GB × 1000 from published samples.
+  // 2009+ ≈ RAW.hddPerTB; 2011 set to 100 (vs smoothed 80) to surface Thailand-flood spike.
+  hddPerTB: [
+    200000000, 340000000, 71000000, 30000000, 9000000, 4000000, 850000, 50000, 10000, 2500, 1200, 500, 270,
+    110, 95, 100, 60, 50, 42, 35, 30, 28, 25, 22, 18, 16, 15, 13, 12, 11, 10
+  ],
+  // Consumer flash $/TB (null = not charted). 2009+ matches RAW.ssdPerTB historical window.
+  ssdPerTB: [
+    null, null, null, null, null, null, null, null, null, null, null, null, 2000,
+    600, 500, 400, 300, 250, 200, 160, 130, 110, 95, 85, 75, 70, 60, 55, 52, 68, 130
+  ],
+  // Residential effective $/Mbps/mo (nominal). Anchors: early broadband → BPI-Speed 2015 $0.87 / 2023 $0.18 class.
+  bandwidthYears: [1998, 2000, 2003, 2005, 2008, 2009, 2012, 2015, 2018, 2020, 2023, 2026],
+  bandwidthUsdPerMbps: [28, 16, 8, 5, 3.2, 2.5, 1.5, 0.87, 0.45, 0.35, 0.18, 0.12],
+  // Relative $ for a fixed unit of compute performance (2009 = 100). Illustrative inverse of FLOPS/$ (~10× / 4–8 yr).
+  computeYears: [1980, 1985, 1990, 1995, 2000, 2005, 2009, 2012, 2015, 2018, 2021, 2024, 2026],
+  computeCostIndex: [5000000, 800000, 100000, 12000, 1500, 350, 100, 45, 18, 8, 3.5, 2.2, 1.8],
+  indexBaseYear: 2009,
+  bitcoinEraFrom: 2009,
+  bitcoinEraTo: 2026,
+  milestones: [
+    { year: 1981, label: 'Early PC HDDs', detail: 'Seagate ST-506 class ~5 MB for ~$1,500–$3,500 (~$100k–$700k per GB).' },
+    { year: 1995, label: 'Consumer GB era', detail: '1 GB drives under ~$1,000; the internet goes mainstream.' },
+    { year: 2000, label: 'Broadband + cheap disks', detail: 'Roughly ~$10/GB HDD; flat-rate residential broadband spreads.' },
+    { year: 2009, label: 'Bitcoin genesis', detail: 'Dashboard node era begins. Bulk HDD ~$110/TB in this model.' },
+    { year: 2011, label: 'Thailand flood spike', detail: 'HDD supply shock — temporary price jump, then multi-year deflation resumes.' },
+    { year: 2018, label: 'Pi-class nodes', detail: 'Raspberry Pi 3/4 era: always-on full node on hobbyist boards.' },
+    { year: 2026, label: 'AI NAND spike', detail: 'Consumer NVMe ~$130/TB after AI datacenter demand — level shift up; long-run deflation expected to resume (Baseline scenario).' }
+  ],
+  what100Bought: [
+    { year: 1981, capacity: '~0.3 MB', note: 'A few floppies of hard-disk space' },
+    { year: 1990, capacity: '~11 MB', note: 'Less than one modern RAW photo' },
+    { year: 2000, capacity: '~10 GB', note: 'A small partition today' },
+    { year: 2009, capacity: '~0.9 TB', note: 'Nearly a full 1 TB drive' },
+    { year: 2024, capacity: '~8 TB HDD', note: 'Before the 2025–26 flash spike' },
+    { year: 2026, capacity: '~10 TB HDD', note: 'Or ~0.8 TB of $130/TB NVMe' }
   ]
 };
 
@@ -1342,27 +1506,12 @@ function getEnclosureCost(year, cpi) {
 
 /** HDD market $/TB (storage mult applied). Post-2026: deflate from 2026 HDD anchor. */
 function getHddPricePerTB(year) {
-  const mult = state.storageMult;
-  if (year <= HISTORICAL_THROUGH) return lerp(RAW.hddPerTB, RAW.years, year) * mult;
-  let price = lerp(RAW.hddPerTB, RAW.years, HISTORICAL_THROUGH) * mult;
-  for (let y = 2027; y <= year; y++) {
-    const mods = getScenarioModifiers(y);
-    price *= mods.aiHike * (1 + mods.storageDefl);
-  }
-  return Math.max(price, 0.5);
+  return getHddPricePerTBForScenario(year, state.projectionScenario);
 }
 
 /** SSD/NVMe market $/TB (storage mult applied). Post-2026: NAND recovery path from 2026 SSD. */
 function getSsdPricePerTB(year) {
-  const mult = state.storageMult;
-  if (year <= HISTORICAL_THROUGH) return lerp(RAW.ssdPerTB, RAW.years, year) * mult;
-  const ssdPrem = 1 + state.projSsdPremiumPct / 100;
-  let price = lerp(RAW.ssdPerTB, RAW.years, HISTORICAL_THROUGH) * mult * ssdPrem;
-  for (let y = 2027; y <= year; y++) {
-    const mods = getScenarioModifiers(y);
-    price *= mods.aiHike * (1 + mods.storageDefl);
-  }
-  return Math.max(price, 0.5);
+  return getSsdPricePerTBForScenario(year, state.projectionScenario);
 }
 
 function getStoragePricePerTB(year) {
@@ -1522,8 +1671,8 @@ function getNodeStorageGB(year) {
   return getCoreChainGB(year) * 1.15;
 }
 
-function getScenarioModifiers(year) {
-  const s = state.projectionScenario;
+function getScenarioModifiers(year, scenario = state.projectionScenario) {
+  const s = scenario;
   let storageDefl = state.projStorageDeflation / 100;
   let hwDefl = state.projHardwareDeflation / 100;
   let internetTrend = state.projInternetTrend / 100;
@@ -1549,6 +1698,30 @@ function getScenarioModifiers(year) {
     else if (year >= 2029) storageDefl = Math.min(storageDefl, -0.12);
   }
   return { storageDefl, hwDefl, internetTrend, aiHike };
+}
+
+/** SSD/NVMe $/TB for a named projection scenario (does not mutate global state). */
+function getSsdPricePerTBForScenario(year, scenario) {
+  const mult = state.storageMult;
+  if (year <= HISTORICAL_THROUGH) return lerp(RAW.ssdPerTB, RAW.years, year) * mult;
+  const ssdPrem = 1 + state.projSsdPremiumPct / 100;
+  let price = lerp(RAW.ssdPerTB, RAW.years, HISTORICAL_THROUGH) * mult * ssdPrem;
+  for (let y = 2027; y <= year; y++) {
+    const mods = getScenarioModifiers(y, scenario);
+    price *= mods.aiHike * (1 + mods.storageDefl);
+  }
+  return Math.max(price, 0.5);
+}
+
+function getHddPricePerTBForScenario(year, scenario) {
+  const mult = state.storageMult;
+  if (year <= HISTORICAL_THROUGH) return lerp(RAW.hddPerTB, RAW.years, year) * mult;
+  let price = lerp(RAW.hddPerTB, RAW.years, HISTORICAL_THROUGH) * mult;
+  for (let y = 2027; y <= year; y++) {
+    const mods = getScenarioModifiers(y, scenario);
+    price *= mods.aiHike * (1 + mods.storageDefl);
+  }
+  return Math.max(price, 0.5);
 }
 
 function getProjectedStoragePricePerTB(year) {
@@ -2386,6 +2559,562 @@ function milestoneLabelsPlugin() {
   };
 }
 
+function fmtUsdPerTB(v) {
+  if (v == null || !Number.isFinite(v)) return '—';
+  if (v >= 1e6) return '$' + (v / 1e6).toFixed(v >= 1e8 ? 0 : 1) + 'M/TB';
+  if (v >= 1e3) return '$' + (v / 1e3).toFixed(v >= 1e4 ? 0 : 1) + 'k/TB';
+  if (v >= 10) return '$' + v.toFixed(0) + '/TB';
+  return '$' + v.toFixed(1) + '/TB';
+}
+
+function fmtUsdPerMbps(v) {
+  if (v == null || !Number.isFinite(v)) return '—';
+  if (v >= 10) return '$' + v.toFixed(0) + '/Mbps';
+  if (v >= 1) return '$' + v.toFixed(2) + '/Mbps';
+  return '$' + v.toFixed(2) + '/Mbps';
+}
+
+function fmtIndex(v) {
+  if (v == null || !Number.isFinite(v)) return '—';
+  if (v >= 1e6) return (v / 1e6).toFixed(1) + 'M';
+  if (v >= 1000) return (v / 1000).toFixed(1) + 'k';
+  if (v >= 100) return v.toFixed(0);
+  if (v >= 10) return v.toFixed(1);
+  return v.toFixed(2);
+}
+
+/** Log-space interpolate sparse anchors onto chart labels. */
+function seriesFromAnchors(labels, anchorYears, anchorValues) {
+  const pts = [];
+  for (let i = 0; i < anchorYears.length; i++) {
+    const v = anchorValues[i];
+    if (v != null && Number.isFinite(v) && v > 0) pts.push({ y: anchorYears[i], v });
+  }
+  if (!pts.length) return labels.map(() => null);
+  return labels.map(year => {
+    if (year < pts[0].y || year > pts[pts.length - 1].y) return null;
+    for (let i = 0; i < pts.length; i++) {
+      if (pts[i].y === year) return pts[i].v;
+      if (pts[i].y > year) {
+        const a = pts[i - 1];
+        const b = pts[i];
+        const t = (year - a.y) / (b.y - a.y);
+        return Math.exp(Math.log(a.v) + t * (Math.log(b.v) - Math.log(a.v)));
+      }
+    }
+    return pts[pts.length - 1].v;
+  });
+}
+
+function toIndexSeries(nativeSeries, labels, baseYear = TECH_DEFLATION.indexBaseYear) {
+  const bi = labels.indexOf(baseYear);
+  let base = bi >= 0 ? nativeSeries[bi] : null;
+  if (base == null || !(base > 0)) {
+    for (let i = 0; i < labels.length; i++) {
+      if (nativeSeries[i] != null && nativeSeries[i] > 0) {
+        // fallback: nearest available ≤ baseYear, else first point
+        if (labels[i] <= baseYear) base = nativeSeries[i];
+      }
+    }
+  }
+  if (base == null || !(base > 0)) {
+    base = nativeSeries.find(v => v != null && v > 0);
+  }
+  if (base == null || !(base > 0)) return nativeSeries.map(() => null);
+  return nativeSeries.map(v => (v == null || !(v > 0) ? null : (v / base) * 100));
+}
+
+function buildDeflationChartYears() {
+  const hist = TECH_DEFLATION.storageYears.slice();
+  const years = hist.slice();
+  for (let y = HISTORICAL_THROUGH + 1; y <= PROJECTION_THROUGH; y++) years.push(y);
+  return years;
+}
+
+function bitcoinEraPlugin() {
+  return {
+    id: 'bitcoinEraBand',
+    beforeDatasetsDraw(chart) {
+      const labels = chart.data.labels;
+      const { ctx, chartArea, scales: { x } } = chart;
+      if (!labels?.length || !x || !chartArea) return;
+      const from = TECH_DEFLATION.bitcoinEraFrom;
+      const to = TECH_DEFLATION.bitcoinEraTo;
+      const i0 = labels.findIndex(y => y >= from);
+      let i1 = labels.length - 1;
+      for (let i = labels.length - 1; i >= 0; i--) {
+        if (labels[i] <= to) { i1 = i; break; }
+      }
+      if (i0 < 0) return;
+      const left = x.getPixelForValue(i0);
+      const right = x.getPixelForValue(i1);
+      if (!(right > left)) return;
+      ctx.save();
+      ctx.fillStyle = 'rgba(77, 208, 225, 0.07)';
+      ctx.fillRect(left, chartArea.top, right - left, chartArea.bottom - chartArea.top);
+      ctx.fillStyle = 'rgba(77, 208, 225, 0.75)';
+      ctx.font = '600 10px "IBM Plex Mono", monospace';
+      ctx.fillText('Bitcoin node era', left + 6, chartArea.top + 12);
+      ctx.restore();
+    }
+  };
+}
+
+function projectedDeflationRegionPlugin() {
+  return {
+    id: 'projectedDeflationRegion',
+    beforeDatasetsDraw(chart) {
+      const labels = chart.data.labels;
+      const { ctx, chartArea, scales: { x } } = chart;
+      if (!labels?.length || !x || !chartArea) return;
+      const i0 = labels.findIndex(y => y > HISTORICAL_THROUGH);
+      if (i0 < 0) return;
+      const left = x.getPixelForValue(labels[Math.max(0, i0 - 1)]);
+      const right = x.getPixelForValue(labels[labels.length - 1]);
+      if (!(right > left)) return;
+      ctx.save();
+      ctx.fillStyle = 'rgba(232, 184, 74, 0.06)';
+      ctx.fillRect(left, chartArea.top, right - left, chartArea.bottom - chartArea.top);
+      ctx.fillStyle = 'rgba(232, 184, 74, 0.75)';
+      ctx.font = '600 10px "IBM Plex Mono", monospace';
+      ctx.fillText('Projected', left + 6, chartArea.top + 12);
+      ctx.restore();
+    }
+  };
+}
+
+function deflationMilestoneLinesPlugin(milestoneYears) {
+  return {
+    id: 'deflationMilestoneLines',
+    afterDatasetsDraw(chart) {
+      const labels = chart.data.labels;
+      const { ctx, chartArea, scales: { x } } = chart;
+      if (!labels?.length || !x || !chartArea) return;
+      ctx.save();
+      milestoneYears.forEach(year => {
+        const idx = labels.indexOf(year);
+        if (idx < 0) return;
+        const xPos = x.getPixelForValue(idx);
+        if (xPos < chartArea.left || xPos > chartArea.right) return;
+        ctx.strokeStyle = year === 2011 || year === 2026
+          ? 'rgba(232, 184, 74, 0.55)'
+          : 'rgba(77, 208, 225, 0.28)';
+        ctx.lineWidth = 1;
+        ctx.setLineDash([3, 3]);
+        ctx.beginPath();
+        ctx.moveTo(xPos, chartArea.top);
+        ctx.lineTo(xPos, chartArea.bottom);
+        ctx.stroke();
+      });
+      ctx.restore();
+    }
+  };
+}
+
+function getDeflationSeriesFlags() {
+  const flags = { hdd: true, ssd: true, bandwidth: true, compute: true, proj: true };
+  document.querySelectorAll('[data-deflation-series]').forEach(el => {
+    const key = el.dataset.deflationSeries;
+    if (key in flags) flags[key] = el.checked;
+  });
+  return flags;
+}
+
+function renderDeflationStaticCopy() {
+  const ms = document.getElementById('deflationMilestones');
+  if (ms && !ms.dataset.ready) {
+    ms.innerHTML = TECH_DEFLATION.milestones.map(m => `
+      <li class="flex gap-3">
+        <span class="font-mono text-btc shrink-0 w-10">${m.year}</span>
+        <span><strong class="text-gray-200">${m.label}</strong> — ${m.detail}</span>
+      </li>
+    `).join('');
+    ms.dataset.ready = '1';
+  }
+  const w100 = document.getElementById('deflationWhat100');
+  if (w100 && !w100.dataset.ready) {
+    w100.innerHTML = TECH_DEFLATION.what100Bought.map(c => `
+      <div class="bg-surface-card rounded-xl border border-gray-700 p-3">
+        <div class="text-[10px] uppercase tracking-wide text-gray-500">${c.year}</div>
+        <div class="text-base font-mono font-semibold text-btc mt-1">${c.capacity}</div>
+        <div class="text-[11px] text-gray-500 mt-1 leading-snug">${c.note}</div>
+      </div>
+    `).join('');
+    w100.dataset.ready = '1';
+  }
+}
+
+function updateDeflationCharts() {
+  renderDeflationStaticCopy();
+  const c = chartColors();
+  const flags = getDeflationSeriesFlags();
+  const years = buildDeflationChartYears();
+  const baseYear = TECH_DEFLATION.indexBaseYear;
+  const milestoneYears = TECH_DEFLATION.milestones.map(m => m.year);
+
+  // Native historical series aligned to full year axis
+  const hddNative = seriesFromAnchors(years, TECH_DEFLATION.storageYears, TECH_DEFLATION.hddPerTB);
+  const ssdNative = seriesFromAnchors(years, TECH_DEFLATION.storageYears, TECH_DEFLATION.ssdPerTB);
+  const bwNative = seriesFromAnchors(years, TECH_DEFLATION.bandwidthYears, TECH_DEFLATION.bandwidthUsdPerMbps);
+  const computeNative = seriesFromAnchors(years, TECH_DEFLATION.computeYears, TECH_DEFLATION.computeCostIndex);
+
+  // Historical-only (null after 2026) for solid lines
+  const histMask = (series) => years.map((y, i) => (y <= HISTORICAL_THROUGH ? series[i] : null));
+  const hddHist = histMask(hddNative);
+  const ssdHist = histMask(ssdNative);
+  const bwHist = histMask(bwNative);
+  const computeHist = histMask(computeNative);
+
+  // Projected SSD native $/TB for Baseline + AI-Shock (bridge at 2026)
+  const ssdBaseNative = years.map(y => {
+    if (y < HISTORICAL_THROUGH) return null;
+    if (y === HISTORICAL_THROUGH) return ssdNative[years.indexOf(HISTORICAL_THROUGH)];
+    return getSsdPricePerTBForScenario(y, 'baseline');
+  });
+  const ssdAiNative = years.map(y => {
+    if (y < HISTORICAL_THROUGH) return null;
+    if (y === HISTORICAL_THROUGH) return ssdNative[years.indexOf(HISTORICAL_THROUGH)];
+    return getSsdPricePerTBForScenario(y, 'ai_shock');
+  });
+  const hddBaseNative = years.map(y => {
+    if (y < HISTORICAL_THROUGH) return null;
+    if (y === HISTORICAL_THROUGH) return hddNative[years.indexOf(HISTORICAL_THROUGH)];
+    return getHddPricePerTBForScenario(y, 'baseline');
+  });
+
+  const hddIdx = toIndexSeries(hddHist, years, baseYear);
+  const ssdIdx = toIndexSeries(ssdHist, years, baseYear);
+  const bwIdx = toIndexSeries(bwHist, years, baseYear);
+  const computeIdx = toIndexSeries(computeHist, years, baseYear);
+  // Projected paths share the same 2009 storage base as historical SSD/HDD index
+  const ssdBaseForIdx = years.map((y, i) => (y <= HISTORICAL_THROUGH ? ssdNative[i] : ssdBaseNative[i]));
+  const ssdAiForIdx = years.map((y, i) => (y <= HISTORICAL_THROUGH ? ssdNative[i] : ssdAiNative[i]));
+  const hddBaseForIdx = years.map((y, i) => (y <= HISTORICAL_THROUGH ? hddNative[i] : hddBaseNative[i]));
+  const ssdBaseIdx = toIndexSeries(ssdBaseForIdx, years, baseYear).map((v, i) =>
+    years[i] < HISTORICAL_THROUGH ? null : v
+  );
+  const ssdAiIdx = toIndexSeries(ssdAiForIdx, years, baseYear).map((v, i) =>
+    years[i] < HISTORICAL_THROUGH ? null : v
+  );
+  const hddBaseIdx = toIndexSeries(hddBaseForIdx, years, baseYear).map((v, i) =>
+    years[i] < HISTORICAL_THROUGH ? null : v
+  );
+
+  const nativeByDataset = {
+    hdd: hddHist,
+    ssd: ssdHist,
+    bandwidth: bwHist,
+    compute: computeHist,
+    ssdBase: ssdBaseNative,
+    ssdAi: ssdAiNative,
+    hddBase: hddBaseNative
+  };
+  const unitByDataset = {
+    hdd: 'storage',
+    ssd: 'storage',
+    bandwidth: 'bandwidth',
+    compute: 'compute',
+    ssdBase: 'storage',
+    ssdAi: 'storage',
+    hddBase: 'storage'
+  };
+
+  const logDatasets = [];
+  if (flags.hdd) {
+    logDatasets.push({
+      key: 'hdd',
+      label: 'HDD storage',
+      data: hddIdx,
+      borderColor: '#4dd0e1',
+      borderWidth: 2.5,
+      borderDash: [],
+      pointRadius: 2
+    });
+  }
+  if (flags.ssd) {
+    logDatasets.push({
+      key: 'ssd',
+      label: 'Flash / SSD',
+      data: ssdIdx,
+      borderColor: 'rgba(232,184,74,0.95)',
+      borderWidth: 2,
+      borderDash: [5, 3],
+      pointRadius: 2
+    });
+  }
+  if (flags.bandwidth) {
+    logDatasets.push({
+      key: 'bandwidth',
+      label: 'Bandwidth $/Mbps',
+      data: bwIdx,
+      borderColor: 'rgba(126, 232, 247, 0.95)',
+      borderWidth: 2,
+      borderDash: [],
+      pointRadius: 2
+    });
+  }
+  if (flags.compute) {
+    logDatasets.push({
+      key: 'compute',
+      label: 'Compute cost',
+      data: computeIdx,
+      borderColor: 'rgba(168, 130, 255, 0.95)',
+      borderWidth: 2,
+      borderDash: [2, 2],
+      pointRadius: 2
+    });
+  }
+  if (flags.proj) {
+    if (flags.ssd) {
+      logDatasets.push({
+        key: 'ssdBase',
+        label: 'SSD proj · Baseline',
+        data: ssdBaseIdx,
+        borderColor: 'rgba(126, 232, 247, 0.9)',
+        borderWidth: 2,
+        borderDash: [6, 4],
+        pointRadius: 0
+      });
+      logDatasets.push({
+        key: 'ssdAi',
+        label: 'SSD proj · AI-Shock',
+        data: ssdAiIdx,
+        borderColor: 'rgba(232, 93, 93, 0.9)',
+        borderWidth: 2,
+        borderDash: [6, 4],
+        pointRadius: 0
+      });
+    }
+    if (flags.hdd) {
+      logDatasets.push({
+        key: 'hddBase',
+        label: 'HDD proj · Baseline',
+        data: hddBaseIdx,
+        borderColor: 'rgba(77, 208, 225, 0.55)',
+        borderWidth: 1.5,
+        borderDash: [4, 4],
+        pointRadius: 0
+      });
+    }
+  }
+
+  const keyByLabel = Object.fromEntries(logDatasets.map(d => [d.label, d.key]));
+
+  destroyChart('deflationStorage');
+  const elLog = document.getElementById('chartDeflationStorage');
+  if (elLog) {
+    charts.deflationStorage = new Chart(elLog, {
+      type: 'line',
+      data: {
+        labels: years,
+        datasets: logDatasets.map(d => ({
+          label: d.label,
+          data: d.data,
+          borderColor: d.borderColor,
+          backgroundColor: 'transparent',
+          borderWidth: d.borderWidth,
+          borderDash: d.borderDash,
+          tension: 0.2,
+          pointRadius: d.pointRadius,
+          pointHoverRadius: 5,
+          spanGaps: false
+        }))
+      },
+      options: {
+        ...chartCommonOpts(),
+        plugins: {
+          legend: { labels: { color: c.text, font: { size: 11 }, boxWidth: 12 } },
+          tooltip: {
+            callbacks: {
+              label: (ctx) => {
+                const key = keyByLabel[ctx.dataset.label];
+                const idx = ctx.dataIndex;
+                const indexVal = ctx.parsed?.y;
+                const native = key ? nativeByDataset[key]?.[idx] : null;
+                const unit = key ? unitByDataset[key] : null;
+                let nativeStr = '';
+                if (unit === 'storage') nativeStr = fmtUsdPerTB(native);
+                else if (unit === 'bandwidth') nativeStr = fmtUsdPerMbps(native);
+                else if (unit === 'compute') nativeStr = 'rel. cost ' + fmtIndex(native) + ' (2009=100 scale)';
+                return `${ctx.dataset.label}: index ${fmtIndex(indexVal)}` + (nativeStr ? ` · ${nativeStr}` : '');
+              }
+            }
+          }
+        },
+        scales: {
+          x: chartAxis(c, {
+            ticks: {
+              maxRotation: 0,
+              autoSkip: true,
+              maxTicksLimit: 14,
+              callback(val, idx) {
+                const y = years[idx];
+                return y % 5 === 0 || y === 1981 || y === 2009 || y === 2026 || y === 2040 ? y : '';
+              }
+            }
+          }),
+          y: {
+            type: 'logarithmic',
+            ticks: {
+              color: c.text,
+              callback(value) {
+                const v = Number(value);
+                const nice = [0.1, 1, 10, 100, 1000, 1e4, 1e5, 1e6, 1e7, 1e8];
+                if (nice.some(n => Math.abs(v - n) / n < 1e-6)) return fmtIndex(v);
+                return '';
+              }
+            },
+            grid: { color: 'rgba(77,208,225,0.08)' },
+            border: { color: c.border, display: true },
+            title: {
+              display: true,
+              text: `Index (log) · ${baseYear} = 100`,
+              color: c.text,
+              font: { size: 11 }
+            }
+          }
+        }
+      },
+      plugins: [bitcoinEraPlugin(), projectedDeflationRegionPlugin(), deflationMilestoneLinesPlugin(milestoneYears)]
+    });
+  }
+
+  // Linear storage chart: 2009–2040 absolute $/TB
+  const recentYears = [];
+  for (let y = 2009; y <= PROJECTION_THROUGH; y++) recentYears.push(y);
+  const recentHddHist = recentYears.map(y =>
+    y <= HISTORICAL_THROUGH
+      ? seriesFromAnchors([y], TECH_DEFLATION.storageYears, TECH_DEFLATION.hddPerTB)[0]
+      : null
+  );
+  const recentSsdHist = recentYears.map(y =>
+    y <= HISTORICAL_THROUGH
+      ? seriesFromAnchors([y], TECH_DEFLATION.storageYears, TECH_DEFLATION.ssdPerTB)[0]
+      : null
+  );
+  const recentSsdBase = recentYears.map(y => {
+    if (y < HISTORICAL_THROUGH) return null;
+    if (y === HISTORICAL_THROUGH) return recentSsdHist[recentYears.indexOf(HISTORICAL_THROUGH)];
+    return getSsdPricePerTBForScenario(y, 'baseline');
+  });
+  const recentSsdAi = recentYears.map(y => {
+    if (y < HISTORICAL_THROUGH) return null;
+    if (y === HISTORICAL_THROUGH) return recentSsdHist[recentYears.indexOf(HISTORICAL_THROUGH)];
+    return getSsdPricePerTBForScenario(y, 'ai_shock');
+  });
+
+  destroyChart('deflationRecent');
+  const elLin = document.getElementById('chartDeflationRecent');
+  if (elLin) {
+    charts.deflationRecent = new Chart(elLin, {
+      type: 'line',
+      data: {
+        labels: recentYears,
+        datasets: [
+          {
+            label: 'HDD $/TB',
+            data: recentHddHist,
+            borderColor: '#4dd0e1',
+            backgroundColor: 'rgba(77,208,225,0.08)',
+            fill: false,
+            borderWidth: 2,
+            tension: 0.3,
+            pointRadius: 2,
+            spanGaps: false
+          },
+          {
+            label: 'SSD/NVMe historical',
+            data: recentSsdHist,
+            borderColor: 'rgba(232,184,74,0.95)',
+            backgroundColor: 'transparent',
+            borderWidth: 2,
+            tension: 0.3,
+            pointRadius: 2,
+            spanGaps: false
+          },
+          {
+            label: 'SSD proj · Baseline',
+            data: recentSsdBase,
+            borderColor: 'rgba(126, 232, 247, 0.95)',
+            borderWidth: 2,
+            borderDash: [6, 4],
+            tension: 0.25,
+            pointRadius: 0,
+            spanGaps: false
+          },
+          {
+            label: 'SSD proj · AI-Shock',
+            data: recentSsdAi,
+            borderColor: 'rgba(232, 93, 93, 0.95)',
+            borderWidth: 2,
+            borderDash: [6, 4],
+            tension: 0.25,
+            pointRadius: 0,
+            spanGaps: false
+          }
+        ]
+      },
+      options: {
+        ...chartCommonOpts(),
+        plugins: {
+          legend: { labels: { color: c.text, font: { size: 10 }, boxWidth: 10 } },
+          tooltip: {
+            callbacks: {
+              label: (ctx) => `${ctx.dataset.label}: ${fmtUsdPerTB(ctx.parsed?.y)}`,
+              afterBody: (items) => {
+                const y = String(items[0]?.label);
+                if (y === '2011') return ['→ Thailand flood HDD spike'];
+                if (y === '2025' || y === '2026') return ['→ AI / NAND flash spike'];
+                if (+y > HISTORICAL_THROUGH) return ['→ Model projection (not market data)'];
+                return [];
+              }
+            }
+          }
+        },
+        scales: {
+          x: chartAxis(c, {
+            ticks: {
+              color: c.text,
+              maxTicksLimit: 10,
+              callback(val, idx) {
+                const y = recentYears[idx];
+                return y % 5 === 0 || y === 2009 || y === 2026 || y === 2040 ? y : '';
+              }
+            }
+          }),
+          y: {
+            ...chartAxis(c),
+            beginAtZero: true,
+            title: { display: true, text: 'Nominal $/TB', color: c.text, font: { size: 11 } },
+            ticks: {
+              color: c.text,
+              callback: (v) => (v >= 1000 ? '$' + (v / 1000) + 'k' : '$' + v)
+            }
+          }
+        }
+      },
+      plugins: [projectedDeflationRegionPlugin(), deflationMilestoneLinesPlugin([2011, 2026])]
+    });
+  }
+}
+
+function switchToTab(tabKey) {
+  const btn = document.querySelector(`.tab-btn[data-tab="${tabKey}"]`);
+  if (!btn) return;
+  document.querySelectorAll('.tab-btn').forEach(b => {
+    b.classList.remove('tab-active');
+    b.classList.add('text-gray-400');
+  });
+  btn.classList.add('tab-active');
+  btn.classList.remove('text-gray-400');
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.add('hidden'));
+  const panel = document.getElementById('tab' + tabKey.charAt(0).toUpperCase() + tabKey.slice(1));
+  if (panel) panel.classList.remove('hidden');
+  if (tabKey === 'charts') setTimeout(updateCharts, 50);
+  if (tabKey === 'deflation') setTimeout(updateDeflationCharts, 50);
+  try { syncUrlToState(); } catch (_) { /* init order */ }
+}
+
 function updateCharts() {
   const data = computeAll();
   const years = data.map(d => d.year);
@@ -2644,6 +3373,10 @@ function refresh(opts = {}) {
   updateKPIs(!!opts.animateKpis);
   updateTable();
   updateCharts();
+  // Keep Tech Deflation projections in sync when scenario / storage sliders change
+  if (getActiveTabKey() === 'deflation' || charts.deflationStorage || charts.deflationRecent) {
+    updateDeflationCharts();
+  }
   if (!opts.skipUrlSync) syncUrlToState();
 }
 
@@ -2656,8 +3389,12 @@ const CHART_EXPORT_META = {
   storagePrice: { filename: 'storage-price-per-tb' },
   breakdown: { filename: 'cost-breakdown' },
   annual: { filename: 'annual-cost' },
-  pie: { filename: 'year-breakdown' }
+  pie: { filename: 'year-breakdown' },
+  deflationStorage: { filename: 'tech-deflation-unit-cost-index' },
+  deflationRecent: { filename: 'tech-deflation-storage-linear-projections' }
 };
+
+const DEFLATION_CHART_KEYS = new Set(['deflationStorage', 'deflationRecent']);
 
 let exportToastTimer;
 
@@ -2681,11 +3418,19 @@ function setShareParam(params, key, value, defaultValue) {
   params.set(key, String(value));
 }
 
+function getActiveTabKey() {
+  const active = document.querySelector('.tab-btn.tab-active');
+  return active?.dataset?.tab || 'charts';
+}
+
 function buildShareParams() {
   const params = new URLSearchParams();
   // Always include year + scenario so shared links are self-describing
   params.set('year', String(state.selectedYear));
   params.set('scenario', state.projectionScenario || 'baseline');
+
+  const tab = getActiveTabKey();
+  if (tab && tab !== 'charts') params.set('tab', tab);
 
   if (state.pruned) params.set('pruned', 'true');
   if (state.pruned && state.prunedStorageCost !== 'marginal') {
@@ -2830,6 +3575,10 @@ function applyUrlParams(params = new URLSearchParams(location.search)) {
     const display = document.getElementById('yearDisplay');
     if (display) display.textContent = y;
   }
+  if (params.has('tab') && ['table', 'charts', 'deflation', 'tradeoffs'].includes(params.get('tab'))) {
+    // Applied after DOM listeners; switchToTab is defined above init path
+    state._urlTab = params.get('tab');
+  }
   if (params.has('pruned')) setPrunedModeUI(params.get('pruned') === 'true');
   if (params.has('prunedStorage') && ['marginal', 'usb'].includes(params.get('prunedStorage'))) {
     state.prunedStorageCost = params.get('prunedStorage');
@@ -2940,7 +3689,11 @@ function chartExportFilename(key) {
 }
 
 function ensureChartReady(key) {
-  if (!charts[key]) updateCharts();
+  if (DEFLATION_CHART_KEYS.has(key)) {
+    if (!charts[key]) updateDeflationCharts();
+  } else if (!charts[key]) {
+    updateCharts();
+  }
   const chart = charts[key];
   if (!chart) return null;
   if (chart.canvas.width === 0 || chart.canvas.height === 0) chart.resize();
@@ -3337,29 +4090,35 @@ function bindEvents() {
   document.getElementById('btnReset').addEventListener('click', resetDefaults);
 
   document.querySelectorAll('.tab-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      document.querySelectorAll('.tab-btn').forEach(b => {
-        b.classList.remove('tab-active');
-        b.classList.add('text-gray-400');
-      });
-      btn.classList.add('tab-active');
-      btn.classList.remove('text-gray-400');
-      document.querySelectorAll('.tab-panel').forEach(p => p.classList.add('hidden'));
-      const panel = document.getElementById('tab' + btn.dataset.tab.charAt(0).toUpperCase() + btn.dataset.tab.slice(1));
-      panel.classList.remove('hidden');
-      if (btn.dataset.tab === 'charts') setTimeout(updateCharts, 50);
-    });
+    btn.addEventListener('click', () => switchToTab(btn.dataset.tab));
   });
 
   document.getElementById('btnExportCSV').addEventListener('click', exportCSV);
 
-  document.getElementById('tabCharts').addEventListener('click', (e) => {
+  const onChartAction = (e) => {
     const btn = e.target.closest('[data-chart-action]');
     if (!btn) return;
     const { chart: key, chartAction: action } = btn.dataset;
     if (action === 'copy') copyChartImage(key);
     else if (action === 'download') downloadChartImage(key);
+  };
+  document.getElementById('tabCharts').addEventListener('click', onChartAction);
+  document.getElementById('tabDeflation').addEventListener('click', onChartAction);
+
+  document.getElementById('deflationSeriesToggles')?.addEventListener('change', e => {
+    if (e.target?.matches?.('[data-deflation-series]')) updateDeflationCharts();
   });
+
+  document.getElementById('btnJumpToNodeCharts')?.addEventListener('click', () => {
+    state.selectedYear = 2026;
+    setInputValue('yearSlider', 2026);
+    const display = document.getElementById('yearDisplay');
+    if (display) display.textContent = '2026';
+    refresh({ animateKpis: true });
+    switchToTab('charts');
+    syncUrlToState();
+  });
+
   document.getElementById('btnShare').addEventListener('click', () => shareDashboardLink());
 
   document.getElementById('sidebarToggle').addEventListener('click', openSidebar);
@@ -3369,6 +4128,10 @@ function bindEvents() {
   yearSlider.addEventListener('change', () => { if (isMobileChrome()) closeSidebar(); });
 
   applyUrlParams(new URLSearchParams(location.search));
+  if (state._urlTab) {
+    switchToTab(state._urlTab);
+    delete state._urlTab;
+  }
   requestAnimationFrame(syncNavOffset);
 }
 

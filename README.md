@@ -21,8 +21,9 @@ python -m http.server 8080
 - **Projections to 2040** — always on; adjust scenario (baseline, AI-shock, optimistic, pessimistic) and projection sliders from the panel
 - **KPIs** — disk footprint, one-time setup, annual OpEx, hobbyist affordability score
 - **Charts** — chain size, storage $/TB (effective + HDD/SSD), cost breakdown, annual cost, year pie (archival also shows one-time hardware chart; hidden in pruned mode)
+- **Tech Deflation** — multi-series unit-cost index (storage, bandwidth, compute; log, 2009=100), series toggles, linear storage $/TB with Baseline vs AI-Shock projections to 2040, milestones, “what $100 bought,” and bridge back to the node cost model
 - **Data table** — year-by-year need GB, buy TB, media, $/TB, enclosure, storage $, setup, OpEx; CSV export
-- **Share link** — copies URL with year, mode, indexes, and scenario params
+- **Share link** — copies URL with year, mode, indexes, scenario, and active tab params
 
 ## Cost models
 
@@ -66,6 +67,7 @@ Historical years (≤2026) are fixed. Charts shade the projected band and update
 |-------|---------|-------------|
 | `year` | `2030` | Selected year (always included when sharing) |
 | `scenario` | `optimistic` | Projection scenario: `baseline`, `ai_shock`, `optimistic`, `pessimistic` |
+| `tab` | `deflation` | Active tab: `table`, `charts` (default), `deflation`, `tradeoffs` |
 | `pruned` | `true` | Pruned mode |
 | `prunedStorage` | `usb` | Pruned storage: `marginal` (default) or `usb` |
 | `electrum` | `electrs` | Electrum mode: `electrs`, `fulcrum`, `fulcrum_full` |
@@ -81,7 +83,7 @@ Historical years (≤2026) are fixed. Charts shade the projected band and update
 
 ## Customization
 
-All model data lives in `index.html` inside the `RAW`, `PRUNED_SIZE_ANCHORS`, `CORE_INDEX_OPTIONS`, and `ELECTRUM_OPTIONS` arrays at the top of the `<script>` block. Edit nominal $/TB, kit costs, chain size anchors, and projection defaults there.
+All model data lives in `index.html` inside the `RAW`, `TECH_DEFLATION`, `PRUNED_SIZE_ANCHORS`, `CORE_INDEX_OPTIONS`, and `ELECTRUM_OPTIONS` arrays at the top of the `<script>` block. Edit nominal $/TB, kit costs, chain size anchors, long-run deflation series, and projection defaults there.
 
 ## Model sense-check
 
@@ -89,7 +91,7 @@ See **[ASSUMPTIONS.md](./ASSUMPTIONS.md)** for the 2026 ground-truth sheet (chai
 
 ## Sources
 
-Data synthesized from Blockchain.com, YCharts, Backblaze, [Bitcoin.org](https://bitcoin.org/en/full-node), historical HDD/SSD pricing, 2026 NVMe retail estimates (Tom's Hardware, TrendForce), EIA Electric Power Monthly, and USTelecom BPI. Approximations for illustration — not financial advice.
+Data synthesized from Blockchain.com, YCharts, Backblaze, [Bitcoin.org](https://bitcoin.org/en/full-node), historical HDD/SSD pricing (John C. McCallum / Our World in Data, Matt Komorowski), 2026 NVMe retail estimates (Tom's Hardware, TrendForce), EIA Electric Power Monthly, and USTelecom BPI. Approximations for illustration — not financial advice.
 
 ## License
 
