@@ -540,6 +540,7 @@
           <option value="optimistic">Optimistic Hyper-Deflation</option>
           <option value="pessimistic">Pessimistic (slow/no deflation)</option>
         </select>
+        <p id="projScenarioHint" class="text-[10px] text-gray-500 mt-1.5 leading-relaxed">Scenarios only rewrite <strong class="text-gray-400">2027–2040</strong> (costs + chain growth). Years ≤2026 are fixed history — scrub past 2026 or watch the right side of charts.</p>
       </div>
       <div class="space-y-3 border-t border-gray-700 pt-3">
         <p class="text-btc font-semibold flex items-center gap-1">Projection Sliders
@@ -1214,10 +1215,17 @@ const PROJ_DEFAULTS = {
 };
 
 const SCENARIO_TIPS = {
-  baseline: 'Baseline: 2026 NAND spike baked into history (~$130/TB); sticky highs through 2028, then ~12%/yr deflation resumes.',
-  ai_shock: 'AI-Shock: prices stay elevated 2025–2030 on top of the 2026 spike, sharper drop after 2030.',
-  optimistic: 'Hyper-deflation: storage −18%/yr, hardware −10%/yr — best-case tech curve.',
-  pessimistic: 'Pessimistic: storage −2%/yr, hardware −1%, flat internet — still affordable.'
+  baseline: 'Baseline (2027–2040): sticky NAND prices through 2028, then ~12%/yr storage deflation; chain growth at the slider rate.',
+  ai_shock: 'AI-Shock (2027–2040): storage +15%/yr through 2030 on top of the 2026 spike, then sharper deflation; chain growth slightly above baseline.',
+  optimistic: 'Optimistic (2027–2040): storage −18%/yr, hardware −10%/yr, slower chain growth (~85% of slider) — best-case tech curve.',
+  pessimistic: 'Pessimistic (2027–2040): storage −2%/yr, hardware −1%, flat internet, faster chain growth (~125% of slider).'
+};
+
+const SCENARIO_LABELS = {
+  baseline: 'Baseline',
+  ai_shock: 'AI-Shock',
+  optimistic: 'Optimistic',
+  pessimistic: 'Pessimistic'
 };
 
 const HISTORICAL_THROUGH = 2026;
@@ -1480,9 +1488,19 @@ function getDataEndYear() {
   return Math.min(state.yearTo, 2030);
 }
 
+/** Effective chain growth GB/yr after scenario multiplier (slider × scenario). */
+function getScenarioGrowthRate() {
+  const base = state.projGrowthRate;
+  const s = state.projectionScenario;
+  if (s === 'optimistic') return base * 0.85;
+  if (s === 'pessimistic') return base * 1.25;
+  if (s === 'ai_shock') return base * 1.05;
+  return base; // baseline
+}
+
 function getBlocksGB(year) {
   if (year <= HISTORICAL_THROUGH) return lerp(RAW.blocksGB, RAW.years, year);
-  return BLOCKS_ANCHOR_2026 + (year - HISTORICAL_THROUGH) * state.projGrowthRate;
+  return BLOCKS_ANCHOR_2026 + (year - HISTORICAL_THROUGH) * getScenarioGrowthRate();
 }
 
 function getUtxoGB(year) {
@@ -1730,10 +1748,18 @@ function buildProjectionSeries() {
   const anchorElecNominal = anchor.elecAnnual / cpiAt(HISTORICAL_THROUGH);
   const series = { [HISTORICAL_THROUGH]: anchor };
 
+  // Compound HW / internet year-by-year (same approach as storage $/TB) so scenario paths diverge correctly
+  let hwNominal = anchorHwNominal;
+  let internetPlan = anchorInternetPlan;
+  let elecNominal = anchorElecNominal;
+
   for (let y = 2027; y <= PROJECTION_THROUGH; y++) {
     const mods = getScenarioModifiers(y);
-    const yrs = y - HISTORICAL_THROUGH;
     const cpi = cpiAt(y);
+    hwNominal *= (1 + mods.hwDefl);
+    internetPlan *= (1 + mods.internetTrend);
+    elecNominal *= (1 + state.projElecDeflation / 100);
+
     const blocksGB = getBlocksGB(y);
     const utxoGB = getUtxoGB(y);
     const sizeGB = blocksGB;
@@ -1754,12 +1780,12 @@ function buildProjectionSeries() {
     const electrumOnlyCost = calcPartialIndexStorageCost(y, nodeStorageGB, electrumIndexGB, cpi, pricePerTB, electrumPremium);
     const indexCost = calcIndexStorageCost(y, nodeStorageGB, optionalIndexGB, cpi, pricePerTB);
 
-    const basePC = state.pruned ? 0 : anchorHwNominal * Math.pow(1 + mods.hwDefl, yrs) * cpi;
-    const internetBase = anchorInternetPlan * Math.pow(1 + mods.internetTrend, yrs) * cpi;
+    const basePC = state.pruned ? 0 : hwNominal * cpi;
+    const internetBase = internetPlan * cpi;
     const internetPortion = state.internetMode === 'percent'
       ? internetBase * (state.internetValue / 100)
       : state.internetValue * cpi;
-    const elecAnnual = anchorElecNominal * Math.pow(1 + state.projElecDeflation / 100, yrs) * cpi;
+    const elecAnnual = elecNominal * cpi;
 
     const baseTotalSetup = storageCost + basePC;
     const totalSetup = baseTotalSetup + indexCost;
@@ -1779,6 +1805,7 @@ function buildProjectionSeries() {
       purchaseTB: fullStore.purchaseTB, basePurchaseTB: baseStore.purchaseTB,
       enclosureCost: baseStore.enclosureCost ?? 0,
       storageOnly: storageCost,
+      growthGBPerYear: getScenarioGrowthRate(),
       referenceMediaCost: state.pruned ? baseStore.referenceMediaCost : 0,
       usesExistingDisk: state.pruned ? baseStore.usesExistingDisk : false,
       isProjected: true
@@ -1942,17 +1969,28 @@ function syncProjectionUI() {
   if (tip) tip.textContent = SCENARIO_TIPS[state.projectionScenario] || '';
   const aTip = document.getElementById('projAssumptionTip');
   if (aTip) aTip.textContent =
-    `Chain +${state.projGrowthRate} GB/yr · Storage ${state.projStorageDeflation}%/yr (AI +25% 2026–28 baseline) · HW ${state.projHardwareDeflation}%/yr · Internet ${state.projInternetTrend}% real/yr · Elec ${state.projElecDeflation > 0 ? '+' : ''}${state.projElecDeflation}%/yr.`;
-  const ext = ' (2009–2040)';
+    `Effective growth ${getScenarioGrowthRate().toFixed(0)} GB/yr (slider ${state.projGrowthRate} × scenario) · Storage ${state.projStorageDeflation}%/yr · HW ${state.projHardwareDeflation}%/yr · Internet ${state.projInternetTrend}% real/yr · Elec ${state.projElecDeflation > 0 ? '+' : ''}${state.projElecDeflation}%/yr.`;
+  const scen = SCENARIO_LABELS[state.projectionScenario] || state.projectionScenario;
+  const ext = ` (2009–2040 · ${scen})`;
   const cst = document.getElementById('chartSizeTitle');
   if (cst) cst.textContent = 'Block Chain Size Growth (GB)' + ext;
   const setupTitle = document.getElementById('chartSetupTitle');
   if (setupTitle) setupTitle.textContent = 'One-Time Hardware Cost Over Time' + ext;
+  const storagePriceTitle = document.getElementById('chartStoragePriceTitle');
+  if (storagePriceTitle) storagePriceTitle.textContent = 'Storage $/TB Over Time' + ext;
+  const btnProj = document.getElementById('btnProjPanel');
+  if (btnProj) {
+    btnProj.innerHTML = `<span class="sm:hidden">2040</span><span class="hidden sm:inline">Projections · ${scen}</span>`;
+  }
 }
 
 function syncProjSliderLabels() {
   const set = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
-  set('projGrowthVal', state.projGrowthRate);
+  const effGrowth = getScenarioGrowthRate();
+  // Show effective growth when scenario multiplies the slider
+  set('projGrowthVal', Math.abs(effGrowth - state.projGrowthRate) > 0.05
+    ? `${state.projGrowthRate} → ${effGrowth.toFixed(0)}`
+    : String(state.projGrowthRate));
   set('projStorageDeflVal', state.projStorageDeflation + '%');
   set('projHwDeflVal', state.projHardwareDeflation + '%');
   set('projInternetVal', state.projInternetTrend + '%');
@@ -2301,6 +2339,32 @@ function selectedYearCursorPlugin() {
   };
 }
 
+/** Shade 2027–2040 so scenario-driven segments are easy to spot */
+function projectedRegionPlugin() {
+  return {
+    id: 'projectedRegion',
+    beforeDatasetsDraw(chart) {
+      if (!state.projectionEnabled) return;
+      const labels = chart.data.labels;
+      const { ctx, chartArea, scales: { x } } = chart;
+      if (!labels?.length || !x || !chartArea) return;
+      const i0 = labels.findIndex(y => y > HISTORICAL_THROUGH);
+      if (i0 < 0) return;
+      const left = x.getPixelForValue(labels[Math.max(0, i0 - 1)]);
+      const right = x.getPixelForValue(labels[labels.length - 1]);
+      if (!(right > left)) return;
+      ctx.save();
+      ctx.fillStyle = 'rgba(232, 184, 74, 0.06)';
+      ctx.fillRect(left, chartArea.top, right - left, chartArea.bottom - chartArea.top);
+      ctx.fillStyle = 'rgba(232, 184, 74, 0.75)';
+      ctx.font = '600 10px "IBM Plex Mono", monospace';
+      const tag = SCENARIO_LABELS[state.projectionScenario] || state.projectionScenario;
+      ctx.fillText(`Projected · ${tag}`, left + 6, chartArea.top + 12);
+      ctx.restore();
+    }
+  };
+}
+
 function milestoneLabelsPlugin() {
   return {
     id: 'milestoneLabels',
@@ -2362,12 +2426,13 @@ function updateCharts() {
           y: chartAxis(c, { stacked: true, ticks: { callback: v => '$' + Math.round(v) } })
         }
       },
-      plugins: [selectedYearCursorPlugin()]
+      plugins: [projectedRegionPlugin(), selectedYearCursorPlugin()]
     });
   }
 
   destroyChart('size');
   const sizeBase = splitHistProj(data, showIndexCols ? 'baseMinStorage' : 'sizeGB');
+  const growthLbl = `${getScenarioGrowthRate().toFixed(0)} GB/yr`;
   const sizeDatasets = [
     {
       label: showIndexCols ? 'Blocks + UTXO (historical)' : 'Block chain (historical)',
@@ -2376,7 +2441,7 @@ function updateCharts() {
   ];
   if (state.projectionEnabled) {
     sizeDatasets.push({
-      label: 'Projected size (' + state.projectionScenario + ')',
+      label: `Projected (${SCENARIO_LABELS[state.projectionScenario] || state.projectionScenario} · ${growthLbl})`,
       data: sizeBase.proj, borderColor: projColor, borderDash: [6, 4], fill: false, tension: 0.3, pointRadius: 2
     });
   }
@@ -2401,7 +2466,7 @@ function updateCharts() {
         y: chartAxis(c, { ticks: { callback: v => fmtGB(v) } })
       }
     },
-    plugins: [milestoneLabelsPlugin(), selectedYearCursorPlugin()]
+    plugins: [projectedRegionPlugin(), milestoneLabelsPlugin(), selectedYearCursorPlugin()]
   });
 
   // Storage $/TB: market price path separate from Buy TB × price (Storage $)
@@ -2465,7 +2530,7 @@ function updateCharts() {
         y: chartAxis(c, { ticks: { callback: v => '$' + Math.round(v) } })
       }
     },
-    plugins: [milestoneLabelsPlugin(), selectedYearCursorPlugin()]
+    plugins: [projectedRegionPlugin(), milestoneLabelsPlugin(), selectedYearCursorPlugin()]
   });
 
   destroyChart('breakdown');
@@ -2488,7 +2553,7 @@ function updateCharts() {
         y: chartAxis(c, { stacked: true, ticks: { callback: v => '$' + v } })
       }
     },
-    plugins: [selectedYearCursorPlugin()]
+    plugins: [projectedRegionPlugin(), selectedYearCursorPlugin()]
   });
 
   destroyChart('annual');
@@ -2499,8 +2564,8 @@ function updateCharts() {
   }];
   if (state.projectionEnabled) {
     annualDatasets.push({
-      label: 'Base (projected ' + state.projectionScenario + ')',
-      data: annBase.proj, borderColor: projColor, borderDash: [6, 4], fill: false, tension: 0.35, pointRadius: 3
+      label: `Projected · ${SCENARIO_LABELS[state.projectionScenario] || state.projectionScenario}`,
+      data: annBase.proj, borderColor: projColor, borderDash: [6, 4], borderWidth: 2.5, fill: false, tension: 0.35, pointRadius: 3
     });
   }
   if (showIndexCols) {
@@ -2523,7 +2588,7 @@ function updateCharts() {
         y: chartAxis(c, { ticks: { callback: v => '$' + Math.round(v) } })
       }
     },
-    plugins: [milestoneLabelsPlugin(), selectedYearCursorPlugin()]
+    plugins: [projectedRegionPlugin(), milestoneLabelsPlugin(), selectedYearCursorPlugin()]
   });
 
   const sel = getSelected();
@@ -3080,7 +3145,21 @@ function bindEvents() {
   document.getElementById('btnProjClose').addEventListener('click', closeProj);
   document.getElementById('projPanelOverlay').addEventListener('click', closeProj);
 
-  document.getElementById('projScenario').addEventListener('change', e => { state.projectionScenario = e.target.value; refresh(); });
+  document.getElementById('projScenario').addEventListener('change', e => {
+    state.projectionScenario = e.target.value;
+    // Historical years are identical across scenarios — move focus into the projected band
+    // so KPIs/pie/table selection also move when the user changes scenario.
+    if (state.selectedYear <= HISTORICAL_THROUGH) {
+      state.selectedYear = 2030;
+      const slider = document.getElementById('yearSlider');
+      if (slider) slider.value = 2030;
+      const display = document.getElementById('yearDisplay');
+      if (display) display.textContent = '2030';
+    }
+    refresh({ animateKpis: true });
+    const label = SCENARIO_LABELS[state.projectionScenario] || state.projectionScenario;
+    showExportToast(`${label}: updated 2027–2040 series (growth ${getScenarioGrowthRate().toFixed(0)} GB/yr)`);
+  });
   document.getElementById('btnProjReset').addEventListener('click', resetProjSlidersUI);
 
   const projBind = (id, key, parse = Number) => {

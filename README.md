@@ -49,14 +49,14 @@ First sync still downloads the full chain (~753 GB bandwidth in 2026) in both mo
 
 ## Projections
 
-Open **Projections to 2040** to tune:
+Open **Projections to 2040** (navbar) to tune:
 
-- Blockchain growth (GB/yr)
+- Scenario presets (Baseline, AI-Shock, Optimistic, Pessimistic) — rewrite **2027–2040 only**
+- Blockchain growth (GB/yr; scenarios also scale this: optimistic ×0.85, pessimistic ×1.25, AI-shock ×1.05)
 - Storage, hardware, internet, and electricity deflation
 - SSD premium and Electrum index multiplier
-- Scenario presets
 
-Historical data runs through 2026; 2027–2040 uses the selected scenario.
+Historical years (≤2026) are fixed. Charts shade the projected band and update cost **and** chain-size paths when you change scenario.
 
 ## URL parameters
 
