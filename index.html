@@ -498,7 +498,7 @@
             <button id="btnPruned" class="px-3 py-2.5 sm:py-1.5 bg-surface-card hover:bg-btc/10 touch-manipulation">Pruned</button>
           </div>
           <button id="btnProjPanel" class="px-3 py-2.5 sm:py-1.5 text-xs rounded-lg border border-btc/60 bg-btc/10 text-btc hover:bg-btc/20 font-medium touch-manipulation"><span class="sm:hidden">2040</span><span class="hidden sm:inline">Projections to 2040</span></button>
-          <button id="btnShare" class="px-3 py-2.5 sm:py-1.5 text-xs rounded-lg border border-gray-600 hover:border-btc touch-manipulation" title="Copy or share a link to this view">Share</button>
+          <button id="btnShare" class="px-3 py-2.5 sm:py-1.5 text-xs rounded-lg border border-gray-600 hover:border-btc touch-manipulation" title="Copy a link that restores this year, mode, scenario, indexes, and assumption sliders">Share view</button>
         </div>
       </div>
     </div>
@@ -2644,6 +2644,7 @@ function refresh(opts = {}) {
   updateKPIs(!!opts.animateKpis);
   updateTable();
   updateCharts();
+  if (!opts.skipUrlSync) syncUrlToState();
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -2673,23 +2674,56 @@ function getShareBaseUrl() {
   return url.href;
 }
 
+/** Set param only when value differs from the model default (keeps shared URLs short). */
+function setShareParam(params, key, value, defaultValue) {
+  if (value == null || value === '') return;
+  if (String(value) === String(defaultValue)) return;
+  params.set(key, String(value));
+}
+
 function buildShareParams() {
   const params = new URLSearchParams();
-  if (state.selectedYear !== 2026) params.set('year', String(state.selectedYear));
+  // Always include year + scenario so shared links are self-describing
+  params.set('year', String(state.selectedYear));
+  params.set('scenario', state.projectionScenario || 'baseline');
+
   if (state.pruned) params.set('pruned', 'true');
   if (state.pruned && state.prunedStorageCost !== 'marginal') {
     params.set('prunedStorage', state.prunedStorageCost);
   }
-  // Indexes are archival-only (txindex incompatible with prune); omit from pruned share links
+  // Indexes are archival-only (txindex incompatible with prune)
   if (!state.pruned) {
     if (state.electrumMode !== 'none') params.set('electrum', state.electrumMode);
     if (state.coreIndexes.txindex) params.set('txindex', 'true');
     if (state.coreIndexes.coinstatsindex) params.set('coinstats', 'true');
     if (state.coreIndexes.blockfilterindex) params.set('blockfilter', 'true');
   }
-  if (state.projectionScenario !== 'baseline') params.set('scenario', state.projectionScenario);
-  if (state.yearFrom !== 2009) params.set('from', String(state.yearFrom));
-  if (state.yearTo !== PROJECTION_THROUGH) params.set('to', String(state.yearTo));
+
+  setShareParam(params, 'from', state.yearFrom, 2009);
+  setShareParam(params, 'to', state.yearTo, PROJECTION_THROUGH);
+
+  // Storage / hardware assumptions
+  setShareParam(params, 'storage', state.storageType, 'auto');
+  setShareParam(params, 'storageMult', state.storageMult, 1);
+  if (state.basePCOverride != null && state.basePCOverride !== '') {
+    params.set('basePC', String(state.basePCOverride));
+  }
+
+  // OpEx assumptions
+  setShareParam(params, 'netMode', state.internetMode, 'percent');
+  setShareParam(params, 'net', state.internetValue, 15);
+  if (state.elecPrice != null) params.set('elec', String(state.elecPrice));
+  if (state.nodeWatts != null) params.set('watts', String(state.nodeWatts));
+
+  // Projection sliders (only non-defaults)
+  setShareParam(params, 'growth', state.projGrowthRate, PROJ_DEFAULTS.projGrowthRate);
+  setShareParam(params, 'storageDefl', state.projStorageDeflation, PROJ_DEFAULTS.projStorageDeflation);
+  setShareParam(params, 'hwDefl', state.projHardwareDeflation, PROJ_DEFAULTS.projHardwareDeflation);
+  setShareParam(params, 'netTrend', state.projInternetTrend, PROJ_DEFAULTS.projInternetTrend);
+  setShareParam(params, 'ssdPrem', state.projSsdPremiumPct, PROJ_DEFAULTS.projSsdPremiumPct);
+  setShareParam(params, 'elecDefl', state.projElecDeflation, PROJ_DEFAULTS.projElecDeflation);
+  setShareParam(params, 'electrumMult', state.projElectrumMult, PROJ_DEFAULTS.projElectrumMult);
+
   return params;
 }
 
@@ -2697,6 +2731,32 @@ function buildShareUrl() {
   const params = buildShareParams();
   const qs = params.toString();
   return qs ? `${getShareBaseUrl()}?${qs}` : getShareBaseUrl();
+}
+
+/** Keep the address bar in sync so “copy URL” matches Share view. */
+function syncUrlToState() {
+  try {
+    const qs = buildShareParams().toString();
+    const next = qs ? `${location.pathname}?${qs}` : location.pathname;
+    const cur = `${location.pathname}${location.search}`;
+    if (next !== cur) history.replaceState(null, '', next);
+  } catch (_) { /* file:// or restricted contexts */ }
+}
+
+function describeShareView() {
+  const mode = state.pruned ? 'Pruned' : 'Archival';
+  const scen = SCENARIO_LABELS[state.projectionScenario] || state.projectionScenario;
+  const bits = [`${state.selectedYear}`, mode, scen];
+  if (!state.pruned && state.electrumMode !== 'none') {
+    bits.push(ELECTRUM_OPTIONS[state.electrumMode]?.short || state.electrumMode);
+  }
+  if (!state.pruned && hasAnyCoreIndex()) {
+    const idx = Object.keys(CORE_INDEX_OPTIONS).filter(k => state.coreIndexes[k]).join('+');
+    if (idx) bits.push(idx);
+  }
+  if (state.storageType !== 'auto') bits.push(state.storageType.toUpperCase());
+  if (state.nodeWatts != null) bits.push(`${state.nodeWatts}W`);
+  return bits.join(' · ');
 }
 
 async function copyTextToClipboard(text) {
@@ -2721,22 +2781,23 @@ async function copyTextToClipboard(text) {
 }
 
 async function shareDashboardLink() {
+  syncUrlToState();
   const url = buildShareUrl();
+  const summary = describeShareView();
   const title = 'Bitcoin Node Cost Tracker';
-  const mode = state.pruned ? 'pruned' : 'archival';
-  const text = `Bitcoin node cost view — ${state.selectedYear}, ${mode} mode`;
+  const text = `Bitcoin node costs — ${summary}`;
   if (navigator.share) {
     try {
       await navigator.share({ title, text, url });
-      showExportToast('Link shared');
+      showExportToast(`Shared · ${summary}`);
       return;
     } catch (err) {
       if (err?.name === 'AbortError') return;
     }
   }
   const copied = await copyTextToClipboard(url);
-  if (copied) showExportToast('Link copied to clipboard');
-  else window.prompt('Copy this link:', url);
+  if (copied) showExportToast(`Link copied · ${summary}`);
+  else window.prompt('Copy this link (restores year, scenario, assumptions):', url);
 }
 
 function setPrunedModeUI(pruned) {
@@ -2750,38 +2811,117 @@ function setPrunedModeUI(pruned) {
     : 'px-3 py-2.5 sm:py-1.5 bg-surface-card hover:bg-btc/10';
 }
 
+function clampNum(n, min, max, fallback) {
+  const v = Number(n);
+  if (!Number.isFinite(v)) return fallback;
+  return Math.min(max, Math.max(min, v));
+}
+
+function setInputValue(id, value) {
+  const el = document.getElementById(id);
+  if (el != null && value != null) el.value = value;
+}
+
 function applyUrlParams(params = new URLSearchParams(location.search)) {
   if (params.has('year')) {
-    const y = Math.min(PROJECTION_THROUGH, Math.max(2009, +params.get('year') || 2026));
+    const y = clampNum(params.get('year'), 2009, PROJECTION_THROUGH, 2026);
     state.selectedYear = y;
-    const slider = document.getElementById('yearSlider');
-    if (slider) slider.value = y;
+    setInputValue('yearSlider', y);
     const display = document.getElementById('yearDisplay');
     if (display) display.textContent = y;
   }
   if (params.has('pruned')) setPrunedModeUI(params.get('pruned') === 'true');
   if (params.has('prunedStorage') && ['marginal', 'usb'].includes(params.get('prunedStorage'))) {
     state.prunedStorageCost = params.get('prunedStorage');
-    const sel = document.getElementById('prunedStorageCost');
-    if (sel) sel.value = state.prunedStorageCost;
+    setInputValue('prunedStorageCost', state.prunedStorageCost);
   }
   if (params.has('from')) {
-    const from = Math.min(PROJECTION_THROUGH, Math.max(2009, +params.get('from') || 2009));
+    const from = clampNum(params.get('from'), 2009, PROJECTION_THROUGH, 2009);
     state.yearFrom = from;
-    const el = document.getElementById('yearFrom');
-    if (el) el.value = from;
+    setInputValue('yearFrom', from);
   }
   if (params.has('to')) {
-    const to = Math.min(PROJECTION_THROUGH, Math.max(2009, +params.get('to') || PROJECTION_THROUGH));
+    const to = clampNum(params.get('to'), 2009, PROJECTION_THROUGH, PROJECTION_THROUGH);
     state.yearTo = to;
-    const el = document.getElementById('yearTo');
-    if (el) el.value = to;
+    setInputValue('yearTo', to);
   }
   syncIndexOptionsState(params);
   if (params.has('scenario') && SCENARIO_TIPS[params.get('scenario')]) {
     state.projectionScenario = params.get('scenario');
-    const sel = document.getElementById('projScenario');
-    if (sel) sel.value = state.projectionScenario;
+    setInputValue('projScenario', state.projectionScenario);
+  }
+
+  // Storage assumptions
+  if (params.has('storage') && ['auto', 'hdd', 'ssd', 'hybrid'].includes(params.get('storage'))) {
+    state.storageType = params.get('storage');
+    setInputValue('storageType', state.storageType);
+  }
+  if (params.has('storageMult')) {
+    state.storageMult = clampNum(params.get('storageMult'), 0.5, 3, 1);
+    setInputValue('storageMult', state.storageMult);
+    const disp = document.getElementById('storageMultDisplay');
+    if (disp) disp.textContent = state.storageMult.toFixed(1) + '×';
+  }
+  if (params.has('basePC')) {
+    const v = Number(params.get('basePC'));
+    if (Number.isFinite(v) && v >= 0) {
+      state.basePCOverride = v;
+      setInputValue('basePCOverride', v);
+    }
+  }
+
+  // OpEx assumptions
+  if (params.has('netMode') && ['percent', 'fixed'].includes(params.get('netMode'))) {
+    state.internetMode = params.get('netMode');
+    setInputValue('internetMode', state.internetMode);
+  }
+  // Accept net or legacy internet
+  if (params.has('net') || params.has('internet')) {
+    const raw = params.get('net') ?? params.get('internet');
+    state.internetValue = clampNum(raw, 0, 500, 15);
+    setInputValue('internetValue', state.internetValue);
+  }
+  if (params.has('elec')) {
+    const v = Number(params.get('elec'));
+    if (Number.isFinite(v) && v > 0) {
+      state.elecPrice = v;
+      setInputValue('elecPrice', v);
+    }
+  }
+  if (params.has('watts')) {
+    state.nodeWatts = clampNum(params.get('watts'), 5, 150, 15);
+    setInputValue('nodeWatts', state.nodeWatts);
+  }
+
+  // Projection sliders
+  if (params.has('growth')) {
+    state.projGrowthRate = clampNum(params.get('growth'), 40, 120, PROJ_DEFAULTS.projGrowthRate);
+    setInputValue('projGrowth', state.projGrowthRate);
+  }
+  if (params.has('storageDefl')) {
+    state.projStorageDeflation = clampNum(params.get('storageDefl'), -20, -2, PROJ_DEFAULTS.projStorageDeflation);
+    setInputValue('projStorageDefl', state.projStorageDeflation);
+  }
+  if (params.has('hwDefl')) {
+    state.projHardwareDeflation = clampNum(params.get('hwDefl'), -12, -1, PROJ_DEFAULTS.projHardwareDeflation);
+    setInputValue('projHwDefl', state.projHardwareDeflation);
+  }
+  if (params.has('netTrend') || params.has('internetTrend')) {
+    const raw = params.get('netTrend') ?? params.get('internetTrend');
+    state.projInternetTrend = clampNum(raw, -5, 0, PROJ_DEFAULTS.projInternetTrend);
+    setInputValue('projInternet', state.projInternetTrend);
+  }
+  if (params.has('ssdPrem')) {
+    state.projSsdPremiumPct = clampNum(params.get('ssdPrem'), 0, 50, PROJ_DEFAULTS.projSsdPremiumPct);
+    setInputValue('projSsdPrem', state.projSsdPremiumPct);
+  }
+  if (params.has('elecDefl')) {
+    state.projElecDeflation = clampNum(params.get('elecDefl'), -5, 5, PROJ_DEFAULTS.projElecDeflation);
+    setInputValue('projElecDefl', state.projElecDeflation);
+  }
+  if (params.has('electrumMult')) {
+    state.projElectrumMult = clampNum(params.get('electrumMult'), 0.5, 2, PROJ_DEFAULTS.projElectrumMult);
+    setInputValue('projElectrumMult', state.projElectrumMult);
   }
 }
 

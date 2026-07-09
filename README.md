@@ -58,16 +58,26 @@ Open **Projections to 2040** (navbar) to tune:
 
 Historical years (≤2026) are fixed. Charts shade the projected band and update cost **and** chain-size paths when you change scenario.
 
-## URL parameters
+## URL parameters / Share view
+
+**Share view** copies a deep link that restores the current year, archival/pruned mode, projection scenario, indexes, and any non-default assumption sliders. The address bar also stays in sync via `history.replaceState`.
 
 | Param | Example | Description |
 |-------|---------|-------------|
-| `year` | `2026` | Selected year |
+| `year` | `2030` | Selected year (always included when sharing) |
+| `scenario` | `optimistic` | Projection scenario: `baseline`, `ai_shock`, `optimistic`, `pessimistic` |
 | `pruned` | `true` | Pruned mode |
-| `prunedStorage` | `marginal` or `usb` | Pruned storage assumption |
-| `scenario` | `baseline` | Projection scenario |
-| `electrum` | `electrs` | Electrum server mode |
+| `prunedStorage` | `usb` | Pruned storage: `marginal` (default) or `usb` |
+| `electrum` | `electrs` | Electrum mode: `electrs`, `fulcrum`, `fulcrum_full` |
 | `txindex`, `coinstats`, `blockfilter` | `true` | Core index toggles |
+| `from`, `to` | `2015`, `2040` | Chart/table year window |
+| `storage` | `hdd` | `auto` (default), `hdd`, `ssd`, `hybrid` |
+| `storageMult` | `1.2` | Storage $/TB multiplier |
+| `basePC` | `200` | Kit cost override ($) |
+| `netMode`, `net` | `percent`, `15` | Internet attribution mode + value |
+| `elec` | `0.20` | Electricity $/kWh override |
+| `watts` | `40` | Manual node watts (omit = era auto) |
+| `growth`, `storageDefl`, `hwDefl`, `netTrend`, `ssdPrem`, `elecDefl`, `electrumMult` | | Projection slider overrides |
 
 ## Customization
 
